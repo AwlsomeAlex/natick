@@ -12,16 +12,20 @@ I decided to take a different approach for StelaLinux and instead of using only 
 
 ## How to Build:
 **Dependencies (Ubuntu 18.04/19.10):**
+
 `sudo apt install wget make gawk gcc bc bison flex xorriso libelf-dev libssl-dev`
 
 **musl-gcc wrapper:**
+
 TBA
 
 ## How to Install:
 **Install via ArchLinux**
+
 TO BE ADDED
 
 **Install via Install Script**
+
 TO BE DEVELOPED!
 
 ## Developer:
