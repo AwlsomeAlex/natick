@@ -1,4 +1,4 @@
-# StelaLinux - A Minimal Linux Distribution (Private Repository)
+# StelaLinux - A Minimal Linux Distribution
 
 I have experimented with this type of project in the past, with AwlBuntu, AwlsomeLinux, MLL, and StarLinux, but now I want to finish it. StelaLinux (Stela is Esperanto for Star) is **hopefully** the last iteration before StelaLinux can be a production standard for my Minimal Linux Distribution. This repository contains scripts needed to build StelaLinux and create the packages for the package repository. 
 
@@ -13,11 +13,11 @@ I decided to take a different approach for StelaLinux and instead of using only 
 ## How to Build:
 **Dependencies (Ubuntu 18.04/19.10):**
 
-`sudo apt install wget make gawk gcc bc bison flex xorriso libelf-dev libssl-dev`
+`sudo apt install wget make gawk gcc bc bison pv flex xorriso libelf-dev libssl-dev`
 
 **musl-gcc wrapper:**
 
-TBA
+Cross Compiler Toolchain provided via musl.cc
 
 ## How to Install:
 **Install via ArchLinux**
@@ -33,3 +33,4 @@ TO BE DEVELOPED!
 
 ## Special Thanks:
 * Ivandavidov (MLL)
+* zv.io (MUSL Cross Compiler)
