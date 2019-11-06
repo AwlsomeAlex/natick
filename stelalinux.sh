@@ -10,8 +10,14 @@
 # ----- Variables ----- #
 #-----------------------#
 
-# ---- Script Variables ---- #
-TDIR=$(pwd)/toolchain   # Toolchain Directory
+# ---- Directories ---- #
+STELA=$(pwd)
+TDIR=$STELA/toolchain   # Toolchain Directory
+RDIR=$STELA/packages    # Package Repository
+SRC_DIR=$STELA/source   # Source Directory
+WRK_DIR=$STELA/work     # Work Directory
+FIN_DIR=$STELA/final    # System Root Directory
+
 
 # ---- Download Links ---- #
 TMUSL_LINK="https://musl.cc/x86_64-linux-musl-cross.tgz"
@@ -43,10 +49,15 @@ function loka_title() {
 function loka_clean() {
     loka_title
     echo "[....] Cleaning Toolchain...."
+    sleep 2
     rm -rf $TDIR
     mkdir -p $TDIR
     touch $TDIR/.gitignore
     echo "[DONE] Cleaned Toolchain."
+    echo "[....] Cleaning Build Environment...."
+    sleep 2
+    rm -rf $SRC_DIR $WRK_DIR $FIN_DIR
+    echo "[DONE] Cleaned Build Environment."
     echo ""
     echo "+======================+"
     echo "| Directory Cleaned Up |"
@@ -91,7 +102,21 @@ function loka_toolchain() {
 # prepare(): Prepares the Directories
 function loka_prepare() {
     # ---- Check Toolchain Directory ---- #
-    if [ "$(ls $TDIR)" ]; then
+    if [ ! "$(ls $TDIR)" ]; then
+        echo "[ERROR] Toolchain Not Found."
+        echo "Please download it with '$EXECUTE toolchain'"
+        exit
+    fi
+    if [ ! -d $SRC_DIR ] || [ ! -d $WRK_DIR ] || [ ! -d $FIN_DIR ]; then
+        echo "[....] Creating Build Environment...."
+        sleep 2
+        mkdir -p $SRC_DIR $WRK_DIR $FIN_DIR
+    fi
+    if [ ! -d $RDIR ]; then
+        echo "[ERROR] Package Repository Not Found."
+        echo "That's tragic. -Tepper"
+        exit
+    fi
 }
 
 # build(): Builds a package
