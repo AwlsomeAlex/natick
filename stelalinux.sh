@@ -21,7 +21,7 @@ TMUSL_LINK="https://musl.cc/x86_64-linux-musl-cross.tgz"
 #-----------------------------#
 
 # title(): Shows Title
-function title() {
+function loka_title() {
     clear
     echo "+=============================+"
     echo "|   StelaLinux Build Script   |"
@@ -40,8 +40,8 @@ function title() {
 }
 
 # clean(): Cleans folders
-function clean() {
-    title
+function loka_clean() {
+    loka_title
     echo "[....] Cleaning Toolchain...."
     rm -rf $TDIR
     mkdir -p $TDIR
@@ -54,8 +54,8 @@ function clean() {
 }
 
 # toolchain(): Download and Prepare Toolchain
-function toolchain() {
-    title
+function loka_toolchain() {
+    loka_title
     if [ "$(ls -A $TDIR)" ]; then
         echo "[WARN] Toolchain Directory is not empty."
         read -p "Would you like to Delete? (Y/n) " OPT
@@ -88,13 +88,19 @@ function toolchain() {
     echo "+======================+"
 }
 
+# build(): Builds a package
+function loka_build() {
+
+}
+
 # usage(): Shows the Usage
-function usage() {
+function loka_usage() {
     echo "$EXECUTE [OPTION] [PAGKAGE]"
     echo "StelaLinux Build Script - Used to build StelaLinux"
     echo ""
     echo "[OPTION]:"
     echo "      toolchain:      Downloads the MUSL-compiled GCC Toolchain"
+    echo "      build:          Builds a package from the repository"
     echo "      clean:          Cleans all of the directories"
     echo "      help:           Shows this dialog"
     echo ""
@@ -111,16 +117,19 @@ function usage() {
 #---------------------------#
 # ----- Main Function ----- #
 #---------------------------#
-function main() {
+function loka_main() {
     case "$OPTION" in
         toolchain )
-            toolchain
+            loka_toolchain
+            ;;
+        build )
+            loka_build
             ;;
         clean )
-            clean
+            loka_clean
             ;;
         * )
-            usage
+            loka_usage
             ;;
     esac
 }
@@ -131,4 +140,4 @@ function main() {
 EXECUTE=$0
 OPTION=$1
 PACKAGE=$2
-main
+loka_main
