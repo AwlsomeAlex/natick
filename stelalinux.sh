@@ -100,6 +100,7 @@ function usage() {
     echo "[PACKAGE]: Specific Package to be built"
     echo ""
     echo "Developed by Alexander Barris (AwlsomeAlex)"
+    echo "Licensed under the GNU GPLv3"
     echo "Musl Toolchain Provided by musl.cc (Thanks zv.io!)"
     echo "No penguins were harmed in the making of this distro."
     echo ""
