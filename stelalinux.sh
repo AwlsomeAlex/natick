@@ -45,6 +45,7 @@ function clean() {
     echo "[....] Cleaning Toolchain...."
     rm -rf $TDIR
     mkdir -p $TDIR
+    touch $TDIR/.gitignore
     echo "[DONE] Cleaned Toolchain."
     echo ""
     echo "+======================+"
