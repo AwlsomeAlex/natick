@@ -6,9 +6,9 @@
 # Created by Alexander Barris [GNU GPLv3] #
 ###########################################
 
-#----------------------#
-# ----- Variables -----#
-#----------------------#
+#-----------------------#
+# ----- Variables ----- #
+#-----------------------#
 
 # ---- Script Variables ---- #
 TDIR=$(pwd)/toolchain   # Toolchain Directory
@@ -56,7 +56,7 @@ function loka_clean() {
 # toolchain(): Download and Prepare Toolchain
 function loka_toolchain() {
     loka_title
-    if [ "$(ls -A $TDIR)" ]; then
+    if [ "$(ls $TDIR)" ]; then
         echo "[WARN] Toolchain Directory is not empty."
         read -p "Would you like to Delete? (Y/n) " OPT
         if [ "$OPT" == "Y" ]; then
@@ -88,9 +88,20 @@ function loka_toolchain() {
     echo "+======================+"
 }
 
+# prepare(): Prepares the Directories
+function loka_prepare() {
+    # ---- Check Toolchain Directory ---- #
+    if [ "$(ls $TDIR)" ]; then
+}
+
 # build(): Builds a package
 function loka_build() {
-
+    loka_title
+    if [ -z $PACKAGE ]; then
+        echo "[ERROR] No Package Defined."
+        exit
+    fi
+    loka_prepare
 }
 
 # usage(): Shows the Usage
