@@ -48,7 +48,7 @@ function clean() {
 
 # help(): Show Usage
 function usage() {
-    echo "$EXECUTE 
+    echo "$EXECUTE" 
 }
 
 #----------------------------#
