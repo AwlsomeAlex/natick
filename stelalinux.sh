@@ -14,7 +14,7 @@
 TDIR=$(pwd)/toolchain   # Toolchain Directory
 
 # ---- Download Links ---- #
-
+TMUSL_LINK="https://musl.cc/x86_64-linux-musl-cross.tgz"
 
 #-----------------------------#
 # ----- Helper Function ----- #
@@ -71,7 +71,7 @@ function toolchain() {
     echo "Toolchain provided by musl.cc Thanks zv.io!"
     sleep 2
     cd $TDIR
-    wget -q --show-progress https://musl.cc/x86_64-linux-musl-cross.tgz
+    wget -q --show-progress $TMUSL_LINK
     echo "[DONE] Downloaded Toolchain."
     echo "[....] Extracting Toolchain...."
     sleep 2
