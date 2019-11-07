@@ -127,6 +127,44 @@ function loka_build() {
         exit
     fi
     loka_prepare
+    if [ ! -d $RDIR/$PACKAGE ]; then
+        echo "[ERROR] Package $PACKAGE Not Found."
+        exit
+    fi
+    if [ -d $WRK_DIR/$PACKAGE ]; then
+        echo "[WARN] This package was already built."
+        read -p "Do you want to overwrite? (Y/n) " OPT
+        if [ $OPT == 'Y' ]; then
+            echo "[....] Removing $PACKAGE Directory...."
+            sleep 2
+            rm -rf $WRK_DIR/$PACKAGE
+            echo "[DONE] Removed $PACKAGE Directory."
+        fi
+    fi
+    echo "[....] Creating Directories...."
+    sleep 2
+    mkdir -p $WRK_DIR/$PACKAGE
+    PKG_DIR=$RDIR/$PACKAGE
+    source $PKG_DIR/StelaKonstrui
+    for d in $PKG_SRC; do
+        echo $d
+        echo "[....] Downloading & Extracting Archive Packages...."
+        if [[ $d == *"http"* ]]; then
+            wget -q --show-progress -P $SRC_DIR $d
+            ARCHIVE_FILE=${d##*/}
+            if [[ $ARCHIVE_FILE == *"bz2"* ]]; then
+                pv $SRC_DIR/$ARCHIVE_FILE | tar -xjf - -C $WRK_DIR/$PACKAGE/
+            else
+                pv $SRC_DIR/$ARCHIVE_FILE | tar -xf - -C $WRK_DIR/$PACKAGE/
+            fi
+            #tar -xvf $SRC_DIR/$ARCHIVE_FILE | (pv -p --timer --rate --bytes > $WRK_DIR/$PACKAGE/)
+            #pv $SRC_DIR/$ARCHIVE_FILE | tar xzf -C $WRK_DIR/$PACKAGE
+        else
+            cp -r $d $WRK_DIR/$PACKAGE
+        fi
+        echo "[DONE] Downloaded & Extracted Archive Packages."
+    done
+    build_$PACKAGE
 }
 
 # usage(): Shows the Usage

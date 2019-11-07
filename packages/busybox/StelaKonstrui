@@ -1,0 +1,21 @@
+###################################
+#---------------------------------#
+# Stela Package Builder - BusyBox #
+#---------------------------------#
+###################################
+#
+# Description:  Tiny versions of many common UNIX utilities
+# URL:          https://www.busybox.net/
+# Maintainer:   AwlsomeAlex
+# Section:      kerno
+#
+
+PKG_NAME=busybox
+PKG_VERSION=1.31.1
+PKG_SRC=('https://www.busybox.net/downloads/busybox-1.31.1.tar.bz2')
+
+build_busybox() {
+    echo "Got Here!"
+
+}
+
