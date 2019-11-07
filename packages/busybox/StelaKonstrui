@@ -12,10 +12,23 @@
 
 PKG_NAME=busybox
 PKG_VERSION=1.31.1
-PKG_SRC=('https://www.busybox.net/downloads/busybox-1.31.1.tar.bz2')
+PKG_SRC=("busybox_$PKG_VERSION.config" "https://www.busybox.net/downloads/$PKG_NAME-$PKG_VERSION.tar.bz2")
 
 build_busybox() {
-    echo "Got Here!"
+    # Local Variables
+    FS=../busybox-fs
+    CONFIG_FILE="busybox_$PKG_VERSION.config"
+    
+    # Configuration
+    make mrproper
+    cp ../$CONFIG_FILE .config 
+    mkdir -p ../busybox-fs
 
+    # Compile BusyBox
+    make ARCH=$ARCH CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS" -j $NUM_JOBS
+    make ARCH=$ARCH CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS" -j $NUM_JOBS busybox
+
+    # Install BusyBox
+    make CONFIG_PREFIX="$FS" install -j $NUM_JOBS
 }
 

@@ -1,0 +1,38 @@
+#################################
+#-------------------------------#
+# Stela Package Builder - Linux #
+#-------------------------------#
+#################################
+#
+# Description:  The All Powerful Linux Kernel
+# URL:          https://www.kernel.org/
+# Maintainer:   AwlsomeAlex
+# Section:      kerno
+#
+
+PKG_NAME=linux
+PKG_VERSION=5.4-rc6
+PKG_SRC=("https://git.kernel.org/torvalds/t/$PKG_NAME-$PKG_VERSION.tar.gz")
+
+build_linux() {
+
+    # Local Variables
+    IMAGE_FILE="arch/x86/boot/bzImage"
+    CONFIG_FILE="../$ARCH.config"
+    HEADER_DIR="../headers"
+
+    # Configuration
+    make mrproper
+    mkdir ../headers
+    cp ../$CONFIG_FILE .config
+
+    # Kernel Compiling
+    make ARCH=$ARCH CROSS_COMPILE=${CROSS_COMPILE} CFLAGS="$CFLAGS" bzImage -j $NUM_JOBS
+
+    # Kernel Headers
+    make ARCH=$ARCH CROSS_COMPILE=${CROSS_COMPILE} INSTALL_HDR_PATH=$HEADERS_DIR headers_install
+
+    # Install Kernel
+    cp $IMAGE_HEADER ../
+}
+

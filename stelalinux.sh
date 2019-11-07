@@ -17,10 +17,25 @@ RDIR=$STELA/packages    # Package Repository
 SRC_DIR=$STELA/source   # Source Directory
 WRK_DIR=$STELA/work     # Work Directory
 FIN_DIR=$STELA/final    # System Root Directory
-
+CROSS_DIR=$TDIR/bin     # Cross Compiler Binaries
 
 # ---- Download Links ---- #
 TMUSL_LINK="https://musl.cc/x86_64-linux-musl-cross.tgz"
+
+# ---- Cross Compile Stuff ---- #
+export TARGET="x86_64-linux-musl"
+export ARCH=x86_64
+export CROSS_COMPILE="$CROSS_DIR/$TARGET-"
+export CC="$TARGET-gcc"
+export CXX="$TARGET-g++"
+export AR="$TARGET-ar"
+export AS="$TARGET-as"
+export LD="$TARGET-ld"
+export STRIP="$TARGET-strip"
+export CFLAGS="-Os -s -pipe"
+JOB_FACTOR=2
+NUM_CORES="$(grep ^processor /proc/cpuinfo | wc -l)"
+export NUM_JOBS="$((NUM_CORES * JOB_FACTOR))"
 
 #-----------------------------#
 # ----- Helper Function ----- #
@@ -36,9 +51,9 @@ function loka_title() {
     echo "|          GNU GPLv3          |"
     echo "+=============================+"
     echo ""
-    pkg=('wget' 'pv')
+    pkg=('wget' 'pv' 'flex' 'bison')
     for i in $pkg; do
-        if [ "$(which $i)" == "" ]; then
+        if [[ "$(which $i)" == "" ]]; then
             echo "[ERROR] $i is not installed. Please install it!"
             exit
         fi
@@ -139,6 +154,9 @@ function loka_build() {
             sleep 2
             rm -rf $WRK_DIR/$PACKAGE
             echo "[DONE] Removed $PACKAGE Directory."
+        else
+            echo "[DONE] Nothing."
+            exit
         fi
     fi
     echo "[....] Creating Directories...."
@@ -146,24 +164,30 @@ function loka_build() {
     mkdir -p $WRK_DIR/$PACKAGE
     PKG_DIR=$RDIR/$PACKAGE
     source $PKG_DIR/StelaKonstrui
-    for d in $PKG_SRC; do
-        echo $d
-        echo "[....] Downloading & Extracting Archive Packages...."
+    for d in "${PKG_SRC[@]}"; do
         if [[ $d == *"http"* ]]; then
-            wget -q --show-progress -P $SRC_DIR $d
             ARCHIVE_FILE=${d##*/}
+            echo "[....] Downloading & Extracting $ARCHIVE_FILE...."
+            sleep 2
+            wget -q --show-progress -P $SRC_DIR $d
             if [[ $ARCHIVE_FILE == *"bz2"* ]]; then
                 pv $SRC_DIR/$ARCHIVE_FILE | tar -xjf - -C $WRK_DIR/$PACKAGE/
+            elif [[ $ARCHIVE_FILE == *"gz"* ]]; then
+                pv $SRC_DIR/$ARCHIVE_FILE | tar -xzf - -C $WRK_DIR/$PACKAGE/
             else
                 pv $SRC_DIR/$ARCHIVE_FILE | tar -xf - -C $WRK_DIR/$PACKAGE/
             fi
-            #tar -xvf $SRC_DIR/$ARCHIVE_FILE | (pv -p --timer --rate --bytes > $WRK_DIR/$PACKAGE/)
-            #pv $SRC_DIR/$ARCHIVE_FILE | tar xzf -C $WRK_DIR/$PACKAGE
+            echo "[DONE] Downloaded & Extracted $ARCHIVE_FILE."
         else
-            cp -r $d $WRK_DIR/$PACKAGE
+            echo "[....] Copying File $d...."
+            cp -r $PKG_DIR/$d $WRK_DIR/$PACKAGE
+            echo "[DONE] Copied $d."
         fi
-        echo "[DONE] Downloaded & Extracted Archive Packages."
     done
+    export DIR=$WRK_DIR/$PACKAGE/$PACKAGE-*
+    cd $DIR
+    echo "[DONE] Downloaded & Extracted Archive Packages."
+    echo "[....] Building $PACKAGE...."
     build_$PACKAGE
 }
 
