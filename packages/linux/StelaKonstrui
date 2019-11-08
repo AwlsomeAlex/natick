@@ -30,10 +30,11 @@ build_linux() {
     make ARCH=$ARCH CROSS_COMPILE=${CROSS_COMPILE} CFLAGS="$CFLAGS" bzImage -j $NUM_JOBS
 
     # Kernel Headers
-    #make ARCH=$ARCH CROSS_COMPILE=${CROSS_COMPILE} INSTALL_HDR_PATH=$HEADER_DIR headers_install
+    make ARCH=$ARCH CROSS_COMPILE=${CROSS_COMPILE} INSTALL_HDR_PATH=$HEADER_DIR headers_install
 
     # Install Kernel
-    cp $IMAGE_HEADER ../
+    cp -r $IMAGE_FILE $FIN_DIR/boot/
+    cp -r $HEADER_DIR/* $FIN_DIR/usr/share
 
     echo ""
     echo "+=================================+"

@@ -1,0 +1,41 @@
+################################
+#------------------------------#
+# Stela Package Builder - musl #
+#------------------------------#
+################################
+#
+# Description:  musl C Library
+# URL:          https://www.musl-libc.org/
+# Maintainer:   AwlsomeAlex
+# Section:      kerno
+#
+
+PKG_NAME=musl
+PKG_VERSION=1.1.24
+PKG_SRC=("https://www.musl-libc.org/releases/$PKG_NAME-$PKG_VERSION.tar.gz")
+
+build_musl() {
+    
+    # Local Variables
+    MUSL_MAIN=$(pwd)
+    MUSL_WRK="../musl-work"
+    
+    # Configuration
+    mkdir -p $MUSL_WRK
+    cd $MUSL_WRK
+    $MUSL_MAIN/configure \
+        --prefix= \
+        --syslibdir=$FIN_DIR/lib \
+        CC="$CC_DIR" \
+        AR="$AR_DIR" \
+        CFLAGS="$CFLAGS"
+    
+    # Build musl
+    make -j $NUM_JOBS
+    make install DESTDIR=$FIN_DIR -j $NUM_JOBS
+    
+    echo ""
+    echo "+====================+"
+    echo "| musl libc Compiled |"
+    echo "+====================+"
+}
