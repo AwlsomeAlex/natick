@@ -30,5 +30,16 @@ build_busybox() {
 
     # Install BusyBox
     make CONFIG_PREFIX="$FS" install -j $NUM_JOBS
+   
+    # Delete linuxrc
+    rm $FS/linuxrc
+ 
+    # Move Directory
+    cp -r $FS/* $FIN_DIR/
+
+    echo ""
+    echo "+==================+"
+    echo "| BusyBox Compiled |"
+    echo "+==================+"
 }
 

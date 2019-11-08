@@ -12,27 +12,32 @@
 
 PKG_NAME=linux
 PKG_VERSION=5.4-rc6
-PKG_SRC=("https://git.kernel.org/torvalds/t/$PKG_NAME-$PKG_VERSION.tar.gz")
+PKG_SRC=("https://git.kernel.org/torvalds/t/$PKG_NAME-$PKG_VERSION.tar.gz" "x86_64-$PKG_VERSION.config")
 
 build_linux() {
 
     # Local Variables
     IMAGE_FILE="arch/x86/boot/bzImage"
-    CONFIG_FILE="../$ARCH.config"
+    CONFIG_FILE="../$ARCH-$PKG_VERSION.config"
     HEADER_DIR="../headers"
 
     # Configuration
     make mrproper
-    mkdir ../headers
-    cp ../$CONFIG_FILE .config
+    mkdir -p $HEADER_DIR
+    cp $CONFIG_FILE .config
 
     # Kernel Compiling
     make ARCH=$ARCH CROSS_COMPILE=${CROSS_COMPILE} CFLAGS="$CFLAGS" bzImage -j $NUM_JOBS
 
     # Kernel Headers
-    make ARCH=$ARCH CROSS_COMPILE=${CROSS_COMPILE} INSTALL_HDR_PATH=$HEADERS_DIR headers_install
+    #make ARCH=$ARCH CROSS_COMPILE=${CROSS_COMPILE} INSTALL_HDR_PATH=$HEADER_DIR headers_install
 
     # Install Kernel
     cp $IMAGE_HEADER ../
+
+    echo ""
+    echo "+=================================+"
+    echo "| Linux Kernel & Headers Compiled |"
+    echo "+=================================+"
 }
 

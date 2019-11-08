@@ -126,6 +126,7 @@ function loka_prepare() {
         echo "[....] Creating Build Environment...."
         sleep 2
         mkdir -p $SRC_DIR $WRK_DIR $FIN_DIR
+        mkdir -p $FIN_DIR/{bin,boot,dev,etc,lib,lib64,mnt/root,proc,root,sbin,sys,tmp,usr/share}
     fi
     if [ ! -d $RDIR ]; then
         echo "[ERROR] Package Repository Not Found."
@@ -169,7 +170,11 @@ function loka_build() {
             ARCHIVE_FILE=${d##*/}
             echo "[....] Downloading & Extracting $ARCHIVE_FILE...."
             sleep 2
-            wget -q --show-progress -P $SRC_DIR $d
+            if [ -f $SRC_DIR/$ARCHIVE_FILE ]; then
+                echo "[DONE] File already downloaded. Continuing..."
+            else
+                wget -q --show-progress -P $SRC_DIR $d
+            fi
             if [[ $ARCHIVE_FILE == *"bz2"* ]]; then
                 pv $SRC_DIR/$ARCHIVE_FILE | tar -xjf - -C $WRK_DIR/$PACKAGE/
             elif [[ $ARCHIVE_FILE == *"gz"* ]]; then
