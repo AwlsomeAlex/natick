@@ -5,14 +5,14 @@
 ###################################
 #
 # Description:  Xiongnu Init Scripts
-# URL:          https://www.github.com/AwlsomeAlex/Xiongnu/tree/nova
+# URL:          https://www.github.com/AwlsomeAlex/Xiongnu
 # Maintainer:   AwlsomeAlex
 # Section:      kerno
 #
 
 PKG_NAME=xiongnu
-PKG_VERSION=1.1.24
-PKG_SRC=("https://github.com/AwlsomeAlex/Xiongnu/archive/nova.zip") # nova branch
+PKG_VERSION=GIT
+PKG_SRC=("https://github.com/AwlsomeAlex/Xiongnu/archive/master.zip")
 
 build_xiongnu() {
     

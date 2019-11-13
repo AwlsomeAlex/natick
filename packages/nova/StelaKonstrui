@@ -1,8 +1,8 @@
-###################################
-#---------------------------------#
-# Stela Package Builder - xiongnu #
-#---------------------------------#
-###################################
+#################################################
+#-----------------------------------------------#
+# Stela Package Builder - xiongnu (nova branch) #
+#-----------------------------------------------#
+#################################################
 #
 # Description:  Xiongnu Init Scripts
 # URL:          https://www.github.com/AwlsomeAlex/Xiongnu/tree/nova
@@ -10,11 +10,15 @@
 # Section:      kerno
 #
 
-PKG_NAME=xiongnu
-PKG_VERSION=1.1.24
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
+# !!!!! THIS IS A TEMPORARY PACKAGE IN PLACE FOR 'xiongnu' !!!!! #
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
+
+PKG_NAME=nova
+PKG_VERSION=GIT
 PKG_SRC=("https://github.com/AwlsomeAlex/Xiongnu/archive/nova.zip") # nova branch
 
-build_xiongnu() {
+build_nova() {
     
     # Local Variables
     
