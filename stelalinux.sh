@@ -54,7 +54,7 @@ function loka_title() {
     echo "|          GNU GPLv3          |"
     echo "+=============================+"
     echo ""
-    pkg=('wget' 'pv' 'flex' 'bison')
+    pkg=('wget' 'pv' 'flex' 'bison' 'unzip')
     for i in $pkg; do
         if [[ "$(which $i)" == "" ]]; then
             echo "[ERROR] $i is not installed. Please install it!"
@@ -182,6 +182,8 @@ function loka_build() {
                 pv $SRC_DIR/$ARCHIVE_FILE | tar -xjf - -C $WRK_DIR/$PACKAGE/
             elif [[ $ARCHIVE_FILE == *"gz"* ]]; then
                 pv $SRC_DIR/$ARCHIVE_FILE | tar -xzf - -C $WRK_DIR/$PACKAGE/
+            elif [[ $ARCHIVE_FILE == *"zip"* ]]; then
+                pv $SRC_DIR/$ARCHIVE_FILE | unzip -C $WRK_DIR/$PACKAGE/
             else
                 pv $SRC_DIR/$ARCHIVE_FILE | tar -xf - -C $WRK_DIR/$PACKAGE/
             fi
