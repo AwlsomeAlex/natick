@@ -171,6 +171,8 @@ function loka_build() {
     for d in "${PKG_SRC[@]}"; do
         if [[ $d == *"http"* ]]; then
             ARCHIVE_FILE=${d##*/}
+            echo "$d"
+            echo $ARCHIVE_FILE
             echo "[....] Downloading & Extracting $ARCHIVE_FILE...."
             sleep 2
             if [ -f $SRC_DIR/$ARCHIVE_FILE ]; then
@@ -183,7 +185,8 @@ function loka_build() {
             elif [[ $ARCHIVE_FILE == *"gz"* ]]; then
                 pv $SRC_DIR/$ARCHIVE_FILE | tar -xzf - -C $WRK_DIR/$PACKAGE/
             elif [[ $ARCHIVE_FILE == *"zip"* ]]; then
-                pv $SRC_DIR/$ARCHIVE_FILE | unzip -C $WRK_DIR/$PACKAGE/
+                unzip -o $SRC_DIR/$ARCHIVE_FILE -d $WRK_DIR/$PACKAGE/ | pv -l >/dev/null
+                #pv $SRC_DIR/$ARCHIVE_FILE | unzip -o - -d $WRK_DIR/$PACKAGE/
             else
                 pv $SRC_DIR/$ARCHIVE_FILE | tar -xf - -C $WRK_DIR/$PACKAGE/
             fi
@@ -194,7 +197,11 @@ function loka_build() {
             echo "[DONE] Copied $d."
         fi
     done
-    export DIR=$WRK_DIR/$PACKAGE/$PACKAGE-*
+    if [[ $ARCHIVE_FILE == *"zip"* ]]; then # Temporary Fix for how Git works
+        export DIR=$WRK_DIR/$PACKAGE/*-$PACKAGE
+    else
+        export DIR=$WRK_DIR/$PACKAGE/$PACKAGE-*
+    fi
     cd $DIR
     echo "[DONE] Downloaded & Extracted Archive Packages."
     echo "[....] Building $PACKAGE...."
