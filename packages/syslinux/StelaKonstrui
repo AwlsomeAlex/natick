@@ -1,0 +1,34 @@
+####################################
+#----------------------------------#
+# Stela Package Builder - syslinux #
+#----------------------------------#
+####################################
+#
+# Description:  syslinux Bootloader
+# URL:          https://wiki.syslinux.org/wiki/index.php
+# Maintainer:   AwlsomeAlex
+# Section:      kerno
+#
+
+PKG_NAME=syslinux
+PKG_VERSION=6.03
+PKG_SRC=("https://mirrors.edge.kernel.org/pub/linux/utils/boot/syslinux/6.xx/syslinux-$PKG_VERSION.tar.gz" "syslinux.cfg" "isolinux.cfg" "isohdpfx.bin")
+
+build_syslinux() {
+    
+    # Local Variables
+    
+    # Configuration
+    
+    # Build syslinux
+    cp ../isohdpfx.bin $FIN_DIR/boot/    
+    cp ../isolinux.cfg $FIN_DIR/boot/    
+    cp ../syslinux.cfg $FIN_DIR/boot/
+    cp bios/core/isolinux.bin $FIN_DIR/boot/
+    cp bios/com32/elflink/ldlinux/ldlinux.c32 $FIN_DIR/boot/ 
+
+    echo ""
+    echo "+===================+"
+    echo "| syslinux Compiled |"
+    echo "+===================+"
+}

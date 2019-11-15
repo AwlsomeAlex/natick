@@ -11,7 +11,7 @@
 #
 
 PKG_NAME=linux
-PKG_VERSION=5.4-rc6
+PKG_VERSION=5.4-rc7
 PKG_SRC=("https://git.kernel.org/torvalds/t/$PKG_NAME-$PKG_VERSION.tar.gz" "x86_64-$PKG_VERSION.config")
 
 build_linux() {
