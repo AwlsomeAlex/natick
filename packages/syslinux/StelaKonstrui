@@ -21,11 +21,12 @@ build_syslinux() {
     # Configuration
     
     # Build syslinux
-    cp ../isohdpfx.bin $FIN_DIR/boot/    
-    cp ../isolinux.cfg $FIN_DIR/boot/    
-    cp ../syslinux.cfg $FIN_DIR/boot/
-    cp bios/core/isolinux.bin $FIN_DIR/boot/
-    cp bios/com32/elflink/ldlinux/ldlinux.c32 $FIN_DIR/boot/ 
+    mkdir $FS/boot
+    cp ../isohdpfx.bin $FS/boot/    
+    cp ../isolinux.cfg $FS/boot/    
+    cp ../syslinux.cfg $FS/boot/
+    cp bios/core/isolinux.bin $FS/boot/
+    cp bios/com32/elflink/ldlinux/ldlinux.c32 $FS/boot/ 
 
     echo ""
     echo "+===================+"

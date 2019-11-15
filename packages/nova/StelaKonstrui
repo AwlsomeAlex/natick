@@ -26,9 +26,9 @@ build_nova() {
     
     # Generate Xiongnu
     cd src
-	cp -r * $FIN_DIR/
+	cp -r * $FS
     echo ""
-    echo "+==================+"
-    echo "| Xiongnu Compiled |"
-    echo "+==================+"
+    echo "+===================+"
+    echo "| Xiongnu Generated |"
+    echo "+===================+"
 }

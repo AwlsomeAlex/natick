@@ -32,7 +32,7 @@ build_musl() {
     
     # Build musl
     make -j $NUM_JOBS
-    make install DESTDIR=$FIN_DIR -j $NUM_JOBS
+    make install DESTDIR=$FS -j $NUM_JOBS
     
     echo ""
     echo "+====================+"

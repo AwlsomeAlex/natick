@@ -16,7 +16,6 @@ PKG_SRC=("busybox_$PKG_VERSION.config" "https://www.busybox.net/downloads/$PKG_N
 
 build_busybox() {
     # Local Variables
-    FS=../busybox-fs
     CONFIG_FILE="busybox_$PKG_VERSION.config"
     
     # Configuration
@@ -34,9 +33,6 @@ build_busybox() {
     # Delete linuxrc
     rm $FS/linuxrc
  
-    # Move Directory
-    cp -r $FS/* $FIN_DIR/
-
     echo ""
     echo "+==================+"
     echo "| BusyBox Compiled |"
