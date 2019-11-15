@@ -168,6 +168,7 @@ function loka_build() {
     mkdir -p $WRK_DIR/$PACKAGE
     PKG_DIR=$RDIR/$PACKAGE
     FS=$PKG_DIR/$PACKAGE-fs
+    mkdir $FS
     source $PKG_DIR/StelaKonstrui
     for d in "${PKG_SRC[@]}"; do
         if [[ $d == *"http"* ]]; then
