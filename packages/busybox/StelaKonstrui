@@ -21,7 +21,6 @@ build_busybox() {
     # Configuration
     make mrproper
     cp ../$CONFIG_FILE .config 
-    mkdir -p ../busybox-fs
 
     # Compile BusyBox
     make ARCH=$ARCH CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS" -j $NUM_JOBS

@@ -19,11 +19,11 @@ build_linux() {
     # Local Variables
     IMAGE_FILE="arch/x86/boot/bzImage"
     CONFIG_FILE="../$ARCH-$PKG_VERSION.config"
-    HEADER_DIR="../headers"
+    #HEADER_DIR="../headers"
 
     # Configuration
     make mrproper
-    mkdir -p $HEADER_DIR
+    #mkdir -p $HEADER_DIR
     cp $CONFIG_FILE .config
 
     # Kernel Compiling
@@ -34,7 +34,7 @@ build_linux() {
 
     # Install Kernel
     mkdir $FS/boot
-    cp -r $IMAGE_FILE $FIN_DIR/boot/
+    cp -r $IMAGE_FILE $FS/boot/
     #cp -r $HEADER_DIR/* $FIN_DIR/usr/share
 
     echo ""

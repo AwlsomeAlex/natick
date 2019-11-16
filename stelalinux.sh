@@ -167,7 +167,7 @@ function loka_build() {
     sleep 2
     mkdir -p $WRK_DIR/$PACKAGE
     PKG_DIR=$RDIR/$PACKAGE
-    FS=$WRK_DIR/$PACKAGE/$PACKAGE-fs
+    FS=$WRK_DIR/$PACKAGE/$PACKAGE.fs
     mkdir $FS
     source $PKG_DIR/StelaKonstrui
     for d in "${PKG_SRC[@]}"; do
@@ -206,6 +206,7 @@ function loka_build() {
     else
         export DIR=$WRK_DIR/$PACKAGE/$PACKAGE-*
     fi
+    echo $DIR
     cd $DIR
     echo "[DONE] Downloaded & Extracted Archive Packages."
     echo "[....] Building $PACKAGE...."
