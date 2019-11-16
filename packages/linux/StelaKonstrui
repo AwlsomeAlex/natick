@@ -35,6 +35,7 @@ build_linux() {
     sed -i "s/.*CONFIG_KERNEL_XZ.*/CONFIG_KERNEL_XZ=y/" .config                             # Defaults to xz compression
     sed -i "s/.*CONFIG_FB_VESA.*/CONFIG_FB_VESA=y/" .config
     sed -i 's:# CONFIG_UEVENT_HELPER is not set:CONFIG_UEVENT_HELPER=y:g' .config           # Enable mdev support
+    echo "CONFIG_UEVENT_HELPER_PATH=''" >> .config                                          # Set mdev path to '' (Set by xiongnu)
     sed -i "s/.*CONFIG_LOGO_LINUX_CLUT224.*/CONFIG_LOGO_LINUX_CLUT224=y/" .config           # Show Linux Kernel Logo on boot
     sed -i "s/^CONFIG_DEBUG_KERNEL.*/\\# CONFIG_DEBUG_KERNEL is not set/" .config           # Disable debug symbols (smaller kernel binary)
     sed -i "s/.*CONFIG_EFI_STUB.*/CONFIG_EFI_STUB=y/" .config                               # Enable EFI stub
