@@ -24,9 +24,10 @@ build_musl() {
     mkdir -p $FS/lib
     mkdir -p $MUSL_WRK
     cd $MUSL_WRK
+    echo $CC_DIR
     $MUSL_MAIN/configure \
         --prefix= \
-        --syslibdir=$FS/lib \ # !!!!! POSSIBLE PROBLEM HERE !!!!! #
+        --syslibdir=$FS/lib \ # Might cause Problems
         CC="$CC_DIR" \
         AR="$AR_DIR" \
         CFLAGS="$CFLAGS"
