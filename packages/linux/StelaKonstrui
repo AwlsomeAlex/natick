@@ -15,13 +15,16 @@ PKG_VERSION=5.4-rc7
 if [[ $ARCH == 'x86_64' ]]; then
     PKG_SRC=("https://git.kernel.org/torvalds/t/$PKG_NAME-$PKG_VERSION.tar.gz" "$x86_64-$PKG_VERSION.config")
 else
-    ARCH='x86'
-    PKG_SRC=("https://git.kernel.org/torvalds/t/$PKG_NAME-$PKG_VERSION.tar.gz" "x86-$PKG_VERSION.config")
+    ARCH='i386'
+    PKG_SRC=("https://git.kernel.org/torvalds/t/$PKG_NAME-$PKG_VERSION.tar.gz" "i386-$PKG_VERSION.config")
 fi
 
 build_linux() {
 
     # Local Variables
+    if [[ $ARCH != 'x86_64' ]]; then
+        ARCH='i386'
+    fi
     IMAGE_FILE="arch/x86/boot/bzImage"
     CONFIG_FILE="../$ARCH-$PKG_VERSION.config"
     #HEADER_DIR="../headers"
@@ -32,11 +35,7 @@ build_linux() {
     cp $CONFIG_FILE .config
 
     # Kernel Compiling
-    if [[ $ARCH == 'x86_64' ]]; then
-        make ARCH=$ARCH CROSS_COMPILE=${CROSS_COMPILE} CFLAGS="$CFLAGS" bzImage -j $NUM_JOBS
-    else
-        make ARCH=x86 CROSS_COMPILE=${CROSS_COMPILE} CFLAGS="$CFLAGS" bzImage -j $NUM_JOBS
-    fi
+    make ARCH=$ARCH CROSS_COMPILE=${CROSS_COMPILE} CFLAGS="$CFLAGS" bzImage -j $NUM_JOBS
     # Kernel Headers
     #make ARCH=$ARCH CROSS_COMPILE=${CROSS_COMPILE} INSTALL_HDR_PATH=$HEADER_DIR headers_install
 

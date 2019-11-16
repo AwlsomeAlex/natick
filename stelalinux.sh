@@ -13,7 +13,7 @@
 STELA_BUILD="git"
 INITRAMFS_PKG=('linux' 'musl' 'busybox' 'nova')
 IMAGE_PKG=('linux' 'musl' 'busybox' 'nova' 'syslinux')
-export ARCH=i486 # x86_64 i486 i686
+export ARCH=x86_64 # x86_64 i686
 
 #-----------------------#
 # ----- Variables ----- #
