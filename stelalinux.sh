@@ -13,6 +13,7 @@
 STELA_BUILD="git"
 INITRAMFS_PKG=('linux' 'musl' 'busybox' 'nova')
 IMAGE_PKG=('linux' 'musl' 'busybox' 'nova' 'syslinux')
+export ARCH=i486 # x86_64 i486 i686
 
 #-----------------------#
 # ----- Variables ----- #
@@ -29,11 +30,10 @@ CROSS_DIR=$TDIR/bin                 # Cross Compiler Binaries
 INITRAMFS_DIR=$WRK_DIR/initramfs    # InitramFS Directory
 
 # ---- Download Links ---- #
-TMUSL_LINK="https://musl.cc/x86_64-linux-musl-cross.tgz"
+TMUSL_LINK="https://musl.cc/$ARCH-linux-musl-cross.tgz"
 
 # ---- Cross Compile Stuff ---- #
-export TARGET="x86_64-linux-musl"
-export ARCH=x86_64
+export TARGET="$ARCH-linux-musl"
 export CROSS_COMPILE="$CROSS_DIR/$TARGET-"
 export CROSS_COMPILE_TEST="$CROSS_DIR/$TARGET"
 export CC="$TARGET-gcc"
@@ -113,11 +113,11 @@ function loka_toolchain() {
     echo "[DONE] Downloaded Toolchain."
     echo "[....] Extracting Toolchain...."
     sleep 2
-    pv x86_64-linux-musl-cross.tgz | tar xzp -C .
+    pv $ARCH-linux-musl-cross.tgz | tar xzp -C .
     echo "[DONE] Toolchain Extracted."
     echo "[....] Cleaning up...."
-    mv x86_64-linux-musl-cross/* .
-    rm -rf x86_64-linux-musl-cross*
+    mv $ARCH-linux-musl-cross/* .
+    rm -rf $ARCH-linux-musl-cross*
     echo "[DONE] Cleaned up."
     echo ""
     echo "+======================+"
@@ -254,8 +254,13 @@ function loka_initramfs() {
     echo "[....] Configuring InitramFS...."
     sleep 2
 
-    # musl specific fixes
-    cp -P $INITRAMFS_DIR/fs/lib/ld-musl* $INITRAMFS_DIR/fs/lib64/
+    # musl specific fixesi
+    if [[ $ARCH == 'x86_64' ]]; then
+        cp -P $INITRAMFS_DIR/fs/lib/ld-musl* $INITRAMFS_DIR/fs/lib64/
+        echo "64-bit OS Detected."
+    else
+        echo "32-bit OS Detected."
+    fi
     mv $INITRAMFS_DIR/fs/include $INITRAMFS_DIR/fs/usr/share/include
     
     # strip
@@ -321,7 +326,7 @@ function loka_image() {
         -no-emul-boot \
         -boot-load-size 4 \
         -boot-info-table \
-        -o $STELA/StelaLinux-$STELA_BUILD-x86_64.iso \
+        -o $STELA/StelaLinux-$STELA_BUILD-$ARCH.iso \
         .
     echo "[DONE] Generated Disk Image."
 }
