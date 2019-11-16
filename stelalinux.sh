@@ -6,18 +6,27 @@
 # Created by Alexander Barris [GNU GPLv3] #
 ###########################################
 
+#---------------------------------#
+# ----- User Defined Values ----- #
+#---------------------------------#
+
+STELA_BUILD="git"
+INITRAMFS_PKG=('linux' 'musl' 'busybox' 'nova')
+IMAGE_PKG=('linux' 'musl' 'busybox' 'nova' 'syslinux')
+
 #-----------------------#
 # ----- Variables ----- #
 #-----------------------#
 
 # ---- Directories ---- #
 STELA=$(pwd)
-TDIR=$STELA/toolchain   # Toolchain Directory
-RDIR=$STELA/packages    # Package Repository
-SRC_DIR=$STELA/source   # Source Directory
-WRK_DIR=$STELA/work     # Work Directory
-FIN_DIR=$STELA/final    # System Root Directory
-CROSS_DIR=$TDIR/bin     # Cross Compiler Binaries
+TDIR=$STELA/toolchain               # Toolchain Directory
+RDIR=$STELA/packages                # Package Repository
+SRC_DIR=$STELA/source               # Source Directory
+WRK_DIR=$STELA/work                 # Work Directory
+FIN_DIR=$STELA/final                # System Root Directory
+CROSS_DIR=$TDIR/bin                 # Cross Compiler Binaries
+INITRAMFS_DIR=$WRK_DIR/initramfs    # InitramFS Directory
 
 # ---- Download Links ---- #
 TMUSL_LINK="https://musl.cc/x86_64-linux-musl-cross.tgz"
@@ -105,7 +114,6 @@ function loka_toolchain() {
     echo "[....] Extracting Toolchain...."
     sleep 2
     pv x86_64-linux-musl-cross.tgz | tar xzp -C .
-    #tar -xvf x86_64-linux-musl-cross.tgz | (pv -p --timer --rate --bytes > .)
     echo "[DONE] Toolchain Extracted."
     echo "[....] Cleaning up...."
     mv x86_64-linux-musl-cross/* .
@@ -125,11 +133,13 @@ function loka_prepare() {
         echo "Please download it with '$EXECUTE toolchain'"
         exit
     fi
-    if [ ! -d $SRC_DIR ] || [ ! -d $WRK_DIR ] || [ ! -d $FIN_DIR ]; then
+    #if [ ! -d $SRC_DIR ] || [ ! -d $WRK_DIR ] || [ ! -d $FIN_DIR ]; then
+    if [ ! -d $SRC_DIR ] || [ ! -d $WRK_DIR ]; then
         echo "[....] Creating Build Environment...."
         sleep 2
-        mkdir -p $SRC_DIR $WRK_DIR $FIN_DIR
-        mkdir -p $FIN_DIR/{bin,boot,dev,etc,lib,lib64,mnt/root,proc,root,sbin,sys,tmp,usr/share}
+        mkdir -p $SRC_DIR $WRK_DIR
+        #mkdir -p $SRC_DIR $WRK_DIR $FIN_DIR
+        #mkdir -p $FIN_DIR/{bin,boot,dev,etc,lib,lib64,mnt/root,proc,root,sbin,sys,tmp,usr/share}
     fi
     if [ ! -d $RDIR ]; then
         echo "[ERROR] Package Repository Not Found."
@@ -210,6 +220,112 @@ function loka_build() {
     build_$PACKAGE
 }
 
+# initramfs(): Generates the initramfs
+function loka_initramfs() {
+    loka_title
+    if [[ -d $INITRAMFS_DIR ]]; then
+        echo "[WARN] The InitramFS already exists."
+        read -p "Do you want to overwrite? (Y/n) " OPT
+        if [ $OPT == 'Y' ]; then
+            echo "[....] Removing InitramFS...."
+            sleep 2
+            rm -rf $INITRAMFS_DIR
+            echo "[DONE] Removed InitramFS."
+        else
+            echo "[DONE] Nothing."
+            exit
+        fi
+    fi
+    echo "[....] Creating InitramFS File Hierarchy"
+    sleep 2
+    mkdir -p $INITRAMFS_DIR/fs/{bin,boot,dev,etc,lib,lib64,mnt/root,proc,root,sbin,sys,tmp,usr/share/include}
+    echo "[DONE] Created InitramFS File Hierarchy"
+    for i in "${INITRAMFS_PKG[@]}"; do
+        if [[ ! -d $WRK_DIR/$i ]]; then
+            echo "[FAIL] Package $i not built."
+            echo "Please build with $EXECUTE build $i"
+            exit 5
+        fi
+        echo "[....] Copying $i to InitramFS...."
+        sleep 2
+        cp -r $WRK_DIR/$i/$i.fs/* $INITRAMFS_DIR/fs
+        echo "[DONE] Copied $i to InitramFS."
+    done
+    echo "[....] Configuring InitramFS...."
+    sleep 2
+
+    # musl specific fixes
+    cp -P $INITRAMFS_DIR/fs/lib/ld-musl* $INITRAMFS_DIR/fs/lib64/
+    mv $INITRAMFS_DIR/fs/include $INITRAMFS_DIR/fs/usr/share/include
+    
+    # strip
+    strip -g \
+        $INITRAMFS_DIR/fs/bin/* \
+        $INITRAMFS_DIR/fs/sbin/* \
+        $INITRAMFS_DIR/fs/lib/* \
+        2>/dev/null
+    echo "[DONE] Configured InitramFS."
+    echo "[....] Generating InitramFS...."
+    sleep 2
+    cd $INITRAMFS_DIR/fs
+    find . | cpio -R root:root -H newc -o | xz -9 --check=none > ../initramfs.cpio.xz
+    echo "[DONE] Generated InitramFS."
+}
+
+# image(): Creates a LiveCD of StelaLinux
+function loka_image() {
+    loka_title
+    if [[ -d $FIN_DIR ]]; then
+        echo "[WARN] The Final Image Directory already exists."
+        read -p "Do you want to overwrite? (Y/n) " OPT
+        if [ $OPT == 'Y' ]; then
+            echo "[....] Removing Final Directory...."
+            sleep 2
+            rm -rf $FIN_DIR
+            echo "[DONE] Removed Final Directory."
+        else
+            echo "[DONE] Nothing."
+            exit
+        fi
+    fi
+    if [[ ! -d $INITRAMFS_DIR ]]; then
+        echo "[FAIL] The initramFS has not yet been generated."
+        echo "Please generate with $EXECUTE initramfs"
+        exit 5
+    fi
+    echo "[....] Creating Filesystem Hierarchy...."
+    mkdir -p $FIN_DIR/{bin,boot,dev,etc,lib,lib64,mnt/root,proc,root,sbin,sys,tmp,usr/share}
+    echo "[DONE] Created Filesystem Hierarchy."
+    for i in "${IMAGE_PKG[@]}"; do
+        if [[ ! -d $WRK_DIR/$i ]]; then
+            echo "[FAIL] Package $i not built."
+            echo "Please build with $EXECUTE build $i"
+            exit 5
+        fi
+        echo "[....] Copying $i to Final Directory...."
+        sleep 2
+        cp -r $WRK_DIR/$i/$i.fs/* $FIN_DIR
+        echo "[DONE] Copied $i to Final Directory."
+    done
+    echo "[....] Copying initramFS to Final Directory...."
+    sleep 2
+    cp $INITRAMFS_DIR/initramfs.cpio.xz $FIN_DIR/boot/initramfs.xz
+    echo "[DONE] Copied initramFS to Final Directory."
+    echo "[....] Generating Disk Image...."
+    sleep 2
+    cd $FIN_DIR
+    xorriso -as mkisofs \
+        -isohybrid-mbr boot/isolinux/isohdpfx.bin \
+        -c boot/isolinux/boot.cat \
+        -b boot/isolinux/isolinux.bin \
+        -no-emul-boot \
+        -boot-load-size 4 \
+        -boot-info-table \
+        -o $STELA/StelaLinux-$STELA_BUILD-x86_64.iso \
+        .
+    echo "[DONE] Generated Disk Image."
+}
+
 # usage(): Shows the Usage
 function loka_usage() {
     echo "$EXECUTE [OPTION] [PAGKAGE]"
@@ -218,6 +334,8 @@ function loka_usage() {
     echo "[OPTION]:"
     echo "      toolchain:      Downloads the MUSL-compiled GCC Toolchain"
     echo "      build:          Builds a package from the repository"
+    echo "      initramfs:      Generate an initramfs"
+    echo "      image           Generate bootable StelaLinux Image"
     echo "      clean:          Cleans all of the directories"
     echo "      help:           Shows this dialog"
     echo ""
@@ -241,6 +359,12 @@ function loka_main() {
             ;;
         build )
             loka_build
+            ;;
+        initramfs )
+            loka_initramfs
+            ;;
+        image )
+            loka_image
             ;;
         clean )
             loka_clean

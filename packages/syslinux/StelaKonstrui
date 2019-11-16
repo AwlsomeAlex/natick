@@ -23,6 +23,7 @@ build_syslinux() {
     # Build syslinux
     mkdir -p $FS/boot/isolinux
     mkdir -p $FS/boot/syslinux
+    cp ../isohdpfx.bin $FS/boot/isolinux
     cp ../isolinux.cfg $FS/boot/isolinux
     cp ../syslinux.cfg $FS/boot/syslinux
     cp bios/core/isolinux.bin $FS/boot/isolinux

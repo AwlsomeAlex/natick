@@ -22,6 +22,7 @@ build_musl() {
     
     # Configuration
     mkdir -p $FS/lib
+    mkdir -p $FS/lib64
     mkdir -p $MUSL_WRK
     cd $MUSL_WRK
     $MUSL_MAIN/configure \

@@ -35,6 +35,7 @@ build_linux() {
     # Install Kernel
     mkdir $FS/boot
     cp -r $IMAGE_FILE $FS/boot/
+    mv $FS/boot/bzImage $FS/boot/kernel.xz
     #cp -r $HEADER_DIR/* $FIN_DIR/usr/share
 
     echo ""
