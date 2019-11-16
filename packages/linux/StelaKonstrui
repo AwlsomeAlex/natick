@@ -12,38 +12,49 @@
 
 PKG_NAME=linux
 PKG_VERSION=5.4-rc7
-if [[ $ARCH == 'x86_64' ]]; then
-    PKG_SRC=("https://git.kernel.org/torvalds/t/$PKG_NAME-$PKG_VERSION.tar.gz" "$x86_64-$PKG_VERSION.config")
-else
-    ARCH='i386'
-    PKG_SRC=("https://git.kernel.org/torvalds/t/$PKG_NAME-$PKG_VERSION.tar.gz" "i386-$PKG_VERSION.config")
-fi
+PKG_SRC=("https://git.kernel.org/torvalds/t/$PKG_NAME-$PKG_VERSION.tar.gz")
 
 build_linux() {
 
-    # Local Variables
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
     if [[ $ARCH != 'x86_64' ]]; then
         ARCH='i386'
     fi
     IMAGE_FILE="arch/x86/boot/bzImage"
-    CONFIG_FILE="../$ARCH-$PKG_VERSION.config"
-    #HEADER_DIR="../headers"
 
-    # Configuration
-    make mrproper
-    #mkdir -p $HEADER_DIR
-    cp $CONFIG_FILE .config
-
-    # Kernel Compiling
+    #--------------------------#
+    # -----Configuration ----- #
+    #--------------------------#
+    make mrproper -j $NUM_JOBS
+    make defconfig -j $NUM_JOBS
+    # Got these from MLL
+    sed -i "s/.*CONFIG_DEFAULT_HOSTNAME.*/CONFIG_DEFAULT_HOSTNAME=\"stelalinux\"/" .config  # Changes Hostname
+    sed -i "s/.*\\(CONFIG_KERNEL_.*\\)=y/\\#\\ \\1 is not set/" .config                     # Resets compression
+    sed -i "s/.*CONFIG_KERNEL_XZ.*/CONFIG_KERNEL_XZ=y/" .config                             # Defaults to xz compression
+    sed -i "s/.*CONFIG_FB_VESA.*/CONFIG_FB_VESA=y/" .config
+    sed -i 's:# CONFIG_UEVENT_HELPER is not set:CONFIG_UEVENT_HELPER=y:g' .config           # Enable mdev support
+    sed -i "s/.*CONFIG_LOGO_LINUX_CLUT224.*/CONFIG_LOGO_LINUX_CLUT224=y/" .config           # Show Linux Kernel Logo on boot
+    sed -i "s/^CONFIG_DEBUG_KERNEL.*/\\# CONFIG_DEBUG_KERNEL is not set/" .config           # Disable debug symbols (smaller kernel binary)
+    sed -i "s/.*CONFIG_EFI_STUB.*/CONFIG_EFI_STUB=y/" .config                               # Enable EFI stub
+    echo "CONFIG_RESET_ATTACK_MITIGATION=y" >> .config                                      # Requests RAM clearing after reboot (Attack Migration)
+    echo "CONFIG_APPLE_PROPERTIES=n" >> .config                                             # Disable Mac Properties
+    if [[ $ARCH == 'x86_64' ]]; then
+        echo "CONFIG_EFI_MIXED=y" >> .config                                                # Enable Mixed EFI
+    fi
+    
+    #------------------------------#
+    # ----- Kernel Compiling ----- #
+    #------------------------------#
     make ARCH=$ARCH CROSS_COMPILE=${CROSS_COMPILE} CFLAGS="$CFLAGS" bzImage -j $NUM_JOBS
-    # Kernel Headers
-    #make ARCH=$ARCH CROSS_COMPILE=${CROSS_COMPILE} INSTALL_HDR_PATH=$HEADER_DIR headers_install
 
-    # Install Kernel
+    #----------------------------#
+    # ----- Install Kernel ----- #
+    #----------------------------#
     mkdir $FS/boot
     cp -r $IMAGE_FILE $FS/boot/
     mv $FS/boot/bzImage $FS/boot/kernel.xz
-    #cp -r $HEADER_DIR/* $FIN_DIR/usr/share
 
     echo ""
     echo "+=======================+"

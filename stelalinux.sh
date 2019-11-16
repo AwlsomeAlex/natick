@@ -55,7 +55,6 @@ export NUM_JOBS="$((NUM_CORES * JOB_FACTOR))"
 
 # title(): Shows Title
 function loka_title() {
-    clear
     echo "+=============================+"
     echo "|   StelaLinux Build Script   |"
     echo "+-----------------------------+"
@@ -238,7 +237,7 @@ function loka_initramfs() {
     fi
     echo "[....] Creating InitramFS File Hierarchy"
     sleep 2
-    mkdir -p $INITRAMFS_DIR/fs/{bin,boot,dev,etc,lib,lib64,mnt/root,proc,root,sbin,sys,tmp,usr/share/include}
+    mkdir -p $INITRAMFS_DIR/fs/{bin,boot,dev,etc,lib,lib64,mnt/root,proc/sys/kernel/hotplug,root,sbin,sys,tmp,usr/share/include}
     echo "[DONE] Created InitramFS File Hierarchy"
     for i in "${INITRAMFS_PKG[@]}"; do
         if [[ ! -d $WRK_DIR/$i ]]; then
@@ -299,7 +298,7 @@ function loka_image() {
         exit 5
     fi
     echo "[....] Creating Filesystem Hierarchy...."
-    mkdir -p $FIN_DIR/{bin,boot,dev,etc,lib,lib64,mnt/root,proc,root,sbin,sys,tmp,usr/share}
+    mkdir -p $FIN_DIR/{bin,boot,dev,etc,lib,lib64,mnt/root,proc/sys/kernel/hotplug,root,sbin,sys,tmp,usr/share}
     echo "[DONE] Created Filesystem Hierarchy."
     for i in "${IMAGE_PKG[@]}"; do
         if [[ ! -d $WRK_DIR/$i ]]; then
