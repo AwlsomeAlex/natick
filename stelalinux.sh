@@ -173,8 +173,6 @@ function loka_build() {
     for d in "${PKG_SRC[@]}"; do
         if [[ $d == *"http"* ]]; then
             ARCHIVE_FILE=${d##*/}
-            echo "$d"
-            echo $ARCHIVE_FILE
             echo "[....] Downloading & Extracting $ARCHIVE_FILE...."
             sleep 2
             if [ -f $SRC_DIR/$ARCHIVE_FILE ]; then
@@ -206,7 +204,6 @@ function loka_build() {
     else
         export DIR=$WRK_DIR/$PACKAGE/$PACKAGE-*
     fi
-    echo $DIR
     cd $DIR
     echo "[DONE] Downloaded & Extracted Archive Packages."
     echo "[....] Building $PACKAGE...."
