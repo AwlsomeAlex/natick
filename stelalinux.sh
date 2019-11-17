@@ -13,7 +13,7 @@
 STELA_BUILD="git"
 INITRAMFS_PKG=('linux' 'musl' 'busybox' 'nova')
 IMAGE_PKG=('linux' 'musl' 'busybox' 'nova' 'syslinux')
-export ARCH=x86_64 # x86_64 i686
+export ARCH=x86_64 # x86_64 i486
 
 #-----------------------#
 # ----- Variables ----- #
@@ -132,13 +132,10 @@ function loka_prepare() {
         echo "Please download it with '$EXECUTE toolchain'"
         exit
     fi
-    #if [ ! -d $SRC_DIR ] || [ ! -d $WRK_DIR ] || [ ! -d $FIN_DIR ]; then
     if [ ! -d $SRC_DIR ] || [ ! -d $WRK_DIR ]; then
         echo "[....] Creating Build Environment...."
         sleep 2
         mkdir -p $SRC_DIR $WRK_DIR
-        #mkdir -p $SRC_DIR $WRK_DIR $FIN_DIR
-        #mkdir -p $FIN_DIR/{bin,boot,dev,etc,lib,lib64,mnt/root,proc,root,sbin,sys,tmp,usr/share}
     fi
     if [ ! -d $RDIR ]; then
         echo "[ERROR] Package Repository Not Found."
@@ -197,7 +194,6 @@ function loka_build() {
                 pv $SRC_DIR/$ARCHIVE_FILE | tar -xzf - -C $WRK_DIR/$PACKAGE/
             elif [[ $ARCHIVE_FILE == *"zip"* ]]; then
                 unzip -o $SRC_DIR/$ARCHIVE_FILE -d $WRK_DIR/$PACKAGE/ | pv -l >/dev/null
-                #pv $SRC_DIR/$ARCHIVE_FILE | unzip -o - -d $WRK_DIR/$PACKAGE/
             else
                 pv $SRC_DIR/$ARCHIVE_FILE | tar -xf - -C $WRK_DIR/$PACKAGE/
             fi
