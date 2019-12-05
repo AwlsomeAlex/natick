@@ -233,7 +233,7 @@ function loka_initramfs() {
     fi
     echo "[....] Creating InitramFS File Hierarchy"
     sleep 2
-    mkdir -p $INITRAMFS_DIR/fs/{bin,boot,dev,etc,lib,lib64,mnt/root,proc/sys/kernel/hotplug,root,sbin,sys,tmp,usr/share/include}
+    mkdir -p $INITRAMFS_DIR/fs/{bin,boot,dev,etc,lib,mnt/root,proc/sys/kernel/hotplug,root,sbin,sys,tmp,usr/share/include}
     echo "[DONE] Created InitramFS File Hierarchy"
     for i in "${INITRAMFS_PKG[@]}"; do
         if [[ ! -d $WRK_DIR/$i ]]; then
@@ -248,14 +248,7 @@ function loka_initramfs() {
     done
     echo "[....] Configuring InitramFS...."
     sleep 2
-
-    # musl specific fixesi
-    if [[ $ARCH == 'x86_64' ]]; then
-        cp -P $INITRAMFS_DIR/fs/lib/ld-musl* $INITRAMFS_DIR/fs/lib64/
-        echo "64-bit OS Detected."
-    else
-        echo "32-bit OS Detected."
-    fi
+    
     mv $INITRAMFS_DIR/fs/include $INITRAMFS_DIR/fs/usr/share/include
     
     # strip
