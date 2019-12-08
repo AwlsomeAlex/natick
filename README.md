@@ -4,6 +4,8 @@ I have experimented with this type of project in the past, with AwlBuntu, Awlsom
 
 I decided to take a different approach for StelaLinux and instead of using only a minimal subset of the GNU C Library, I will instead use the fully capable musl libc library and build all of the packages (including the Linux Kernel) using that. 
 
+![StelaLinux Technical Preview 1](StelaLinux.png)
+
 ## Kerno Features:
 * Latest LTS Linux Kernel (5.4)
 * musl libc (1.1.24)
