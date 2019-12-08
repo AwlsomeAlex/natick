@@ -189,7 +189,7 @@ function loka_build() {
             if [[ $ARCHIVE_FILE == *"bz2"* ]]; then
                 pv $SRC_DIR/$ARCHIVE_FILE | tar -xjf - -C $WRK_DIR/$PACKAGE/
             elif [[ $ARCHIVE_FILE == *"xz"* ]]; then
-                pv $SRC_DIR/$ARCHIVE_FILE | tar -xf - -C $WRK_DIR/$PACKAGE/
+                pv $SRC_DIR/$ARCHIVE_FILE | tar -xJf - -C $WRK_DIR/$PACKAGE/
             elif [[ $ARCHIVE_FILE == *"gz"* ]]; then
                 pv $SRC_DIR/$ARCHIVE_FILE | tar -xzf - -C $WRK_DIR/$PACKAGE/
             elif [[ $ARCHIVE_FILE == *"zip"* ]]; then
