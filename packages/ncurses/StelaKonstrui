@@ -63,7 +63,7 @@ build_ncurses() {
     ln -s $LOCAL_LIB/libtinfo.so.5 $LOCAL_LIB/libtinfo.so
        
     # Strip Size
-    strip -g $FS/usr/bin/*
+    ${STRIP} -g $FS/usr/bin/*
 
     echo ""
     echo "+==========================+"

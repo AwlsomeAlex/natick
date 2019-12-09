@@ -1,4 +1,4 @@
-#!/bin/bash
+!/bin/bash
 
 ###########################################
 # StelaLinux - Minimal Linux Distribution #
@@ -252,7 +252,7 @@ function loka_initramfs() {
     mv $INITRAMFS_DIR/fs/include $INITRAMFS_DIR/fs/usr/share/include
     
     # strip
-    strip -g \
+    ${STRIP} -g \
         $INITRAMFS_DIR/fs/bin/* \
         $INITRAMFS_DIR/fs/sbin/* \
         $INITRAMFS_DIR/fs/lib/* \
