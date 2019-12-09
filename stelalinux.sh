@@ -1,4 +1,4 @@
-!/bin/bash
+#!/bin/bash
 
 ###########################################
 # StelaLinux - Minimal Linux Distribution #
