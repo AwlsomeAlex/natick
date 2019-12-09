@@ -243,7 +243,7 @@ function loka_initramfs() {
         fi
         echo "[....] Copying $i to InitramFS...."
         sleep 2
-        cp -r $WRK_DIR/$i/$i.fs/* $INITRAMFS_DIR/fs
+        cp -r --remove-destination $WRK_DIR/$i/$i.fs/* $INITRAMFS_DIR/fs
         echo "[DONE] Copied $i to InitramFS."
     done
     echo "[....] Configuring InitramFS...."
@@ -297,7 +297,7 @@ function loka_image() {
         fi
         echo "[....] Copying $i to Final Directory...."
         sleep 2
-        cp -r $WRK_DIR/$i/$i.fs/* $FIN_DIR
+        cp -r --remove-destination $WRK_DIR/$i/$i.fs/* $FIN_DIR
         echo "[DONE] Copied $i to Final Directory."
     done
     echo "[....] Copying initramFS to Final Directory...."
