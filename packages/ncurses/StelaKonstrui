@@ -1,0 +1,73 @@
+###################################
+#---------------------------------#
+# Stela Package Builder - Ncurses #
+#---------------------------------#
+###################################
+#
+# Description:  System V curses Emulation Library
+# URL:          https://www.gnu.org/software/ncurses
+# Maintainer:   AwlsomeAlex
+# Section:      kerno
+#
+
+PKG_NAME=ncurses
+PKG_VERSION=6.1
+PKG_SRC=("https://invisible-mirror.net/archives/ncurses/ncurses-$PKG_VERSION.tar.gz")
+
+build_ncurses() {
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
+    LOCAL_LIB=$FS/usr/lib
+
+    #--------------------------#
+    # -----Configuration ----- #
+    #--------------------------#
+    
+    # Remove Static Library
+    sed -i '/LIBTOOL_INSTALL/d' c++/Makefile.in    
+
+    #---------------------#
+    # ----- Compile ----- #
+    #---------------------#
+
+    CFLAGS="$CFLAGS" ./configure \
+        --host=${TARGET} \
+        --prefix=/usr \
+        --with-termlib \
+        --with-terminfo-dirs=/lib/terminfo \
+        --with-default-terminfo-dirs=/lib/terminfo \
+        --without-normal \
+        --without-debug \
+        --without-cxx-binding \
+        --with-abi-version=5 \
+        --enable-widec \
+        --enable-pc-files \
+        --with-shared \
+        CC=${CC_DIR} \
+        CPPFLAGS=-I$(pwd)/ncurses/widechar \
+        LDFLAGS=-L$(pwd)/lib \
+        CPPFLAGS="-P"
+
+    make HOSTCC=${CC} CXX=${CXX} -j $NUM_JOBS
+
+    #----------------------#
+    # ----- Install  ----- #
+    #----------------------#
+    make -j $NUM_JOBS install DESTDIR=$FS
+    
+    # Symnlink Wide Character Libraries
+    ln -s $LOCAL_LIB/libncursesw.so.5 $LOCAL_LIB/libncurses.so.5
+    ln -s $LOCAL_LIB/libncurses.so.5 $LOCAL_LIB/libncurses.so
+    ln -s $LOCAL_LIB/libtinfow.so.5 $LOCAL_LIB/libtinfo.so.5
+    ln -s $LOCAL_LIB/libtinfo.so.5 $LOCAL_LIB/libtinfo.so
+       
+    # Strip Size
+    strip -g $FS/usr/bin/*
+
+    echo ""
+    echo "+==========================+"
+    echo "| Ncurses Library Compiled |"
+    echo "+==========================+"
+}
+
