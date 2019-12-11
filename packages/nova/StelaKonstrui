@@ -16,7 +16,7 @@
 
 PKG_NAME=nova
 PKG_VERSION=GIT
-PKG_SRC=("https://github.com/AwlsomeAlex/Xiongnu/archive/nova.zip" "fstab") # nova branch
+PKG_SRC=("https://github.com/AwlsomeAlex/Xiongnu/archive/nova.zip" "fstab" "passwd") # nova branch
 
 build_nova() {
     
@@ -28,6 +28,7 @@ build_nova() {
     cd src
 	cp -r * $FS
     cp ../../fstab $FS/etc
+    cp ../../passwd $FS/etc
     echo ""
     echo "+===================+"
     echo "| Xiongnu Generated |"

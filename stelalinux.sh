@@ -75,13 +75,11 @@ function loka_title() {
 function loka_clean() {
     loka_title
     echo "[....] Cleaning Toolchain...."
-    sleep 2
     rm -rf $TDIR
     mkdir -p $TDIR
     touch $TDIR/.gitignore
     echo "[DONE] Cleaned Toolchain."
     echo "[....] Cleaning Build Environment...."
-    sleep 2
     rm -rf $SRC_DIR $WRK_DIR $FIN_DIR
     echo "[DONE] Cleaned Build Environment."
     echo ""
@@ -106,12 +104,10 @@ function loka_toolchain() {
     fi
     echo "[....] Downloading Toolchain...."
     echo "Toolchain provided by musl.cc Thanks zv.io!"
-    sleep 2
     cd $TDIR
     wget -q --show-progress $TMUSL_LINK
     echo "[DONE] Downloaded Toolchain."
     echo "[....] Extracting Toolchain...."
-    sleep 2
     pv $ARCH-linux-musl-cross.tgz | tar xzp -C .
     echo "[DONE] Toolchain Extracted."
     echo "[....] Cleaning up...."
@@ -134,7 +130,6 @@ function loka_prepare() {
     fi
     if [ ! -d $SRC_DIR ] || [ ! -d $WRK_DIR ]; then
         echo "[....] Creating Build Environment...."
-        sleep 2
         mkdir -p $SRC_DIR $WRK_DIR
     fi
     if [ ! -d $RDIR ]; then
@@ -157,20 +152,24 @@ function loka_build() {
         exit
     fi
     if [ -d $WRK_DIR/$PACKAGE ]; then
-        echo "[WARN] This package was already built."
-        read -p "Do you want to overwrite? (Y/n) " OPT
-        if [ $OPT == 'Y' ]; then
+        if [[ $FLAG == "-Y" ]]; then
             echo "[....] Removing $PACKAGE Directory...."
-            sleep 2
             rm -rf $WRK_DIR/$PACKAGE
             echo "[DONE] Removed $PACKAGE Directory."
         else
-            echo "[DONE] Nothing."
-            exit
+            echo "[WARN] This package was already built."
+            read -p "Do you want to overwrite? (Y/n) " OPT
+            if [ $OPT == 'Y' ]; then
+                echo "[....] Removing $PACKAGE Directory...."
+                rm -rf $WRK_DIR/$PACKAGE
+                echo "[DONE] Removed $PACKAGE Directory."
+            else
+                echo "[DONE] Nothing."
+                exit
+            fi
         fi
     fi
     echo "[....] Creating Directories...."
-    sleep 2
     mkdir -p $WRK_DIR/$PACKAGE
     PKG_DIR=$RDIR/$PACKAGE
     FS=$WRK_DIR/$PACKAGE/$PACKAGE.fs
@@ -180,7 +179,6 @@ function loka_build() {
         if [[ $d == *"http"* ]]; then
             ARCHIVE_FILE=${d##*/}
             echo "[....] Downloading & Extracting $ARCHIVE_FILE...."
-            sleep 2
             if [ -f $SRC_DIR/$ARCHIVE_FILE ]; then
                 echo "[DONE] File already downloaded. Continuing..."
             else
@@ -219,20 +217,24 @@ function loka_build() {
 function loka_initramfs() {
     loka_title
     if [[ -d $INITRAMFS_DIR ]]; then
-        echo "[WARN] The InitramFS already exists."
-        read -p "Do you want to overwrite? (Y/n) " OPT
-        if [ $OPT == 'Y' ]; then
+        if [[ $PACKAGE == "-Y" ]]; then
             echo "[....] Removing InitramFS...."
-            sleep 2
             rm -rf $INITRAMFS_DIR
             echo "[DONE] Removed InitramFS."
         else
-            echo "[DONE] Nothing."
-            exit
+            echo "[WARN] The InitramFS already exists."
+            read -p "Do you want to overwrite? (Y/n) " OPT
+            if [ $OPT == 'Y' ]; then
+                echo "[....] Removing InitramFS...."
+                rm -rf $INITRAMFS_DIR
+                echo "[DONE] Removed InitramFS."
+            else
+                echo "[DONE] Nothing."
+                exit
+            fi
         fi
     fi
     echo "[....] Creating InitramFS File Hierarchy"
-    sleep 2
     mkdir -p $INITRAMFS_DIR/fs/{bin,boot,dev,etc,lib,mnt/root,proc/sys/kernel/hotplug,root,sbin,sys,tmp,usr/share/include}
     echo "[DONE] Created InitramFS File Hierarchy"
     for i in "${INITRAMFS_PKG[@]}"; do
@@ -242,12 +244,10 @@ function loka_initramfs() {
             exit 5
         fi
         echo "[....] Copying $i to InitramFS...."
-        sleep 2
         cp -r --remove-destination $WRK_DIR/$i/$i.fs/* $INITRAMFS_DIR/fs
         echo "[DONE] Copied $i to InitramFS."
     done
     echo "[....] Configuring InitramFS...."
-    sleep 2
     
     mv $INITRAMFS_DIR/fs/include $INITRAMFS_DIR/fs/usr/share/include
     
@@ -259,7 +259,6 @@ function loka_initramfs() {
         2>/dev/null
     echo "[DONE] Configured InitramFS."
     echo "[....] Generating InitramFS...."
-    sleep 2
     cd $INITRAMFS_DIR/fs
     find . | cpio -R root:root -H newc -o | xz -9 --check=none > ../initramfs.cpio.xz
     echo "[DONE] Generated InitramFS."
@@ -269,16 +268,21 @@ function loka_initramfs() {
 function loka_image() {
     loka_title
     if [[ -d $FIN_DIR ]]; then
-        echo "[WARN] The Final Image Directory already exists."
-        read -p "Do you want to overwrite? (Y/n) " OPT
-        if [ $OPT == 'Y' ]; then
+        if [[ $PACKAGE == "-Y" ]]; then
             echo "[....] Removing Final Directory...."
-            sleep 2
             rm -rf $FIN_DIR
             echo "[DONE] Removed Final Directory."
         else
-            echo "[DONE] Nothing."
-            exit
+            echo "[WARN] The Final Image Directory already exists."
+            read -p "Do you want to overwrite? (Y/n) " OPT
+            if [ $OPT == 'Y' ]; then
+                echo "[....] Removing Final Directory...."
+                rm -rf $FIN_DIR
+                echo "[DONE] Removed Final Directory."
+            else
+                echo "[DONE] Nothing."
+                exit
+            fi
         fi
     fi
     if [[ ! -d $INITRAMFS_DIR ]]; then
@@ -296,16 +300,13 @@ function loka_image() {
             exit 5
         fi
         echo "[....] Copying $i to Final Directory...."
-        sleep 2
         cp -r --remove-destination $WRK_DIR/$i/$i.fs/* $FIN_DIR
         echo "[DONE] Copied $i to Final Directory."
     done
     echo "[....] Copying initramFS to Final Directory...."
-    sleep 2
     cp $INITRAMFS_DIR/initramfs.cpio.xz $FIN_DIR/boot/initramfs.xz
     echo "[DONE] Copied initramFS to Final Directory."
     echo "[....] Generating Disk Image...."
-    sleep 2
     cd $FIN_DIR
     xorriso -as mkisofs \
         -isohybrid-mbr boot/isolinux/isohdpfx.bin \
@@ -374,4 +375,5 @@ function loka_main() {
 EXECUTE=$0
 OPTION=$1
 PACKAGE=$2
+FLAG=$3
 loka_main
