@@ -33,6 +33,7 @@ INITRAMFS_DIR=$WRK_DIR/initramfs    # InitramFS Directory
 TMUSL_LINK="https://musl.cc/$ARCH-linux-musl-cross.tgz"
 
 # ---- Cross Compile Stuff ---- #
+export HOST="$(echo ${MACHTYPE} | sed -e 's/-[^-]*/-cross/')"
 export TARGET="$ARCH-linux-musl"
 export CROSS_COMPILE="$CROSS_DIR/$TARGET-"
 export CROSS_COMPILE_TEST="$CROSS_DIR/$TARGET"
@@ -44,7 +45,9 @@ export AR_DIR="$CROSS_DIR/$AR"
 export AS="$TARGET-as"
 export LD="$TARGET-ld"
 export STRIP="$TARGET-strip"
+export STRIP_DIR="$CROSS_DIR/$STRIP"
 export CFLAGS="-Os -s -pipe"
+export BUILD="--build=$HOST --host=$TARGET"
 JOB_FACTOR=2
 NUM_CORES="$(grep ^processor /proc/cpuinfo | wc -l)"
 export NUM_JOBS="$((NUM_CORES * JOB_FACTOR))"
@@ -320,6 +323,34 @@ function loka_image() {
     echo "[DONE] Generated Disk Image."
 }
 
+# qemu(): Starts a QEMU Emulator of StelaLinux
+function loka_qemu() {
+    if [ ! -f $STELA/StelaLinux-$STELA_BUILD-$ARCH.iso ]; then
+        echo "[FAIL] No StelaLinux Found. Exiting..."
+        exit 7
+    fi
+    if [[ $ARCH == "x86_64" ]]; then
+        if [[ $(which qemu-system-x86_64) == "" ]]; then
+            echo "[FAIL] QEMU 64-bit is not installed!"
+            exit 7
+        fi
+        echo "[....] Starting QEMU...."
+        qemu-system-x86_64 -m 512M -cdrom $STELA/StelaLinux-$STELA_BUILD-$ARCH.iso -boot d
+        echo "[DONE] QEMU Ended."
+    elif [[ $ARCH == "i486" ]]; then
+        if [[ $(which qemu-system-i386) == "" ]]; then
+            echo "[FAIL] QEMU 32-bit is not installed!"
+            exit 7
+        fi
+        echo "[....] Starting QEMU...."
+        qemu-system-i386 -m 512M -cdrom $STELA/StelaLinux-$STELA_BUILD-$ARCH.iso -boot d
+        echo "[DONE] QEMU Ended."
+    else
+        echo "[FAIL] Incompatible Architecture: $ARCH"
+        exit 7
+    fi
+}
+
 # usage(): Shows the Usage
 function loka_usage() {
     echo "$EXECUTE [OPTION] [PAGKAGE]"
@@ -330,6 +361,7 @@ function loka_usage() {
     echo "      build:          Builds a package from the repository"
     echo "      initramfs:      Generate an initramfs"
     echo "      image           Generate bootable StelaLinux Image"
+    echo "      qemu:           Starts a QEMU VM with StelaLinux"
     echo "      clean:          Cleans all of the directories"
     echo "      help:           Shows this dialog"
     echo ""
@@ -362,6 +394,9 @@ function loka_main() {
             ;;
         clean )
             loka_clean
+            ;;
+        qemu )
+            loka_qemu
             ;;
         * )
             loka_usage

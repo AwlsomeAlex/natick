@@ -1,0 +1,82 @@
+###################################
+#---------------------------------#
+# Stela Package Builder - Ncurses #
+#---------------------------------#
+###################################
+#
+# Description:  Vi IMproved Text Editor
+# URL:          https://www.vim.org
+# Maintainer:   AwlsomeAlex
+# Section:      kerno
+#
+
+PKG_NAME=vim
+PKG_VERSION=8.1.2424
+PKG_SRC=("https://github.com/vim/vim/archive/v$PKG_VERSION.tar.gz" "vimrc")
+
+build_vim() {
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
+
+    #--------------------------#
+    # -----Configuration ----- #
+    #--------------------------#
+    
+    # Set 'vimrc' location
+    echo '#define SYS_VIMRC_FILE "/etc/vimrc"' >> src/feature.h
+    
+    # Set Global Flags (From Minimal Linux Live)
+    #export CONF_OPT_GUI='--enable-gui=no'
+    #export CONF_OPT_PERL='--enable-perlinterp'
+    #export CONF_OPT_PYTHON='--enable-pythoninterp'
+    #export CONF_OPT_TCL='--enable-tclinterp'
+    #export CONF_OPT_RUBY='--enable-rubyinterp'
+    #export CONF_OPT_LUA='--enable-luainterp'
+    #export CONF_OPT_X='--without-x'
+    #export CONF_OPT_CSCOPE='--enable-cscope'
+    #export CONF_OPT_MULTIBYTE='--enable-multibyte'
+    #export CONF_OPT_FEAT='--with-features=huge'
+
+    #---------------------#
+    # ----- Compile ----- #
+    #---------------------#
+
+    ./configure \ 
+        --host=${TARGET} \
+        --prefix=/usr \
+        --localstatedir=/var/lib/vim \
+        --with-compiledby='StelaLinux' \
+        --with-features=huge \
+        --with-tlib=ncurses \
+        --without-x \
+        --enable-multibyte \
+        --disable-nls \
+        --disable-gui 
+    
+    make CC=${CC_DIR} -j $NUM_JOBS
+
+    #----------------------#
+    # ----- Install  ----- #
+    #----------------------#
+    make -j $NUM_JOBS install DESTDIR=$FS
+    
+    # Symlinking 'vim' to 'vi'
+    ln -sv vim $FS/usr/bin/vi
+    mkdir -p $FS/bin
+    ln -sv vim $FS/bin/vi
+    
+    # Move vimrc
+    mkdir $FS/etc
+    echo $(pwd)
+    cp ../../vimrc $FS/etc/
+       
+    # Strip Size
+    ${STRIP_DIR} -g $FS/usr/bin/*
+
+    echo ""
+    echo "+==============+"
+    echo "| Vim Compiled |"
+    echo "+==============+"
+}
+
