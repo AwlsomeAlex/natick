@@ -1,12 +1,13 @@
 ::sysinit:/etc/init.d/rcS
-::once:xiongnu_welcome
+::once:echo "Welcome to StelaLinux Technical Preview 1"
+::once:echo "Running Linux Kernel $(uname -r), BusyBox and musl libc!"
+tty1::respawn:/sbin/getty 38400 tty1
+tty2::respawn:/sbin/getty 38400 tty2
+tty3::respawn:/sbin/getty 38400 tty3
+tty4::respawn:/sbin/getty 38400 tty4
+tty5::respawn:/sbin/getty 38400 tty5
+tty6::respawn:/sbin/getty 38400 tty6
 ::once:sleep 2
-tty1::respawn:-/bin/login
-tty2::askfirst:-/bin/login
-tty3::askfirst:-/bin/login
-tty4::askfirst:-/bin/login
-tty5::askfirst:-/bin/login
-tty6::askfirst:-/bin/login
 ::ctrlaltdel:/sbin/reboot
 ::shutdown:echo -e ""
 ::shutdown:/etc/init.d/rcE
