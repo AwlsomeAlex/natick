@@ -15,7 +15,7 @@ I decided to take a different approach for StelaLinux and instead of using only 
 ## How to Build:
 ### Dependencies (Ubuntu 18.04/19.10 & Debian 10):
 
-`sudo apt install wget make gawk gcc bc bison pv flex xorriso libelf-dev libssl-dev unzip`
+`sudo apt install wget make gcc g++ bc bison pv flex xorriso libelf-dev libssl-dev unzip`
 
 ### musl-gcc wrapper:
 
