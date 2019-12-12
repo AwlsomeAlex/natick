@@ -235,7 +235,7 @@ function loka_initramfs() {
         fi
     fi
     echo "[....] Creating InitramFS File Hierarchy"
-    mkdir -p $INITRAMFS_DIR/fs/{bin,boot,dev,etc,lib,mnt/root,proc/sys/kernel/hotplug,root,sbin,sys,tmp,usr/share/include}
+    mkdir -p $INITRAMFS_DIR/fs/{bin,boot,dev,etc,lib,mnt/root,proc,root,sbin,sys,tmp,usr/share/include,run}
     echo "[DONE] Created InitramFS File Hierarchy"
     for i in "${INITRAMFS_PKG[@]}"; do
         if [[ ! -d $WRK_DIR/$i ]]; then
