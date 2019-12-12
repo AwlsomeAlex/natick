@@ -33,7 +33,7 @@ INITRAMFS_DIR=$WRK_DIR/initramfs    # InitramFS Directory
 TMUSL_LINK="https://musl.cc/$ARCH-linux-musl-cross.tgz"
 
 # ---- Cross Compile Stuff ---- #
-export HOST="$(echo ${MACHTYPE} | sed -e 's/-[^-]*/-cross/')"
+export HOST="$(echo ${MACHTYPE})"
 export TARGET="$ARCH-linux-musl"
 export CROSS_COMPILE="$CROSS_DIR/$TARGET-"
 export CROSS_COMPILE_TEST="$CROSS_DIR/$TARGET"
@@ -46,11 +46,12 @@ export AS="$TARGET-as"
 export LD="$TARGET-ld"
 export STRIP="$TARGET-strip"
 export STRIP_DIR="$CROSS_DIR/$STRIP"
+export CFLAGS="-g0 -Os -s -fexcess-precision=fast -fomit-frame-pointer -Wl,--as-needed -pipe" // Ataraxia
 export CFLAGS="-Os -s -pipe"
-export BUILD="--build=$HOST --host=$TARGET"
 JOB_FACTOR=2
 NUM_CORES="$(grep ^processor /proc/cpuinfo | wc -l)"
 export NUM_JOBS="$((NUM_CORES * JOB_FACTOR))"
+export PATH="$CROSS_DIR:/bin:$PATH"
 
 #-----------------------------#
 # ----- Helper Function ----- #

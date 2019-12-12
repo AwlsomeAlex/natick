@@ -41,25 +41,37 @@ build_vim() {
     #---------------------#
     # ----- Compile ----- #
     #---------------------#
-
-    ./configure \ 
+    
+    #vim_cv_toupper_broken=yes \
+    #./configure --target=$HOST \ 
+    #    --host=$(echo ${MACHTYPE} | sed -e 's/-[^-]*/-cross/') \
+    #    --prefix=/usr \
+    #    --localstatedir=/var/lib/vim \
+    #    --with-compiledby='StelaLinux' \
+    #    --with-features=huge \
+    #    --with-tlib=ncurses \
+    #    --without-x \
+    #    --enable-multibyte \
+    #    --disable-nls \
+    #    --disable-gui 
+    
+    vim_cv_toupper_broken=yes \
+    ./configure \
         --host=${TARGET} \
+        --target=${HOST} \
         --prefix=/usr \
-        --localstatedir=/var/lib/vim \
-        --with-compiledby='StelaLinux' \
-        --with-features=huge \
+        --enable-gui=no \
         --with-tlib=ncurses \
         --without-x \
-        --enable-multibyte \
-        --disable-nls \
-        --disable-gui 
-    
-    make CC=${CC_DIR} -j $NUM_JOBS
+        --disable-xsmp \
+        --disable-gpm \
+        --disable-selinux 
+    #make -j $NUM_JOBS
 
     #----------------------#
     # ----- Install  ----- #
     #----------------------#
-    make -j $NUM_JOBS install DESTDIR=$FS
+    #make -j $NUM_JOBS install DESTDIR=$FS
     
     # Symlinking 'vim' to 'vi'
     ln -sv vim $FS/usr/bin/vi
