@@ -11,7 +11,7 @@
 #
 
 PKG_NAME=vim
-PKG_VERSION=8.1.2424
+PKG_VERSION=8.2.0
 PKG_SRC=("https://github.com/vim/vim/archive/v$PKG_VERSION.tar.gz" "vimrc")
 
 build_vim() {
@@ -42,6 +42,7 @@ build_vim() {
     # ----- Compile ----- #
     #---------------------#
     
+    #make -j $NUM_JOBS clean 
     #vim_cv_toupper_broken=yes \
     #./configure --target=$HOST \ 
     #    --host=$(echo ${MACHTYPE} | sed -e 's/-[^-]*/-cross/') \
@@ -55,13 +56,31 @@ build_vim() {
     #    --disable-nls \
     #    --disable-gui 
     
+    #vim_cv_tgetent=zero \
+    #vim_cv_toupper_broken=yes \ 
+    #./configure \
+    #    --build=x86_64-linux-musl \
+    #    --host=x86_64-linux-gcc \
+    #    --prefix=/usr \
+    #    --enable-gui=no \
+    #    --without-x \
+    #    --with-tlib=ncurses \
+    #    --disable-xsmp \
+    #    --disable-gpm \
+    #    --disable-selinux
+    
+    export LDFLAGS="-L/usr/lib/x86_64-linux-gnu"
+    #export LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu"
+    vim_cv_tgetent=zero \
     vim_cv_toupper_broken=yes \
-    ./configure \
+    CFLAGS=-fPIC ./configure \
+        --build=${HOST} \
         --host=${TARGET} \
-        --target=${HOST} \
-        --prefix=/usr \
-        --enable-gui=no \
         --with-tlib=ncurses \
+        --target=${TARGET} \
+        --prefix=/usr \
+        --localstatedir=/var/lib/vim \
+        --enable-gui=no \
         --without-x \
         --disable-xsmp \
         --disable-gpm \
