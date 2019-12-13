@@ -13,12 +13,17 @@ This is the GlibC branch of StelaLinux.
 
 ## How to Build:
 **Dependencies (Debian-based Distributions):**
+
 `sudo apt install wget make gcc g++ bc bison pv flex xorriso libelf-dev libssl-dev unzip libncurses-dev`
 
 **StelaLinux Script:**
+
 `stelalinux.sh toolchain`: Downloads and Prepares a Cross Compiler
+
 `stelalinux.sh build (package)`: Builds a specific package to be installed to StelaLinux
+
 `stelalinux.sh initramfs`: Generates an initramfs for StelaLinux
+
 `stelalinux.sh image`: Generates a bootable StelaLinux Live Image with Syslinux
 
 ## How to Install:
