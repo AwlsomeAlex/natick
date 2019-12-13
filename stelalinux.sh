@@ -46,7 +46,7 @@ FIN_DIR=$STELA/final
 # ----- Compiling Flags ----- #
 
 # C Flags
-export CFLAGS=-Os -s -fno-stack-protector -fomit-frame-pointer -U_FORTIFY_SOURCE
+export CFLAGS="-Os -s -fno-stack-protector -fomit-frame-pointer -U_FORTIFY_SOURCE"
 
 # C Build Factors
 JOB_FACTOR=2
@@ -60,6 +60,7 @@ BLUE='\033[1;34m'   # Blue
 GREEN='\033[1;32m'  # Green
 ORANGE='\033[0;33m' # Orange
 BLINK='\033[5m'     # Blink
+NO_BLINK='\033[25m' # No Blink
 
 
 #------------------------------#
@@ -96,14 +97,71 @@ function loka_clean() {
 
 # prepare(): Prepares the Build Envrionment
 function loka_prepare() {
+
+    # ----- Check for Source and Work Directory ----- #
     if [ ! -d $SRC_DIR ] || [ ! -d $WRK_DIR ]; then
         echo -e "${BLUE}[....] ${NC}Creating Build Environment...."
         mkdir -p $SRC_DIR $WRK_DIR
         echo -e "${GREEN}[DONE] ${NC}Created Build Environment."
     fi
+
+    # ----- Check for Package Repository ----- #
     if [ ! -d $RDIR ]; then
         echo -e "${RED}[FAIL] ${NC}Package Repository Not Found!"
-        echo -e "${BLINK}That's Tragic. -Tepper${NC}"
+        echo -e "${BLINK}That's Tragic. -Tepper${NO_BLINK}"
         exit
     fi
+}
+
+# build(): Builds a package
+function loka_build() {
+    # ----- Overhead Variables ----- #
+    REPO_DIR=$RDIR/$PACKAGE
+    WORK_DIR=$WRK_DIR/$PACKAGE
+    FS=$WORK_DIR/$PACKAGE.fs
+
+    loka_title
+    
+    # ----- Locate and Check Package ----- #
+    if [ -z $PACKAGE ]; then
+        echo -e "${RED}[FAIL] ${NC}No Package Defined."
+        exit
+    fi
+    loka_prepare
+    if [ ! -d $REPO_DIR ]; then
+        echo -e "${RED}[FAIL] ${NC}Package $PACKAGE Not Found in Repo."
+        exit
+    fi
+
+    # ----- Prepare Work Directory ----- #
+    if [ -d $WORK_DIR ]; then
+        if [[ $FLAG == "-Y" ]]; then
+            echo -e "${BLUE}[....] ${NC}Removing $PACKAGE Directory...."
+            rm -rf $WORK_DIR
+            echo -e "${GREEN}[DONE] ${NC}Removed $PACKAGE Directory."
+        else
+            echo -e "${ORANGE}[WARN] ${NC}This Package already exists."
+            read -p "Do you want to overwrite? (Y/n) " OPT
+            if [ $OPT == 'Y' ]; then
+                echo -e "${BLUE}[....] ${NC}Removing $PACKAGE Directory...."
+                rm -rf $WORK_DIR
+                echo -e "${GREEN}[DONE] ${NC}Removed $PACKAGE Directory."
+            else
+                echo -e "${GREEN}[DONE] ${NC}Nothing."
+                exit
+            fi
+        fi
+    fi
+    mkdir -p $FS
+    source $REPO_DIR/StelaKonstrui
+
+    # ----- Check Dependencies ----- #
+    for d in "${PKG_DEP[@]}"; do
+        if [[ ! -d $WRK_DIR/$d/$d.fs ]]; then
+            echo -e "${RED}[FAIL] ${NC}Dependency $d unmet."
+            echo "Please build with $EXECUTE build $d"
+            exit
+        fi
+    done
+         
 }
