@@ -239,7 +239,7 @@ function loka_initramfs() {
     
     # ----- Create InitramFS Hierarchy ----- #
     echo -e "${BLUE}[....] ${NC}Creating InitramFS File Hierarchy...."
-    mkdir -p $INITRAMFS_DIR/fs/{bin,boot,dev,etc,lib,mnt/root,proc,root,sbin,sys,tmp,usr/share/include,run}
+    mkdir -p $INITRAMFS_DIR/fs/{bin,boot,dev,etc,lib,lib64,mnt/root,proc,root,sbin,sys,tmp,usr/share/include,run}
     echo -e "${GREEN}[DONE] ${NC}Created InitramFS File Hierarchy."
 
     # ----- Copy Package FS to InitramFS ----- #
@@ -265,6 +265,7 @@ function loka_initramfs() {
         $INITRAMFS_DIR/fs/bin/* \
         $INITRAMFS_DIR/fs/sbin/* \
         $INITRAMFS_DIR/fs/lib/* \
+        $INITRAMFS_DIR/fs/lib64* \
         2>/dev/null
     echo -e "${GREEN}[DONE] ${NC}Stripped InitramFS."
 
