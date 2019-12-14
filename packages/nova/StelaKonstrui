@@ -14,7 +14,7 @@
 PKG_NAME=nova
 PKG_VERSION=GIT
 PKG_SRC=("https://www.github.com/AwlsomeAlex/Xiongnu/archive/nova.zip" "inittab" "fstab" "passwd")
-PKG_DEPS=("")
+PKG_DEPS=()
 
 # ----- Build Function ----- #
 build_nova() {

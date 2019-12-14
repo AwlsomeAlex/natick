@@ -1,5 +1,5 @@
 ::sysinit:/etc/init.d/rcS
-::once:echo "Welcome to StelaLinux Technical Preview 1"
+::once:echo "Welcome to StelaLinux $(stela -b)"
 ::once:echo "Running Linux Kernel $(uname -r), BusyBox and glibc!"
 tty1::respawn:/sbin/getty 38400 tty1
 tty2::respawn:/sbin/getty 38400 tty2

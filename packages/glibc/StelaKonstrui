@@ -74,11 +74,11 @@ build_glibc() {
     if [[ $ARCH == "x86_64" ]]; then
         mkdir -p $FS/lib64
         mkdir -p $FS/lib
-        cp -r $GLIBC_FULL/lib/ld-linux* $FS/lib64
+        cp -r $GLIBC_FULL/lib/ld-* $FS/lib64
         echo "Configured for 64-bit"
     else
         mkdir -p $FS/lib
-        cp -r $GLIBC_FULL/lib/ld-linux* $FS/lib
+        cp -r $GLIBC_FULL/lib/ld-* $FS/lib
         echo "Configured for 32-bit"
     fi
 

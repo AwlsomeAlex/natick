@@ -13,8 +13,8 @@
 # ----- Package Information ----- #
 PKG_NAME=busybox
 PKG_VERSION=1.31.1
-PKG_SRC=("https://www.busybox.net/downloads/$PKG_NAME-$PKG_VERSION.tar.bz2")
-PKG_DEPS=("")
+PKG_SRC=("https://www.busybox.net/downloads/$PKG_NAME-$PKG_VERSION.tar.bz2" "stela.sh")
+PKG_DEPS=()
 
 # ----- Build Function ----- #
 build_busybox() {
@@ -54,6 +54,13 @@ build_busybox() {
 
     # Remove linuxrc
     rm $FS/linuxrc
+
+    # Copy stela.sh to $FS
+    cp -r ../stela.sh $FS/bin/stela
+
+    # Populate stela build information
+    sed -i "s/BUILD_NAME=NULL/BUILD_NAME='$BUILD_NAME'/" $FS/bin/stela
+    sed -i "s/BUILD_NUMBER=NULL/BUILD_NUMBER='$BUILD_NUMBER'/" $FS/bin/stela
     
     echo ""
     echo "+===========================+"

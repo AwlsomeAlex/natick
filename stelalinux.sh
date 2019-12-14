@@ -13,7 +13,8 @@
 #------------------------------------#
 
 # StelaLinux Build Number
-STELA_BUILD="git"
+BUILD_NAME="Git Build"
+BUILD_NUMBER="git"
 
 # Packages to be included in initramfs
 INITRAMFS_PKG=("linux" "glibc" "busybox" "nova")       
@@ -51,7 +52,7 @@ INITRAMFS_DIR=$WRK_DIR/initramfs
 # C Flags
 export CFLAGS="-Os -s -fno-stack-protector -fomit-frame-pointer -U_FORTIFY_SOURCE"
 
-# C Build Factors
+# C Build Factors (From Minimal Linux Live)
 JOB_FACTOR=2
 NUM_CORES="$(grep ^processor /proc/cpuinfo | wc -l)"
 export NUM_JOBS="$((NUM_CORES * JOB_FACTOR))"
@@ -90,7 +91,7 @@ function loka_title() {
 function loka_clean() {
     loka_title
     echo -e "${BLUE}[....] ${NC}Cleaning Build Environment...."
-    rm -rf $SRC_DIR $WRK_DIR $FIN_DIR $STELA/*.is
+    rm -rf $SRC_DIR $WRK_DIR $FIN_DIR $STELA/*.iso
     echo -e "${GREEN}[DONE] ${NC}Cleaned Build Environment."
     echo ""
     echo "+===================+"
@@ -339,7 +340,7 @@ function loka_image() {
         -no-emul-boot \
         -boot-load-size 4 \
         -boot-info-table \
-        -o $STELA/StelaLinux-$STELA_BUILD-$ARCH.iso \
+        -o $STELA/StelaLinux-$BUILD_NUMBER-$ARCH.iso \
         .
     echo -e "${GREEN}[DONE] ${NC}Generated Disk Image."
 }
