@@ -5,8 +5,6 @@ StelaLinux is an experimental Linux Distribution built with the Linux Kernel, GN
 
 StelaLinux has been my constant goal for my own linux distribution, with it starting with AwlBuntu, an Ubuntu-based Linux Distribution. I then moved onto AwlsomeLinux, which was based off of Minimal Linux Live. I then tried to make the process more modular with StarLinux, but found it too disorganized. It then gave way to StelaLinux (Stela is Star in Esperanto). This repository contains the script to build StelaLinux, StelaLinux Packages, the StelaLinux Toolchain, and the Package Repository. 
 
-This is the GlibC branch of StelaLinux. 
-
 ## Kerno Features:
 * Latest LTS Linux Kernel (5.4)
 * GNU C Library (2.30)
