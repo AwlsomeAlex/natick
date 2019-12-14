@@ -345,6 +345,22 @@ function loka_image() {
     echo -e "${GREEN}[DONE] ${NC}Generated Disk Image."
 }
 
+# all(): Generates a complete StelaLinux Build
+function loka_all() {
+
+    # ----- Build all packages in Image Package Array ----- #
+    for p in "${IMAGE_PKG[@]}"; do
+        PACKAGE="$p"
+        loka_build
+    done
+
+    # ----- Generate InitramFS ----- #
+    loka_initramfs
+
+    # ----- Generate Image ----- #
+    loka_image 
+}
+
 # usage(): Shows the usage
 function loka_usage() {
     echo "$EXECUTE [OPTION] (PACKAGE) (flag)"
@@ -354,6 +370,7 @@ function loka_usage() {
     echo "      build:      Builds a package from the Package Repository"
     echo "      initramfs:  Generate an InitramFS Archive"
     echo "      image:      Generate a bootable StelaLinux Live ISO"
+    echo "      all:        Complete all steps to build a StelaLinux ISO"
     echo "      qemu:       Start a QEMU Virtual Machine with StelaLinux"
     echo "      clean:      Clean the directory (MUST BE USED BEFORE COMMIT)"
     echo "      help:       Shows this dialog"
@@ -384,6 +401,9 @@ function main() {
             ;;
         image )
             loka_image
+            ;;
+        all)
+            loka_all
             ;;
         clean )
             loka_clean
