@@ -1,62 +1,77 @@
 #!/bin/bash
 
-###########################################
-# StelaLinux - Minimal Linux Distribution #
+###################################################
+# StelaLinux - Minimal Linux Distribution (GlibC) #
+#-------------------------------------------------#
+# Created by Alexander Barris (AwlsomeAlex) GPLv3 #
+###################################################
+
+
+
+#------------------------------------#
+# ----- User Defined Variables ----- #
+#------------------------------------#
+
+# StelaLinux Build Number
+BUILD_NAME="Development Build 1"
+BUILD_NUMBER="pre_alpha-1"
+
+# Packages to be included in initramfs
+INITRAMFS_PKG=("linux" "glibc" "busybox" "nova")       
+
+# Packages to be included in StelaLinux
+IMAGE_PKG=("linux" "glibc" "busybox" "nova" "syslinux")
+
+# Architecture for Packages
+export ARCH=x86_64
+
+
+
 #-----------------------------------------#
-# Created by Alexander Barris [GNU GPLv3] #
-###########################################
+# ----- StelaLinux Script Variables ----- #
+#-----------------------------------------#
 
-#---------------------------------#
-# ----- User Defined Values ----- #
-#---------------------------------#
+# ----- Directory Variables ----- #
 
-STELA_BUILD="git"
-INITRAMFS_PKG=('linux' 'musl' 'busybox' 'nova')
-IMAGE_PKG=('linux' 'musl' 'busybox' 'nova' 'syslinux' 'ncurses')
-export ARCH=x86_64 # x86_64 i486
-
-#-----------------------#
-# ----- Variables ----- #
-#-----------------------#
-
-# ---- Directories ---- #
+# StelaLinux Project Root Directory
 STELA=$(pwd)
-TDIR=$STELA/toolchain               # Toolchain Directory
-RDIR=$STELA/packages                # Package Repository
-SRC_DIR=$STELA/source               # Source Directory
-WRK_DIR=$STELA/work                 # Work Directory
-FIN_DIR=$STELA/final                # System Root Directory
-CROSS_DIR=$TDIR/bin                 # Cross Compiler Binaries
-INITRAMFS_DIR=$WRK_DIR/initramfs    # InitramFS Directory
 
-# ---- Download Links ---- #
-TMUSL_LINK="https://musl.cc/$ARCH-linux-musl-cross.tgz"
+# Package Repository
+RDIR=$STELA/packages
 
-# ---- Cross Compile Stuff ---- #
-export HOST="$(echo ${MACHTYPE})"
-export TARGET="$ARCH-linux-musl"
-export CROSS_COMPILE="$CROSS_DIR/$TARGET-"
-export CROSS_COMPILE_TEST="$CROSS_DIR/$TARGET"
-export CC="$TARGET-gcc"
-export CC_DIR="$CROSS_DIR/$CC"
-export CXX="$TARGET-g++"
-export AR="$TARGET-ar"
-export AR_DIR="$CROSS_DIR/$AR"
-export AS="$TARGET-as"
-export LD="$TARGET-ld"
-export STRIP="$TARGET-strip"
-export STRIP_DIR="$CROSS_DIR/$STRIP"
-export CFLAGS="-g0 -Os -s -fexcess-precision=fast -fomit-frame-pointer -Wl,--as-needed -pipe"
+# Source, Work, and System Root Directories
+SRC_DIR=$STELA/source
+WRK_DIR=$STELA/work
+FIN_DIR=$STELA/final
+
+# InitramFS Directory
+INITRAMFS_DIR=$WRK_DIR/initramfs
+
+# ----- Compiling Flags ----- #
+
+# C Flags
+export CFLAGS="-Os -s -fno-stack-protector -fomit-frame-pointer -U_FORTIFY_SOURCE"
+
+# C Build Factors (From Minimal Linux Live)
 JOB_FACTOR=2
 NUM_CORES="$(grep ^processor /proc/cpuinfo | wc -l)"
 export NUM_JOBS="$((NUM_CORES * JOB_FACTOR))"
-export PATH="$CROSS_DIR:/bin:$PATH"
 
-#-----------------------------#
-# ----- Helper Function ----- #
-#-----------------------------#
+# ----- Color Codes For Fancy Text ----- #
+NC='\033[0m'        # No Color
+RED='\033[1;31m'    # Red
+BLUE='\033[1;34m'   # Blue
+GREEN='\033[1;32m'  # Green
+ORANGE='\033[0;33m' # Orange
+BLINK='\033[5m'     # Blink
+NO_BLINK='\033[25m' # No Blink
 
-# title(): Shows Title
+
+#------------------------------#
+# ----- Helper Functions ----- #
+#------------------------------#
+
+# title(): Shows the title of the program
 function loka_title() {
     echo "+=============================+"
     echo "|   StelaLinux Build Script   |"
@@ -64,252 +79,259 @@ function loka_title() {
     echo "| Created by Alexander Barris |"
     echo "|          GNU GPLv3          |"
     echo "+=============================+"
+    echo "|    GNU C Library Branch     |"
+    echo "+=============================+"
     echo ""
-    pkg=('wget' 'pv' 'flex' 'bison' 'unzip')
-    for i in $pkg; do
-        if [[ "$(which $i)" == "" ]]; then
-            echo "[ERROR] $i is not installed. Please install it!"
-            exit
-        fi
-    done
 }
 
-# clean(): Cleans folders
+#
+# NOTE: This MUST be done before every Git Commit
+#
+# clean(): Cleans the StelaLinux Directory
 function loka_clean() {
     loka_title
-    echo "[....] Cleaning Toolchain...."
-    rm -rf $TDIR
-    mkdir -p $TDIR
-    touch $TDIR/.gitignore
-    echo "[DONE] Cleaned Toolchain."
-    echo "[....] Cleaning Build Environment...."
-    rm -rf $SRC_DIR $WRK_DIR $FIN_DIR
-    echo "[DONE] Cleaned Build Environment."
+    echo -e "${BLUE}[....] ${NC}Cleaning Build Environment...."
+    rm -rf $SRC_DIR $WRK_DIR $FIN_DIR $STELA/*.iso
+    echo -e "${GREEN}[DONE] ${NC}Cleaned Build Environment."
     echo ""
-    echo "+======================+"
-    echo "| Directory Cleaned Up |"
-    echo "+======================+"
+    echo "+===================+"
+    echo "| Directory Cleaned |"
+    echo "+===================+"
 }
 
-# toolchain(): Download and Prepare Toolchain
-function loka_toolchain() {
-    loka_title
-    if [ "$(ls $TDIR)" ]; then
-        echo "[WARN] Toolchain Directory is not empty."
-        read -p "Would you like to Delete? (Y/n) " OPT
-        if [ "$OPT" == "Y" ]; then
-            rm -rf $TDIR
-            mkdir -p $TDIR
-        else
-            echo "[WARN] Using existing toolchain. This is not recommended."
-            exit
-        fi
-    fi
-    echo "[....] Downloading Toolchain...."
-    echo "Toolchain provided by musl.cc Thanks zv.io!"
-    cd $TDIR
-    wget -q --show-progress $TMUSL_LINK
-    echo "[DONE] Downloaded Toolchain."
-    echo "[....] Extracting Toolchain...."
-    pv $ARCH-linux-musl-cross.tgz | tar xzp -C .
-    echo "[DONE] Toolchain Extracted."
-    echo "[....] Cleaning up...."
-    mv $ARCH-linux-musl-cross/* .
-    rm -rf $ARCH-linux-musl-cross*
-    echo "[DONE] Cleaned up."
-    echo ""
-    echo "+======================+"
-    echo "| Toolchain Downloaded |"
-    echo "+======================+"
-}
-
-# prepare(): Prepares the Directories
+# prepare(): Prepares the Build Envrionment
 function loka_prepare() {
-    # ---- Check Toolchain Directory ---- #
-    if [ ! "$(ls $TDIR)" ]; then
-        echo "[ERROR] Toolchain Not Found."
-        echo "Please download it with '$EXECUTE toolchain'"
-        exit
-    fi
+
+    # ----- Check for Source and Work Directory ----- #
     if [ ! -d $SRC_DIR ] || [ ! -d $WRK_DIR ]; then
-        echo "[....] Creating Build Environment...."
+        echo -e "${BLUE}[....] ${NC}Creating Build Environment...."
         mkdir -p $SRC_DIR $WRK_DIR
+        echo -e "${GREEN}[DONE] ${NC}Created Build Environment."
     fi
+
+    # ----- Check for Package Repository ----- #
     if [ ! -d $RDIR ]; then
-        echo "[ERROR] Package Repository Not Found."
-        echo "That's tragic. -Tepper"
+        echo -e "${RED}[FAIL] ${NC}Package Repository Not Found!"
+        echo -e "${BLINK}That's Tragic. -Tepper${NO_BLINK}"
         exit
     fi
 }
 
 # build(): Builds a package
 function loka_build() {
+    # ----- Overhead Variables ----- #
+    REPO_DIR=$RDIR/$PACKAGE
+    WORK_DIR=$WRK_DIR/$PACKAGE
+    FS=$WORK_DIR/$PACKAGE.fs
+
+    echo $WORK_DIR
     loka_title
+    
+    # ----- Locate and Check Package ----- #
     if [ -z $PACKAGE ]; then
-        echo "[ERROR] No Package Defined."
+        echo -e "${RED}[FAIL] ${NC}No Package Defined."
         exit
     fi
     loka_prepare
-    if [ ! -d $RDIR/$PACKAGE ]; then
-        echo "[ERROR] Package $PACKAGE Not Found."
+    if [ ! -d $REPO_DIR ]; then
+        echo -e "${RED}[FAIL] ${NC}Package $PACKAGE Not Found in Repo."
         exit
     fi
-    if [ -d $WRK_DIR/$PACKAGE ]; then
+
+    # ----- Prepare Work Directory ----- #
+    if [ -d $WORK_DIR ]; then
         if [[ $FLAG == "-Y" ]]; then
-            echo "[....] Removing $PACKAGE Directory...."
-            rm -rf $WRK_DIR/$PACKAGE
-            echo "[DONE] Removed $PACKAGE Directory."
+            echo -e "${BLUE}[....] ${NC}Removing $PACKAGE Directory...."
+            rm -rf $WORK_DIR
+            echo -e "${GREEN}[DONE] ${NC}Removed $PACKAGE Directory."
         else
-            echo "[WARN] This package was already built."
+            echo -e "${ORANGE}[WARN] ${NC}This Package already exists."
             read -p "Do you want to overwrite? (Y/n) " OPT
             if [ $OPT == 'Y' ]; then
-                echo "[....] Removing $PACKAGE Directory...."
-                rm -rf $WRK_DIR/$PACKAGE
-                echo "[DONE] Removed $PACKAGE Directory."
+                echo -e "${BLUE}[....] ${NC}Removing $PACKAGE Directory...."
+                rm -rf $WORK_DIR
+                echo -e "${GREEN}[DONE] ${NC}Removed $PACKAGE Directory."
             else
-                echo "[DONE] Nothing."
+                echo -e "${GREEN}[DONE] ${NC}Nothing."
                 exit
             fi
         fi
     fi
-    echo "[....] Creating Directories...."
-    mkdir -p $WRK_DIR/$PACKAGE
-    PKG_DIR=$RDIR/$PACKAGE
-    FS=$WRK_DIR/$PACKAGE/$PACKAGE.fs
-    mkdir $FS
-    source $PKG_DIR/StelaKonstrui
-    for d in "${PKG_SRC[@]}"; do
-        if [[ $d == *"http"* ]]; then
-            ARCHIVE_FILE=${d##*/}
-            echo "[....] Downloading & Extracting $ARCHIVE_FILE...."
-            if [ -f $SRC_DIR/$ARCHIVE_FILE ]; then
-                echo "[DONE] File already downloaded. Continuing..."
-            else
-                wget -q --show-progress -P $SRC_DIR $d
-            fi
-            if [[ $ARCHIVE_FILE == *"bz2"* ]]; then
-                pv $SRC_DIR/$ARCHIVE_FILE | tar -xjf - -C $WRK_DIR/$PACKAGE/
-            elif [[ $ARCHIVE_FILE == *"xz"* ]]; then
-                pv $SRC_DIR/$ARCHIVE_FILE | tar -xJf - -C $WRK_DIR/$PACKAGE/
-            elif [[ $ARCHIVE_FILE == *"gz"* ]]; then
-                pv $SRC_DIR/$ARCHIVE_FILE | tar -xzf - -C $WRK_DIR/$PACKAGE/
-            elif [[ $ARCHIVE_FILE == *"zip"* ]]; then
-                unzip -o $SRC_DIR/$ARCHIVE_FILE -d $WRK_DIR/$PACKAGE/ | pv -l >/dev/null
-            else
-                pv $SRC_DIR/$ARCHIVE_FILE | tar -xf - -C $WRK_DIR/$PACKAGE/
-            fi
-            echo "[DONE] Downloaded & Extracted $ARCHIVE_FILE."
-        else
-            echo "[....] Copying File $d...."
-            cp -r $PKG_DIR/$d $WRK_DIR/$PACKAGE
-            echo "[DONE] Copied $d."
+    mkdir -p $FS
+    source $REPO_DIR/StelaKonstrui
+
+    # ----- Check Dependencies ----- #
+    for d in "${PKG_DEPS[@]}"; do
+        if [[ ! -d $WRK_DIR/$d/$d.fs ]]; then
+            echo -e "${RED}[FAIL] ${NC}Dependency $d unmet."
+            echo "Please build with $EXECUTE build $d"
+            exit
         fi
     done
-    if [[ $ARCHIVE_FILE == *"zip"* ]]; then # Temporary Fix for how Git works
-        export DIR=$WRK_DIR/$PACKAGE/*-$PACKAGE
+
+    # ----- Download Archives / Get Files ----- #
+    for f in "${PKG_SRC[@]}"; do
+        if [[ $f == *"http"* ]]; then   # If string is a URL
+            ARCHIVE_FILE=${f##*/}
+            if [[ -f $SRC_DIR/$ARCHIVE_FILE ]]; then
+                echo -e "${GREEN}[DONE] ${NC}File already downloaded. Continuing...."
+            else
+                echo -e "${BLUE}[....] ${NC}Downloading $ARCHIVE_FILE...."
+                wget -q --show-progress -P $SRC_DIR $f
+                echo -e "${GREEN}[DONE] ${NC}Downloaded $ARCHIVE_FILE."
+            fi
+            echo -e "${BLUE}[....] ${NC}Extracting $ARCHIVE_FILE...."
+            if [[ $ARCHIVE_FILE == *".bz2"* ]]; then
+                pv $SRC_DIR/$ARCHIVE_FILE | tar -xjf - -C $WORK_DIR/
+            elif [[ $ARCHIVE_FILE == *".xz"* ]]; then
+                pv $SRC_DIR/$ARCHIVE_FILE | tar -xJf - -C $WORK_DIR/
+            elif [[ $ARCHIVE_FILE == *".gz"* ]]; then
+                pv $SRC_DIR/$ARCHIVE_FILE | tar -xzf - -C $WORK_DIR/
+            elif [[ $ARCHIVE_FILE == *".zip"* ]]; then
+                unzip -o $SRC_DIR/$ARCHIVE_FILE -d $WORK_DIR/ | pv -l >/dev/null
+            else
+                echo -e "${RED}[FAIL] ${NC}Unknown File Format."
+                exit
+            fi
+            echo -e "${GREEN}[DONE] ${NC}Extracted $ARCHIVE_FILE."
+        else # If string is a file
+            echo -e "${BLUE}[....] ${NC}Copying File $f...."
+            cp -r $REPO_DIR/$f $WORK_DIR
+            echo -e "${GREEN}[DONE] ${NC}Copied $f."
+        fi
+    done
+    # Temporary Fix for Zip Archives 
+    if [[ $ARCHIVE_FILE == *".zip"* ]]; then
+        export DIR=$WORK_DIR/*-$PACKAGE
     else
-        export DIR=$WRK_DIR/$PACKAGE/$PACKAGE-*
+        export DIR=$WORK_DIR/$PACKAGE-*
     fi
+
+    # ----- Build Package ----- #
     cd $DIR
-    echo "[DONE] Downloaded & Extracted Archive Packages."
-    echo "[....] Building $PACKAGE...."
+    echo -e "${BLUE}[....] ${NC}Building $PACKAGE...."
     build_$PACKAGE
+    echo -e "${GREEN}[DONE] ${NC}Built $PACKAGE."
 }
 
-# initramfs(): Generates the initramfs
+# initramfs(): Generate the initramfs archive
 function loka_initramfs() {
     loka_title
+
+    # ----- Check if InitramFS already exists ----- #
     if [[ -d $INITRAMFS_DIR ]]; then
         if [[ $PACKAGE == "-Y" ]]; then
-            echo "[....] Removing InitramFS...."
+            echo -e "${BLUE}[....] ${NC}Removing InitramFS...."
             rm -rf $INITRAMFS_DIR
-            echo "[DONE] Removed InitramFS."
+            echo -e "${GREEN}[DONE] ${NC}Removed InitramFS."
         else
-            echo "[WARN] The InitramFS already exists."
+            echo -e "${ORANGE}[WARN] ${NC}InitramFS Already Exists."
             read -p "Do you want to overwrite? (Y/n) " OPT
             if [ $OPT == 'Y' ]; then
-                echo "[....] Removing InitramFS...."
+                echo -e "${BLUE}[....] ${NC}Removing InitramFS...."
                 rm -rf $INITRAMFS_DIR
-                echo "[DONE] Removed InitramFS."
+                echo -e "${GREEN}[DONE] ${NC}Removed InitramFS."
             else
-                echo "[DONE] Nothing."
+                echo -e "${GREEN}[DONE] ${NC}Nothing."
                 exit
             fi
         fi
     fi
-    echo "[....] Creating InitramFS File Hierarchy"
-    mkdir -p $INITRAMFS_DIR/fs/{bin,boot,dev,etc,lib,mnt/root,proc,root,sbin,sys,tmp,usr/share/include,run}
-    echo "[DONE] Created InitramFS File Hierarchy"
+    
+    # ----- Create InitramFS Hierarchy ----- #
+    echo -e "${BLUE}[....] ${NC}Creating InitramFS File Hierarchy...."
+    mkdir -p $INITRAMFS_DIR/fs/{bin,boot,dev,etc,lib,lib64,mnt/root,proc,root,sbin,sys,tmp,usr/share/include,run}
+    echo -e "${GREEN}[DONE] ${NC}Created InitramFS File Hierarchy."
+
+    # ----- Copy Package FS to InitramFS ----- #
     for i in "${INITRAMFS_PKG[@]}"; do
         if [[ ! -d $WRK_DIR/$i ]]; then
-            echo "[FAIL] Package $i not built."
+            echo -e "${RED}[FAIL] ${NC}Package $i not built."
             echo "Please build with $EXECUTE build $i"
-            exit 5
+            exit
         fi
-        echo "[....] Copying $i to InitramFS...."
+        echo -e "${BLUE}[....] ${NC}Copying $i to InitramFS...."
         cp -r --remove-destination $WRK_DIR/$i/$i.fs/* $INITRAMFS_DIR/fs
-        echo "[DONE] Copied $i to InitramFS."
+        echo -e "${GREEN}[DONE] ${NC}Copied $i to InitramFS."
     done
-    echo "[....] Configuring InitramFS...."
-    
-    mv $INITRAMFS_DIR/fs/include $INITRAMFS_DIR/fs/usr/share/include
-    
-    # strip
-    ${STRIP} -g \
+
+    # ----- Configure InitramFS ----- #
+    echo -e "${BLUE}[....] ${NC}Configuring InitramFS...."
+    # Nothing yet.
+    echo -e "${GREEN}[DONE] ${NC}Configured InitramFS."
+
+    # ----- Strip InitramFS ----- #
+    echo -e "${BLUE}[....] ${NC}Stripping InitramFS...."
+    strip -g \
         $INITRAMFS_DIR/fs/bin/* \
         $INITRAMFS_DIR/fs/sbin/* \
         $INITRAMFS_DIR/fs/lib/* \
+        $INITRAMFS_DIR/fs/lib64* \
         2>/dev/null
-    echo "[DONE] Configured InitramFS."
-    echo "[....] Generating InitramFS...."
+    echo -e "${GREEN}[DONE] ${NC}Stripped InitramFS."
+
+    # ----- Generate InitramFS ----- #
+    echo -e "${BLUE}[....] ${NC}Generating InitramFS...."
     cd $INITRAMFS_DIR/fs
     find . | cpio -R root:root -H newc -o | xz -9 --check=none > ../initramfs.cpio.xz
-    echo "[DONE] Generated InitramFS."
+    echo -e "${GREEN}[DONE] ${NC}Generated InitramFS."
 }
 
-# image(): Creates a LiveCD of StelaLinux
+# image(): Generate a StelaLinux Live ISO
 function loka_image() {
     loka_title
+
+    # ----- Check if Directory Exists ----- #
     if [[ -d $FIN_DIR ]]; then
         if [[ $PACKAGE == "-Y" ]]; then
-            echo "[....] Removing Final Directory...."
+            echo -e "${BLUE}[....] ${NC}Removing Final Directory...."
             rm -rf $FIN_DIR
-            echo "[DONE] Removed Final Directory."
+            echo -e "${GREEN}[DONE] ${NC}Removed Final Directory."
         else
-            echo "[WARN] The Final Image Directory already exists."
+            echo -e "${ORANGE}[WARN] ${NC}The Final Image Directory already exists."
             read -p "Do you want to overwrite? (Y/n) " OPT
             if [ $OPT == 'Y' ]; then
-                echo "[....] Removing Final Directory...."
+                echo -e "${BLUE}[....] ${NC}Removing Final Directory...."
                 rm -rf $FIN_DIR
-                echo "[DONE] Removed Final Directory."
+                echo -e "${GREEN}[DONE] ${NC}Removed Final Directory."
             else
-                echo "[DONE] Nothing."
+                echo -e "${GREEN}[DONE] ${NC}Nothing."
                 exit
             fi
         fi
     fi
+
+    # ----- Check for InitramFS ----- #
     if [[ ! -d $INITRAMFS_DIR ]]; then
-        echo "[FAIL] The initramFS has not yet been generated."
+        echo -e "${RED}[FAIL] ${NC}The InitramFS has not been generated."
         echo "Please generate with $EXECUTE initramfs"
-        exit 5
+        exit
     fi
-    echo "[....] Creating Filesystem Hierarchy...."
+
+    # ----- Create Filesystem Hierarchy ----- #
+    echo -e "${BLUE}[....] ${NC}Creating Filesystem Hierarchy...."
     mkdir -p $FIN_DIR/{bin,boot,dev,etc,lib,lib64,mnt/root,proc/sys/kernel/hotplug,root,sbin,sys,tmp,usr/share}
-    echo "[DONE] Created Filesystem Hierarchy."
+    echo -e "${GREEN}[DONE] ${NC}Created Filesystem Hierarchy."
+
+    # ----- Copy Package FS to Image ----- #
     for i in "${IMAGE_PKG[@]}"; do
         if [[ ! -d $WRK_DIR/$i ]]; then
-            echo "[FAIL] Package $i not built."
+            echo -e "${RED}[FAIL] ${NC}Package $i is not built."
             echo "Please build with $EXECUTE build $i"
-            exit 5
+            exit
         fi
-        echo "[....] Copying $i to Final Directory...."
+        echo -e "${BLUE}[....] ${NC}Copying $i to Final Directory...."
         cp -r --remove-destination $WRK_DIR/$i/$i.fs/* $FIN_DIR
-        echo "[DONE] Copied $i to Final Directory."
+        echo -e "${GREEN}[DONE] ${NC}Copied $i to Final Directory."
     done
-    echo "[....] Copying initramFS to Final Directory...."
+
+    # ----- Copy InitramFS to Image ----- #
+    echo -e "${BLUE}[....] ${NC}Copying InitramFS to Final Directory...."
     cp $INITRAMFS_DIR/initramfs.cpio.xz $FIN_DIR/boot/initramfs.xz
-    echo "[DONE] Copied initramFS to Final Directory."
-    echo "[....] Generating Disk Image...."
+    echo -e "${GREEN}[DONE] ${NC}Copied InitramFS to Final Directory."
+
+    # ----- Generate Disk Image ----- #
+    echo -e "${BLUE}[....] ${NC}Generating Disk Image...."
     cd $FIN_DIR
     xorriso -as mkisofs \
         -isohybrid-mbr boot/isolinux/isohdpfx.bin \
@@ -318,71 +340,59 @@ function loka_image() {
         -no-emul-boot \
         -boot-load-size 4 \
         -boot-info-table \
-        -o $STELA/StelaLinux-$STELA_BUILD-$ARCH.iso \
+        -o $STELA/StelaLinux-$BUILD_NUMBER-$ARCH.iso \
         .
-    echo "[DONE] Generated Disk Image."
+    echo -e "${GREEN}[DONE] ${NC}Generated Disk Image."
 }
 
-# qemu(): Starts a QEMU Emulator of StelaLinux
-function loka_qemu() {
-    if [ ! -f $STELA/StelaLinux-$STELA_BUILD-$ARCH.iso ]; then
-        echo "[FAIL] No StelaLinux Found. Exiting..."
-        exit 7
-    fi
-    if [[ $ARCH == "x86_64" ]]; then
-        if [[ $(which qemu-system-x86_64) == "" ]]; then
-            echo "[FAIL] QEMU 64-bit is not installed!"
-            exit 7
-        fi
-        echo "[....] Starting QEMU...."
-        qemu-system-x86_64 -m 512M -cdrom $STELA/StelaLinux-$STELA_BUILD-$ARCH.iso -boot d
-        echo "[DONE] QEMU Ended."
-    elif [[ $ARCH == "i486" ]]; then
-        if [[ $(which qemu-system-i386) == "" ]]; then
-            echo "[FAIL] QEMU 32-bit is not installed!"
-            exit 7
-        fi
-        echo "[....] Starting QEMU...."
-        qemu-system-i386 -m 512M -cdrom $STELA/StelaLinux-$STELA_BUILD-$ARCH.iso -boot d
-        echo "[DONE] QEMU Ended."
-    else
-        echo "[FAIL] Incompatible Architecture: $ARCH"
-        exit 7
-    fi
+# all(): Generates a complete StelaLinux Build
+function loka_all() {
+
+    # ----- Build all packages in Image Package Array ----- #
+    for p in "${IMAGE_PKG[@]}"; do
+        PACKAGE="$p"
+        loka_build
+    done
+
+    # ----- Generate InitramFS ----- #
+    loka_initramfs
+
+    # ----- Generate Image ----- #
+    loka_image 
 }
 
-# usage(): Shows the Usage
+# usage(): Shows the usage
 function loka_usage() {
-    echo "$EXECUTE [OPTION] [PAGKAGE]"
+    echo "$EXECUTE [OPTION] (PACKAGE) (flag)"
     echo "StelaLinux Build Script - Used to build StelaLinux"
     echo ""
     echo "[OPTION]:"
-    echo "      toolchain:      Downloads the MUSL-compiled GCC Toolchain"
-    echo "      build:          Builds a package from the repository"
-    echo "      initramfs:      Generate an initramfs"
-    echo "      image           Generate bootable StelaLinux Image"
-    echo "      qemu:           Starts a QEMU VM with StelaLinux"
-    echo "      clean:          Cleans all of the directories"
-    echo "      help:           Shows this dialog"
+    echo "      build:      Builds a package from the Package Repository"
+    echo "      initramfs:  Generate an InitramFS Archive"
+    echo "      image:      Generate a bootable StelaLinux Live ISO"
+    echo "      all:        Complete all steps to build a StelaLinux ISO"
+    echo "      qemu:       Start a QEMU Virtual Machine with StelaLinux"
+    echo "      clean:      Clean the directory (MUST BE USED BEFORE COMMIT)"
+    echo "      help:       Shows this dialog"
     echo ""
-    echo "[PACKAGE]: Specific Package to be built"
+    echo "(PACKAGE): Specific Package to build"
+    echo ""
+    echo "(FLAG): Special Arguments for StelaLinux Build Script"
+    echo "      -Y:         Prompts yes to all option dialogs"
     echo ""
     echo "Developed by Alexander Barris (AwlsomeAlex)"
     echo "Licensed under the GNU GPLv3"
-    echo "Musl Toolchain Provided by musl.cc (Thanks zv.io!)"
     echo "No penguins were harmed in the making of this distro."
     echo ""
-
 }
+
+
 
 #---------------------------#
 # ----- Main Function ----- #
 #---------------------------#
-function loka_main() {
+function main() {
     case "$OPTION" in
-        toolchain )
-            loka_toolchain
-            ;;
         build )
             loka_build
             ;;
@@ -391,6 +401,9 @@ function loka_main() {
             ;;
         image )
             loka_image
+            ;;
+        all)
+            loka_all
             ;;
         clean )
             loka_clean
@@ -404,11 +417,17 @@ function loka_main() {
     esac
 }
 
+
+
 #-----------------------------#
 # ----- Main Executable ----- #
 #-----------------------------#
+
+# ----- Arguments ----- #
 EXECUTE=$0
 OPTION=$1
 PACKAGE=$2
 FLAG=$3
-loka_main
+
+# ----- Execution ---- #
+main

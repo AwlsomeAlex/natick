@@ -1,5 +1,0 @@
-set nocompatible
-set backspace=2
-set mouse=r
-syntax on
-set background=black

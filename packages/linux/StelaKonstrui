@@ -1,42 +1,51 @@
-#################################
-#-------------------------------#
-# Stela Package Builder - Linux #
-#-------------------------------#
-#################################
+################################
+#------------------------------#
+# StelaKonstrui Script - Linux #
+#------------------------------#
+################################
 #
 # Description:  The All Powerful Linux Kernel
-# URL:          https://www.kernel.org/
+# URL:          https://kernel.org/
 # Maintainer:   AwlsomeAlex
 # Section:      kerno
 #
 
+# ----- Package Information ----- #
 PKG_NAME=linux
-PKG_VERSION=5.4.2
+PKG_VERSION=5.4.3
 PKG_SRC=("https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-$PKG_VERSION.tar.xz")
+PKG_DEPS=()
 
+# ----- Build Function ----- #
 build_linux() {
-
+    
     #-----------------------------#
     # ----- Local Variables ----- #
     #-----------------------------#
-    if [[ $ARCH != 'x86_64' ]]; then
-        ARCH='i386'
-    fi
+    
+    # Image File Location
     IMAGE_FILE="arch/x86/boot/bzImage"
 
-    #--------------------------#
-    # -----Configuration ----- #
-    #--------------------------#
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+    
+    # Make Default Configuration
     make mrproper -j $NUM_JOBS
     make defconfig -j $NUM_JOBS
-    # Got some of these from MLL
+
+    # Prepare Linux Header Directory
+    mkdir -p $FS/usr
+
+    # Set Build Variables (Some are from the Minimal Linux Live project)
+
     sed -i "s/.*CONFIG_DEFAULT_HOSTNAME.*/CONFIG_DEFAULT_HOSTNAME=\"stelalinux\"/" .config  # Changes Hostname
     sed -i 's:# CONFIG_LOCALVERSION is not set :CONFIG_LOCALVERSION="-stela":g' .config     # Adds -stela to Kernel Version
     sed -i "s/.*\\(CONFIG_KERNEL_.*\\)=y/\\#\\ \\1 is not set/" .config                     # Resets compression
     sed -i "s/.*CONFIG_KERNEL_XZ.*/CONFIG_KERNEL_XZ=y/" .config                             # Defaults to xz compression
     sed -i "s/.*CONFIG_FB_VESA.*/CONFIG_FB_VESA=y/" .config                                 # Enables VESA Framebuffer
     sed -i 's:# CONFIG_UEVENT_HELPER is not set:CONFIG_UEVENT_HELPER=y:g' .config           # Enable mdev support
-    echo 'CONFIG_UEVENT_HELPER_PATH=""' >> .config                                            # Set mdev path to '' (Set by xiongnu)
+    echo 'CONFIG_UEVENT_HELPER_PATH=""' >> .config                                          # Set mdev path to '' (Set by xiongnu)
     sed -i "s/.*CONFIG_LOGO_LINUX_CLUT224.*/CONFIG_LOGO_LINUX_CLUT224=y/" .config           # Show Linux Kernel Logo on boot
     sed -i "s/^CONFIG_DEBUG_KERNEL.*/\\# CONFIG_DEBUG_KERNEL is not set/" .config           # Disable debug symbols (smaller kernel binary)
     sed -i "s/.*CONFIG_EFI_STUB.*/CONFIG_EFI_STUB=y/" .config                               # Enable EFI stub
@@ -48,22 +57,28 @@ build_linux() {
         sed -i 's:CONFIG_M686=y:# CONFIG_M686 is not set:g' .config                         # Turn off i686 target
         sed -i 's:# CONFIG_M486 is not set:CONFIG_M486=y:g' .config                         # Turn on i486 target
     fi
-    
-    #------------------------------#
-    # ----- Kernel Compiling ----- #
-    #------------------------------#
-    make ARCH=$ARCH CROSS_COMPILE=${CROSS_COMPILE} CFLAGS="$CFLAGS" bzImage -j $NUM_JOBS
 
-    #----------------------------#
-    # ----- Install Kernel ----- #
-    #----------------------------#
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
+
+    # Compile Linux Kernel
+    make ARCH=$ARCH CFLAGS="$CFLAGS" bzImage -j $NUM_JOBS
+
+    # Compile Linux Kernel Headers (For GLIBC)
+    make \
+        INSTALL_HDR_PATH=$FS/usr/share \
+        headers_install -j $NUM_JOBS  
+
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
     mkdir $FS/boot
     cp -r $IMAGE_FILE $FS/boot/
     mv $FS/boot/bzImage $FS/boot/kernel.xz
 
     echo ""
-    echo "+=======================+"
-    echo "| Linux Kernel Compiled |"
-    echo "+=======================+"
+    echo "+=================================+"
+    echo "| Linux Kernel + Headers Compiled |"
+    echo "+=================================+"
 }
-

@@ -1,8 +1,8 @@
-####################################
-#----------------------------------#
-# Stela Package Builder - syslinux #
-#----------------------------------#
-####################################
+##############################################
+#--------------------------------------------#
+# StelaKonstrui Script - syslinux Bootloader #
+#--------------------------------------------#
+##############################################
 #
 # Description:  syslinux Bootloader
 # URL:          https://wiki.syslinux.org/wiki/index.php
@@ -10,27 +10,44 @@
 # Section:      kerno
 #
 
+# ----- Package Information ----- #
 PKG_NAME=syslinux
 PKG_VERSION=6.03
 PKG_SRC=("https://mirrors.edge.kernel.org/pub/linux/utils/boot/syslinux/6.xx/syslinux-$PKG_VERSION.tar.gz" "syslinux.cfg" "isolinux.cfg" "isohdpfx.bin")
+PKG_DEPS=()
 
+# ----- Build Function ----- #
 build_syslinux() {
     
-    # Local Variables
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
     
-    # Configuration
-    
-    # Build syslinux
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+   
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
+
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
+
+    # Create Directories
     mkdir -p $FS/boot/isolinux
     mkdir -p $FS/boot/syslinux
+
+    # Copy Syslinux Files to FS
     cp ../isohdpfx.bin $FS/boot/isolinux
     cp ../isolinux.cfg $FS/boot/isolinux
     cp ../syslinux.cfg $FS/boot/syslinux
     cp bios/core/isolinux.bin $FS/boot/isolinux
     cp bios/com32/elflink/ldlinux/ldlinux.c32 $FS/boot/isolinux
-
+    
     echo ""
     echo "+====================+"
-    echo "| syslinux Generated |"
+    echo "| Syslinux Generated |"
     echo "+====================+"
 }

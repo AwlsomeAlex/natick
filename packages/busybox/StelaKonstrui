@@ -1,40 +1,69 @@
-###################################
-#---------------------------------#
-# Stela Package Builder - BusyBox #
-#---------------------------------#
-###################################
+##################################
+#--------------------------------#
+# StelaKonstrui Script - BusyBox #
+#--------------------------------#
+##################################
 #
-# Description:  Tiny versions of many common UNIX utilities
-# URL:          https://www.busybox.net/
+# Description:  Tiny version of many common UNIX utilities
+# URL:          https://www.busybox.net
 # Maintainer:   AwlsomeAlex
 # Section:      kerno
 #
 
+# ----- Package Information ----- #
 PKG_NAME=busybox
 PKG_VERSION=1.31.1
-PKG_SRC=("busybox_$PKG_VERSION.config" "https://www.busybox.net/downloads/$PKG_NAME-$PKG_VERSION.tar.bz2")
+PKG_SRC=("https://www.busybox.net/downloads/$PKG_NAME-$PKG_VERSION.tar.bz2" "stela.sh")
+PKG_DEPS=()
 
+# ----- Build Function ----- #
 build_busybox() {
-    # Local Variables
-    CONFIG_FILE="busybox_$PKG_VERSION.config"
     
-    # Configuration
-    make mrproper
-    cp ../$CONFIG_FILE .config 
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
+    
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+   
+    # Prepare BusyBox Configuration
+    make distclean -j $NUM_JOBS
+    make defconfig -j $NUM_JOBS
+
+    # Turn off inetd
+    sed -i "s/.*CONFIG_INETD.*/CONFIG_INETD=n/" .config
+
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
 
     # Compile BusyBox
-    make ARCH=$ARCH CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS" -j $NUM_JOBS
-    make ARCH=$ARCH CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS" -j $NUM_JOBS busybox
+    make \
+        EXTRA_CFLAGS="$CFLAGS" \
+        busybox -j $NUM_JOBS
+    
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
 
-    # Install BusyBox
-    make CONFIG_PREFIX="$FS" install -j $NUM_JOBS
-   
-    # Delete linuxrc
+    # Install to FS
+    make \
+        CONFIG_PREFIX="$FS" \
+        install -j $NUM_JOBS    
+
+    # Remove linuxrc
     rm $FS/linuxrc
- 
-    echo ""
-    echo "+==================+"
-    echo "| BusyBox Compiled |"
-    echo "+==================+"
-}
 
+    # Copy stela.sh to $FS
+    cp -r ../stela.sh $FS/bin/stela
+
+    # Populate stela build information
+    sed -i "s/BUILD_NAME=NULL/BUILD_NAME='$BUILD_NAME'/" $FS/bin/stela
+    sed -i "s/BUILD_NUMBER=NULL/BUILD_NUMBER='$BUILD_NUMBER'/" $FS/bin/stela
+    
+    echo ""
+    echo "+===========================+"
+    echo "| BusyBox Userland Compiled |"
+    echo "+===========================+"
+}

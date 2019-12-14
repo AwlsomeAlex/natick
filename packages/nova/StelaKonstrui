@@ -1,8 +1,8 @@
-#################################################
-#-----------------------------------------------#
-# Stela Package Builder - xiongnu (nova branch) #
-#-----------------------------------------------#
-#################################################
+################################################
+#----------------------------------------------#
+# StelaKonstrui Script - Xiongnu (Nova Branch) #
+#----------------------------------------------#
+################################################
 #
 # Description:  Xiongnu Init Scripts
 # URL:          https://www.github.com/AwlsomeAlex/Xiongnu/tree/nova
@@ -10,26 +10,41 @@
 # Section:      kerno
 #
 
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
-# !!!!! THIS IS A TEMPORARY PACKAGE IN PLACE FOR 'xiongnu' !!!!! #
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
-
+# ----- Package Information ----- #
 PKG_NAME=nova
 PKG_VERSION=GIT
-PKG_SRC=("https://github.com/AwlsomeAlex/Xiongnu/archive/nova.zip" "inittab" "fstab" "passwd") # nova branch
+PKG_SRC=("https://www.github.com/AwlsomeAlex/Xiongnu/archive/nova.zip" "inittab" "fstab" "passwd")
+PKG_DEPS=()
 
+# ----- Build Function ----- #
 build_nova() {
     
-    # Local Variables
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
     
-    # Configuration
-    
-    # Generate Xiongnu
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+   
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
+
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
+
     cd src
-	cp -r * $FS
+
+    # Copy Xiongnu to FS
+    cp -r * $FS
+    
+    # Copy StelaLinux-Specific Files to FS
     cp ../../fstab $FS/etc
     cp ../../passwd $FS/etc
-    cp -r ../../inittab $FS/etc
+    cp ../../inittab $FS/etc
+    
     echo ""
     echo "+===================+"
     echo "| Xiongnu Generated |"

@@ -1,0 +1,95 @@
+################################
+#------------------------------#
+# StelaKonstrui Script - glibc #
+#------------------------------#
+################################
+#
+# Description:  The GNU C Library (glibc)
+# URL:          https://gnu.org/software/libc
+# Maintainer:   AwlsomeAlex
+# Section:      kerno
+#
+
+# ----- Package Information ----- #
+PKG_NAME=glibc
+PKG_VERSION=2.30
+PKG_SRC=("https://ftp.gnu.org/gnu/glibc/glibc-$PKG_VERSION.tar.xz")
+PKG_DEPS=("linux")
+
+# ----- Build Function ----- #
+build_glibc() {
+    
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
+    
+    # GlibC Source Directory
+    GLIBC_SRC=$WORK_DIR/glibc-*
+
+    # GlibC Object Directory
+    GLIBC_OBJ=$WORK_DIR/glibc-object   
+
+    # Linux Kernel Headers
+    KERNEL_HEADERS=$WRK_DIR/linux/linux.fs/usr/share
+
+    # GlibC Dummy Install Directory
+    GLIBC_FULL=$WORK_DIR/glibc.fs_full
+
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+   
+    # Create GlibC Object Directory and Dummy FS
+    mkdir -p $GLIBC_OBJ
+    mkdir -p $GLIBC_FULL
+
+    # Configure GlibC in GLIBC_OBJ
+    cd $GLIBC_OBJ
+    
+    $GLIBC_SRC/configure \
+        --prefix= \
+        --with-headers=$KERNEL_HEADERS/include \
+        --without-gd \
+        --without-selinux \
+        --disable-werror \
+        CFLAGS="$CFLAGS"
+
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
+
+    # Compile GlibC
+    make -j $NUM_JOBS
+    
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
+    
+    # Install to Dummy FS Directory
+    make install \
+        DESTDIR=$GLIBC_FULL \
+        -j $NUM_JOBS
+
+    # Copy Dynamic Loader Library
+    if [[ $ARCH == "x86_64" ]]; then
+        mkdir -p $FS/lib64
+        mkdir -p $FS/lib
+        cp -r $GLIBC_FULL/lib/ld-* $FS/lib64
+        echo "Configured for 64-bit"
+    else
+        mkdir -p $FS/lib
+        cp -r $GLIBC_FULL/lib/ld-* $FS/lib
+        echo "Configured for 32-bit"
+    fi
+
+    # Copy Essential Libraries
+    cp $GLIBC_FULL/lib/libm.so.6 $FS/lib/
+    cp $GLIBC_FULL/lib/libc.so.6 $FS/lib/
+    cp $GLIBC_FULL/lib/libresolv.so.2 $FS/lib/
+    cp $GLIBC_FULL/lib/libnss_dns.so.2 $FS/lib/
+
+    echo ""
+    echo "+========================+"
+    echo "| GNU C Library Compiled |"
+    echo "+========================+"
+}
