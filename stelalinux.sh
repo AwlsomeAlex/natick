@@ -57,7 +57,7 @@ NUM_CORES="$(grep ^processor /proc/cpuinfo | wc -l)"
 export NUM_JOBS="$((NUM_CORES * JOB_FACTOR))"
 
 # ----- Color Codes For Fancy Text ----- #
-NC='\933[0m'        # No Color
+NC='\033[0m'        # No Color
 RED='\033[0;31m'    # Red
 BLUE='\033[1;34m'   # Blue
 GREEN='\033[1;32m'  # Green
@@ -123,6 +123,7 @@ function loka_build() {
     WORK_DIR=$WRK_DIR/$PACKAGE
     FS=$WORK_DIR/$PACKAGE.fs
 
+    echo $WORK_DIR
     loka_title
     
     # ----- Locate and Check Package ----- #
@@ -171,26 +172,27 @@ function loka_build() {
     for f in "${PKG_SRC[@]}"; do
         if [[ $f == *"http"* ]]; then   # If string is a URL
             ARCHIVE_FILE=${f##*/}
-            if [ -f $SRC_DIR/$ARCHIVE_FILE ]; then
+            if [[ -f $SRC_DIR/$ARCHIVE_FILE ]]; then
                 echo -e "${GREEN}[DONE] ${NC}File already downloaded. Continuing...."
             else
                 echo -e "${BLUE}[....] ${NC}Downloading $ARCHIVE_FILE...."
                 wget -q --show-progress -P $SRC_DIR $f
                 echo -e "${GREEN}[DONE] ${NC}Downloaded $ARCHIVE_FILE."
-                echo -e "${BLUE}[....] ${NC}Extracting $ARCHIVE_FILE...."
-                if [[ $ARCHIVE_FILE == *".bz2"* ]]; then
-                    pv $SRC_DIR/$ARCHIVE_FILE | tar -xjf - -C $WORK_DIR/
-                elif [[ $ARCHIVE_FILE == *".xz"* ]]; then
-                    pv $SRC_DIR/$ARCHIVE_FILE | tar -xJf - -C $WORK_DIR/
-                elif [[ $ARCHIVE_FILE == *".gz"* ]]; then
-                    pv $SRC_DIR/$ARCHIVE_FILE | tar -xzf - -C $WORK_DIR/
-                elif [[ $ARCHIVE_FILE == *".zip"* ]]; then
-                    unzip -o $SRC_DIR/$ARCHIVE_FILE -d $WORK_DIR/ | pv -l >/dev/null
-                else
-                    echo -e "${RED}[FAIL] ${NC}Unknown Archive Format."
-                fi
-                echo -e "${GREEN}[DONE] ${NC}Extracted $ARCHIVE_FILE."
             fi
+            echo -e "${BLUE}[....] ${NC}Extracting $ARCHIVE_FILE...."
+            if [[ $ARCHIVE_FILE == *".bz2"* ]]; then
+                pv $SRC_DIR/$ARCHIVE_FILE | tar -xjf - -C $WORK_DIR/
+            elif [[ $ARCHIVE_FILE == *".xz"* ]]; then
+                pv $SRC_DIR/$ARCHIVE_FILE | tar -xJf - -C $WORK_DIR/
+            elif [[ $ARCHIVE_FILE == *".gz"* ]]; then
+                pv $SRC_DIR/$ARCHIVE_FILE | tar -xzf - -C $WORK_DIR/
+            elif [[ $ARCHIVE_FILE == *".zip"* ]]; then
+                unzip -o $SRC_DIR/$ARCHIVE_FILE -d $WORK_DIR/ | pv -l >/dev/null
+            else
+                echo -e "${RED}[FAIL] ${NC}Unknown File Format."
+                exit
+            fi
+            echo -e "${GREEN}[DONE] ${NC}Extracted $ARCHIVE_FILE."
         else # If string is a file
             echo -e "${BLUE}[....] ${NC}Copying File $f...."
             cp -r $PKG_DIR/$f $WORK_DIR
@@ -205,6 +207,7 @@ function loka_build() {
     fi
 
     # ----- Build Package ----- #
+    cd $DIR
     echo -e "${BLUE}[....] ${NC}Building $PACKAGE...."
     build_$PACKAGE
     echo -e "${GREEN}[DONE] ${NC}Built $PACKAGE."
