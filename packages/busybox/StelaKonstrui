@@ -1,0 +1,62 @@
+##################################
+#--------------------------------#
+# StelaKonstrui Script - BusyBox #
+#--------------------------------#
+##################################
+#
+# Description:  Tiny version of many common UNIX utilities
+# URL:          https://www.busybox.net
+# Maintainer:   AwlsomeAlex
+# Section:      kerno
+#
+
+# ----- Package Information ----- #
+PKG_NAME=busybox
+PKG_VERSION=1.31.1
+PKG_SRC=("https://www.busybox.net/downloads/$PKG_NAME-$PKG_VERSION.tar.bz2")
+PKG_DEPS=("")
+
+# ----- Build Function ----- #
+build_busybox() {
+    
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
+    
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+   
+    # Prepare BusyBox Configuration
+    make distclean -j $NUM_JOBS
+    make defconfig -j $NUM_JOBS
+
+    # Turn off inetd
+    sed -i "s/.*CONFIG_INETD.*/CONFIG_INETD=n/" .config
+
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
+
+    # Compile BusyBox
+    make \
+        EXTRA_CFLAGS="$CFLAGS" \
+        busybox -j $NUM_JOBS
+    
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
+
+    # Install to FS
+    make \
+        CONFIG_PREFIX="$FS" \
+        install -j $NUM_JOBS    
+
+    # Remove linuxrc
+    rm $FS/linuxrc
+    
+    echo ""
+    echo "+===========================+"
+    echo "| BusyBox Userland Compiled |"
+    echo "+===========================+"
+}

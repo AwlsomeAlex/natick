@@ -16,10 +16,10 @@
 STELA_BUILD="git"
 
 # Packages to be included in initramfs
-INITRAMFS_PKG=()       
+INITRAMFS_PKG=("linux" "glibc" "busybox" "nova")       
 
 # Packages to be included in StelaLinux
-IMAGE_PKG=()
+IMAGE_PKG=("linux" "glibc" "busybox" "nova" "syslinux")
 
 # Architecture for Packages
 export ARCH=x86_64
@@ -195,12 +195,12 @@ function loka_build() {
             echo -e "${GREEN}[DONE] ${NC}Extracted $ARCHIVE_FILE."
         else # If string is a file
             echo -e "${BLUE}[....] ${NC}Copying File $f...."
-            cp -r $PKG_DIR/$f $WORK_DIR
+            cp -r $REPO_DIR/$f $WORK_DIR
             echo -e "${GREEN}[DONE] ${NC}Copied $f."
         fi
     done
     # Temporary Fix for Zip Archives 
-    if [[ $ARCHIVE_DIR == *".zip"* ]]; then
+    if [[ $ARCHIVE_FILE == *".zip"* ]]; then
         export DIR=$WORK_DIR/*-$PACKAGE
     else
         export DIR=$WORK_DIR/$PACKAGE-*
@@ -214,13 +214,134 @@ function loka_build() {
 }
 
 # initramfs(): Generate the initramfs archive
-#function loka_initramfs() {
-#    loka_title
-#
-#    # ----- Check if InitramFS already exists ----- #
-#    if [[ -d $INITRAMFS_DIR ]]; then
-#       # 
-#}
+function loka_initramfs() {
+    loka_title
+
+    # ----- Check if InitramFS already exists ----- #
+    if [[ -d $INITRAMFS_DIR ]]; then
+        if [[ $PACKAGE == "-Y" ]]; then
+            echo -e "${BLUE}[....] ${NC}Removing InitramFS...."
+            rm -rf $INITRAMFS_DIR
+            echo -e "${GREEN}[DONE] ${NC}Removed InitramFS."
+        else
+            echo -e "${ORANGE}[WARN] ${NC}InitramFS Already Exists."
+            read -p "Do you want to overwrite? (Y/n) " OPT
+            if [ $OPT == 'Y' ]; then
+                echo -e "${BLUE}[....] ${NC}Removing InitramFS...."
+                rm -rf $INITRAMFS_DIR
+                echo -e "${GREEN}[DONE] ${NC}Removed InitramFS."
+            else
+                echo -e "${GREEN}[DONE] ${NC}Nothing."
+                exit
+            fi
+        fi
+    fi
+    
+    # ----- Create InitramFS Hierarchy ----- #
+    echo -e "${BLUE}[....] ${NC}Creating InitramFS File Hierarchy...."
+    mkdir -p $INITRAMFS_DIR/fs/{bin,boot,dev,etc,lib,mnt/root,proc,root,sbin,sys,tmp,usr/share/include,run}
+    echo -e "${GREEN}[DONE] ${NC}Created InitramFS File Hierarchy."
+
+    # ----- Copy Package FS to InitramFS ----- #
+    for i in "${INITRAMFS_PKG[@]}"; do
+        if [[ ! -d $WRK_DIR/$i ]]; then
+            echo -e "${RED}[FAIL] ${NC}Package $i not built."
+            echo "Please build with $EXECUTE build $i"
+            exit
+        fi
+        echo -e "${BLUE}[....] ${NC}Copying $i to InitramFS...."
+        cp -r --remove-destination $WRK_DIR/$i/$i.fs/* $INITRAMFS_DIR/fs
+        echo -e "${GREEN}[DONE] ${NC}Copied $i to InitramFS."
+    done
+
+    # ----- Configure InitramFS ----- #
+    echo -e "${BLUE}[....] ${NC}Configuring InitramFS...."
+    # Nothing yet.
+    echo -e "${GREEN}[DONE] ${NC}Configured InitramFS."
+
+    # ----- Strip InitramFS ----- #
+    echo -e "${BLUE}[....] ${NC}Stripping InitramFS...."
+    strip -g \
+        $INITRAMFS_DIR/fs/bin/* \
+        $INITRAMFS_DIR/fs/sbin/* \
+        $INITRAMFS_DIR/fs/lib/* \
+        2>/dev/null
+    echo -e "${GREEN}[DONE] ${NC}Stripped InitramFS."
+
+    # ----- Generate InitramFS ----- #
+    echo -e "${BLUE}[....] ${NC}Generating InitramFS...."
+    cd $INITRAMFS_DIR/fs
+    find . | cpio -R root:root -H newc -o | xz -9 --check=none > ../initramfs.cpio.xz
+    echo -e "${GREEN}[DONE] ${NC}Generated InitramFS."
+}
+
+# image(): Generate a StelaLinux Live ISO
+function loka_image() {
+    loka_title
+
+    # ----- Check if Directory Exists ----- #
+    if [[ -d $FIN_DIR ]]; then
+        if [[ $PACKAGE == "-Y" ]]; then
+            echo -e "${BLUE}[....] ${NC}Removing Final Directory...."
+            rm -rf $FIN_DIR
+            echo -e "${GREEN}[DONE] ${NC}Removed Final Directory."
+        else
+            echo -e "${ORANGE}[WARN] ${NC}The Final Image Directory already exists."
+            read -p "Do you want to overwrite? (Y/n) " OPT
+            if [ $OPT == 'Y' ]; then
+                echo -e "${BLUE}[....] ${NC}Removing Final Directory...."
+                rm -rf $FIN_DIR
+                echo -e "${GREEN}[DONE] ${NC}Removed Final Directory."
+            else
+                echo -e "${GREEN}[DONE] ${NC}Nothing."
+                exit
+            fi
+        fi
+    fi
+
+    # ----- Check for InitramFS ----- #
+    if [[ ! -d $INITRAMFS_DIR ]]; then
+        echo -e "${RED}[FAIL] ${NC}The InitramFS has not been generated."
+        echo "Please generate with $EXECUTE initramfs"
+        exit
+    fi
+
+    # ----- Create Filesystem Hierarchy ----- #
+    echo -e "${BLUE}[....] ${NC}Creating Filesystem Hierarchy...."
+    mkdir -p $FIN_DIR/{bin,boot,dev,etc,lib,lib64,mnt/root,proc/sys/kernel/hotplug,root,sbin,sys,tmp,usr/share}
+    echo -e "${GREEN}[DONE] ${NC}Created Filesystem Hierarchy."
+
+    # ----- Copy Package FS to Image ----- #
+    for i in "${IMAGE_PKG[@]}"; do
+        if [[ ! -d $WRK_DIR/$i ]]; then
+            echo -e "${RED}[FAIL] ${NC}Package $i is not built."
+            echo "Please build with $EXECUTE build $i"
+            exit
+        fi
+        echo -e "${BLUE}[....] ${NC}Copying $i to Final Directory...."
+        cp -r --remove-destination $WRK_DIR/$i/$i.fs/* $FIN_DIR
+        echo -e "${GREEN}[DONE] ${NC}Copied $i to Final Directory."
+    done
+
+    # ----- Copy InitramFS to Image ----- #
+    echo -e "${BLUE}[....] ${NC}Copying InitramFS to Final Directory...."
+    cp $INITRAMFS_DIR/initramfs.cpio.xz $FIN_DIR/boot/initramfs.xz
+    echo -e "${GREEN}[DONE] ${NC}Copied InitramFS to Final Directory."
+
+    # ----- Generate Disk Image ----- #
+    echo -e "${BLUE}[....] ${NC}Generating Disk Image...."
+    cd $FIN_DIR
+    xorriso -as mkisofs \
+        -isohybrid-mbr boot/isolinux/isohdpfx.bin \
+        -c boot/isolinux/boot.cat \
+        -b boot/isolinux/isolinux.bin \
+        -no-emul-boot \
+        -boot-load-size 4 \
+        -boot-info-table \
+        -o $STELA/StelaLinux-$STELA_BUILD-$ARCH.iso \
+        .
+    echo -e "${GREEN}[DONE] ${NC}Generated Disk Image."
+}
 
 # usage(): Shows the usage
 function loka_usage() {

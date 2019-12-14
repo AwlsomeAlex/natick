@@ -73,7 +73,8 @@ build_glibc() {
     # Copy Dynamic Loader Library
     if [[ $ARCH == "x86_64" ]]; then
         mkdir -p $FS/lib64
-        cp -r $FS/lib/ld-linux* $FS/lib64
+        mkdir -p $FS/lib
+        cp -r $GLIBC_FULL/lib/ld-linux* $FS/lib64
         echo "Configured for 64-bit"
     else
         mkdir -p $FS/lib
@@ -82,10 +83,10 @@ build_glibc() {
     fi
 
     # Copy Essential Libraries
-    cp $GLIBC_FULL/lib/libm.so.6 $FS/lib
-    cp $GLIBC_FULL/lib/libc.so.6 $FS/lib
-    cp $GLIBS_FULL/lib/libresolv.so.2 $FS/lib
-    cp $GLIBS_FULL/lib/libnss_dns.so.2 $FS/lib
+    cp $GLIBC_FULL/lib/libm.so.6 $FS/lib/
+    cp $GLIBC_FULL/lib/libc.so.6 $FS/lib/
+    cp $GLIBC_FULL/lib/libresolv.so.2 $FS/lib/
+    cp $GLIBC_FULL/lib/libnss_dns.so.2 $FS/lib/
 
     echo ""
     echo "+========================+"
