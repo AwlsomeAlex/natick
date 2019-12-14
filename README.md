@@ -14,7 +14,7 @@ This is the GlibC branch of StelaLinux.
 ## How to Build:
 **Dependencies (Debian-based Distributions):**
 
-`sudo apt install rsync wget make gcc gawk g++ bc bison pv flex xorriso libelf-dev libssl-dev unzip libncurses-dev`
+`sudo apt install rsync wget make gcc gawk g++ bc bison pv flex xorriso libelf-dev libssl-dev unzip libncurses-dev texinfo gettext`
 
 **StelaLinux Script:**
 

@@ -67,7 +67,7 @@ build_linux() {
 
     # Compile Linux Kernel Headers (For GLIBC)
     make \
-        INSTALL_HDR_PATH=$FS\usr \
+        INSTALL_HDR_PATH=$FS/usr/share \
         headers_install -j $NUM_JOBS  
 
     #---------------------#
