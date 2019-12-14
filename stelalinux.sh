@@ -13,8 +13,8 @@
 #------------------------------------#
 
 # StelaLinux Build Number
-BUILD_NAME="Git Build"
-BUILD_NUMBER="git"
+BUILD_NAME="Development Build 1"
+BUILD_NUMBER="pre_alpha-1"
 
 # Packages to be included in initramfs
 INITRAMFS_PKG=("linux" "glibc" "busybox" "nova")       
