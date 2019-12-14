@@ -43,6 +43,9 @@ SRC_DIR=$STELA/source
 WRK_DIR=$STELA/work
 FIN_DIR=$STELA/final
 
+# InitramFS Directory
+INITRAMFS_DIR=$WRK_DIR/initramfs
+
 # ----- Compiling Flags ----- #
 
 # C Flags
@@ -163,5 +166,122 @@ function loka_build() {
             exit
         fi
     done
-         
+
+    # ----- Download Archives / Get Files ----- #
+    for f in "${PKG_SRC[@]}"; do
+        if [[ $f == *"http"* ]]; then   # If string is a URL
+            ARCHIVE_FILE=${f##*/}
+            if [ -f $SRC_DIR/$ARCHIVE_FILE ]; then
+                echo -e "${GREEN}[DONE] ${NC}File already downloaded. Continuing...."
+            else
+                echo -e "${BLUE}[....] ${NC}Downloading $ARCHIVE_FILE...."
+                wget -q --show-progress -P $SRC_DIR $f
+                echo -e "${GREEN}[DONE] ${NC}Downloaded $ARCHIVE_FILE."
+                echo -e "${BLUE}[....] ${NC}Extracting $ARCHIVE_FILE...."
+                if [[ $ARCHIVE_FILE == *".bz2"* ]]; then
+                    pv $SRC_DIR/$ARCHIVE_FILE | tar -xjf - -C $WORK_DIR/
+                elif [[ $ARCHIVE_FILE == *".xz"* ]]; then
+                    pv $SRC_DIR/$ARCHIVE_FILE | tar -xJf - -C $WORK_DIR/
+                elif [[ $ARCHIVE_FILE == *".gz"* ]]; then
+                    pv $SRC_DIR/$ARCHIVE_FILE | tar -xzf - -C $WORK_DIR/
+                elif [[ $ARCHIVE_FILE == *".zip"* ]]; then
+                    unzip -o $SRC_DIR/$ARCHIVE_FILE -d $WORK_DIR/ | pv -l >/dev/null
+                else
+                    echo -e "${RED}[FAIL] ${NC}Unknown Archive Format."
+                fi
+                echo -e "${GREEN}[DONE] ${NC}Extracted $ARCHIVE_FILE."
+            fi
+        else # If string is a file
+            echo -e "${BLUE}[....] ${NC}Copying File $f...."
+            cp -r $PKG_DIR/$f $WORK_DIR
+            echo -e "${GREEN}[DONE] ${NC}Copied $f."
+        fi
+    done
+    # Temporary Fix for Zip Archives 
+    if [[ $ARCHIVE_DIR == *".zip"* ]]; then
+        export DIR=$WORK_DIR/*-$PACKAGE
+    else
+        export DIR=$WORK_DIR/$PACKAGE-*
+    fi
+
+    # ----- Build Package ----- #
+    echo -e "${BLUE}[....] ${NC}Building $PACKAGE...."
+    build_$PACKAGE
+    echo -e "${GREEN}[DONE] ${NC}Built $PACKAGE."
 }
+
+# initramfs(): Generate the initramfs archive
+#function loka_initramfs() {
+#    loka_title
+#
+#    # ----- Check if InitramFS already exists ----- #
+#    if [[ -d $INITRAMFS_DIR ]]; then
+#       # 
+#}
+
+# usage(): Shows the usage
+function loka_usage() {
+    echo "$EXECUTE [OPTION] (PACKAGE) (flag)"
+    echo "StelaLinux Build Script - Used to build StelaLinux"
+    echo ""
+    echo "[OPTION]:"
+    echo "      build:      Builds a package from the Package Repository"
+    echo "      initramfs:  Generate an InitramFS Archive"
+    echo "      image:      Generate a bootable StelaLinux Live ISO"
+    echo "      qemu:       Start a QEMU Virtual Machine with StelaLinux"
+    echo "      clean:      Clean the directory (MUST BE USED BEFORE COMMIT)"
+    echo "      help:       Shows this dialog"
+    echo ""
+    echo "(PACKAGE): Specific Package to build"
+    echo ""
+    echo "(FLAG): Special Arguments for StelaLinux Build Script"
+    echo "      -Y:         Prompts yes to all option dialogs"
+    echo ""
+    echo "Developed by Alexander Barris (AwlsomeAlex)"
+    echo "Licensed under the GNU GPLv3"
+    echo "No penguins were harmed in the making of this distro."
+    echo ""
+}
+
+
+
+#---------------------------#
+# ----- Main Function ----- #
+#---------------------------#
+function main() {
+    case "$OPTION" in
+        build )
+            loka_build
+            ;;
+        initramfs )
+            loka_initramfs
+            ;;
+        image )
+            loka_image
+            ;;
+        clean )
+            loka_clean
+            ;;
+        qemu )
+            loka_qemu
+            ;;
+        * )
+            loka_usage
+            ;;
+    esac
+}
+
+
+
+#-----------------------------#
+# ----- Main Executable ----- #
+#-----------------------------#
+
+# ----- Arguments ----- #
+EXECUTE=$0
+OPTION=$1
+PACKAGE=$2
+FLAG=$3
+
+# ----- Execution ---- #
+main
