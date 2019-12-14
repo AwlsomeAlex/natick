@@ -58,7 +58,7 @@ export NUM_JOBS="$((NUM_CORES * JOB_FACTOR))"
 
 # ----- Color Codes For Fancy Text ----- #
 NC='\033[0m'        # No Color
-RED='\033[0;31m'    # Red
+RED='\033[1;31m'    # Red
 BLUE='\033[1;34m'   # Blue
 GREEN='\033[1;32m'  # Green
 ORANGE='\033[0;33m' # Orange
@@ -160,7 +160,7 @@ function loka_build() {
     source $REPO_DIR/StelaKonstrui
 
     # ----- Check Dependencies ----- #
-    for d in "${PKG_DEP[@]}"; do
+    for d in "${PKG_DEPS[@]}"; do
         if [[ ! -d $WRK_DIR/$d/$d.fs ]]; then
             echo -e "${RED}[FAIL] ${NC}Dependency $d unmet."
             echo "Please build with $EXECUTE build $d"
