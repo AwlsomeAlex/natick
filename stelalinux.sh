@@ -13,14 +13,14 @@
 #------------------------------------#
 
 # StelaLinux Build Number
-BUILD_NAME="Development Build 1"
-BUILD_NUMBER="pre_alpha-1"
+BUILD_NAME="Git Build"
+BUILD_NUMBER="git"
 
 # Packages to be included in initramfs
 INITRAMFS_PKG=("linux" "glibc" "busybox" "nova")       
 
 # Packages to be included in StelaLinux
-IMAGE_PKG=("linux" "glibc" "busybox" "nova" "syslinux")
+IMAGE_PKG=("linux" "glibc" "busybox" "nova" "syslinux" "ncurses" "vim")
 
 # Architecture for Packages
 export ARCH=x86_64

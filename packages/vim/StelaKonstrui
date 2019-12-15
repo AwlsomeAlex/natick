@@ -1,0 +1,104 @@
+##########################################
+#----------------------------------------#
+# StelaKonstrui Script - Vim Text Editor #
+#----------------------------------------#
+##########################################
+#
+# Description:  Vim - The ubiquitous text editor
+# URL:          https://www.vim.org/
+# Maintainer:   AwlsomeAlex
+# Section:      kerno
+#
+
+# ----- Package Information ----- #
+PKG_NAME=vim
+PKG_VERSION=8.2.0008
+PKG_SRC=("https://github.com/vim/vim/archive/v$PKG_VERSION.tar.gz" "vimrc")
+PKG_DEPS=()
+
+# ----- Build Function ----- #
+build_vim() {
+    
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
+    
+    # VIM Compile Variables (MLL)
+    #
+    # Source: https://github.com/ivandavidov/minimal/blob/master/src/minimal_overlay/bundles/vim/02_build.sh#L34
+    #
+    export CONF_OPT_GUI='--enable-gui=no'
+    export CONF_OPT_PERL='--enable-perlinterp'
+    export CONF_OPT_PYTHON='--enable-pythoninterp'
+    export CONF_OPT_TCL='--enable-tclinterp'
+    export CONF_OPT_RUBY='--enable-rubyinterp'
+    export CONF_OPT_LUA='--enable-luainterp'
+    export CONF_OPT_X='--without-x'
+    export CONF_OPT_CSCOPE='--enable-cscope'
+    export CONF_OPT_MULTIBYTE='--enable-multibyte'
+    export CONF_OPT_FEAT='--with-features=huge'
+    
+
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+
+    # Set default vimrc location (LFS)
+    #
+    # Source: http://www.linuxfromscratch.org/lfs/view/development/chapter06/vim.html
+    #
+    echo '#define SYS_VIMRC_FILE "/etc/vimrc"' >> src/feature.h
+
+    #CFLAGS="$CFLAGS" ./configure \
+    #    --prefix=/usr
+    #    --enable-gui=no \
+    #    --with-compiledby='StelaLinux' \
+    #    --without-x \
+    #    --with-tlib=ncurses \
+    #    --disable-xsmp \
+    #    --disable-gpm \
+    #    --disable-selinux  
+
+    CFLAGS="$CFLAGS" ./configure \
+        --prefix=/usr \
+        --localstatedir=/var/lib/vim \
+        --with-compiledby='StelaLinux' \
+        --with-features=huge \
+        --with-tlib=ncursesw \
+        --without-x \
+        --enable-multibyte \
+        --disable-nls \
+        --disable-gui
+
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
+
+    # Compile VIM
+    make -j $NUM_JOBS
+
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
+
+    # Install VIM to fs
+    make -j $NUM_JOBS install DESTDIR=$FS
+
+    # Copy vimrc to /etc
+    mkdir $FS/etc
+    cp ../vimrc $FS/etc/vimrc
+
+    # Symlink 'vim' to 'vi'
+    ln -sv vim $FS/usr/bin/vi
+    mkdir $FS/bin
+    ln -sv vim $FS/bin/vi
+
+    # Strip VIM
+    strip -g $FS/usr/bin/*
+
+
+    echo ""
+    echo "+==============+"
+    echo "| VIM Compiled |"
+    echo "+==============+"
+}

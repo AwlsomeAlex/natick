@@ -1,0 +1,107 @@
+##########################################
+#----------------------------------------#
+# StelaKonstrui Script - ncurses library #
+#----------------------------------------#
+##########################################
+#
+# Description:  Ncurses (new curses) software emulation
+# URL:          https://gnu.org/software/ncurses
+# Maintainer:   AwlsomeAlex
+# Section:      kerno
+#
+
+# ----- Package Information ----- #
+PKG_NAME=ncurses
+PKG_VERSION=6.1
+PKG_SRC=("https://invisible-mirror.net/archives/ncurses/ncurses-$PKG_VERSION.tar.gz")
+PKG_DEPS=()
+
+# ----- Build Function ----- #
+build_ncurses() {
+    
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
+    
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+  
+    # Remove Static Library (LFS)
+    #
+    # Source: http://www.linuxfromscratch.org/lfs/view/development/chapter06/ncurses.html
+    #
+    sed -i '/LIBTOOL_INSTALL/d' c++/Makefile.in
+
+    # Configure ncurses (AwlsomeLinux + MLL)
+    #
+    # Source: https://github.com/ivandavidov/minimal/blob/master/src/minimal_overlay/bundles/ncurses/02_build.sh#L26
+    #
+    #CFLAGS="$CFLAGS" ./configure \
+    #    --prefix=/usr \
+    #    --with-termlib \
+    #    --with-terminfo-dir=/lib/terminfo \
+    #    --with-default-terminfo-dirs=/lib/terminfo \
+    #    --without-normal \
+    #    --without-debug \
+    #    --without-cxx-binding \
+    #    #--with-abi-version=5 \
+    #    --enable-widec \
+    #    --with-shared \
+    #    CPPFLAGS=-I$(pwd)/ncurses/widechar \
+    #    LDFLAGS=-L$(pwd)/lib \
+    #    CPPFLAGS="-P"
+ 
+    # Configure ncurses (Ataraxia)
+    #
+    # source: https://github.com/ataraxialinux/ataraxia/blob/master/packages/ncurses/KagamiBuild#L19
+    #
+    ./configure $BUILDFLAGS \
+		--prefix=/usr \
+		--with-default-terminfo-dir=/usr/share/terminfo \
+		--with-pkg-config-libdir=/usr/lib/pkgconfig \
+		--with-terminfo-dirs="/etc/terminfo:/usr/share/terminfo" \
+		--with-normal \
+		--with-shared \
+		--without-ada \
+		--without-debug \
+		--without-tests \
+		--enable-overwrite \
+		--enable-pc-files \
+		--enable-widec \
+		--disable-rpath-hack \
+		--disable-stripping
+
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
+
+    # Make ncurses
+    make -j $NUM_JOBS   
+ 
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
+
+    # Install to FS
+    make -j $NUM_JOBS install DESTDIR=$FS
+
+    # Symlink wide character libraries (MLL)
+    #
+    # Source: https://github.com/ivandavidov/minimal/blob/master/src/minimal_overlay/bundles/ncurses/02_build.sh#L54
+    #
+    #cd $FS/usr/lib
+    ln -s $FS/usr/lib/libncursesw.so.6 $FS/usr/lib/libncurses.so.6
+    ln -s $FS/usr/lib/libncurses.so.6 $FS/usr/lib/libncurses.so
+    ln -s $FS/usr/lib/libncursesw.so $FS/usr/lib/libtinfow.so.6
+    ln -s $FS/usr/lib/libtinfow.so.6 $FS/usr/lib/libtinfo.so.6
+    ln -s $FS/usr/lib/libtinfo.so.6 $FS/usr/lib/libtinfo.so
+
+    # Strip ncurses binaries
+    strip -g $FS/usr/bin/*    
+
+    echo ""
+    echo "+==================+"
+    echo "| Ncurses Compiled |"
+    echo "+==================+"
+}
