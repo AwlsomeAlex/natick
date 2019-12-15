@@ -70,7 +70,7 @@ build_glibc() {
         DESTDIR=$GLIBC_FULL \
         -j $NUM_JOBS
 
-    # Copy Dynamic Loader Library
+    # Copy Dynamic Linker Library (ld)
     if [[ $ARCH == "x86_64" ]]; then
         mkdir -p $FS/lib64
         mkdir -p $FS/lib
@@ -81,6 +81,14 @@ build_glibc() {
         cp -r $GLIBC_FULL/lib/ld-* $FS/lib
         echo "Configured for 32-bit"
     fi
+
+    # Copy Dynamic Loader Library (libdl)
+    cp $GLIBC_FULL/lib/libdl.so.2 $FS/lib/
+    currDir=$(pwd)
+    cd $FS/lib
+    ln -s libdl.so.2 libdl.so
+    cd $currDir
+    
 
     # Copy Essential Libraries
     cp $GLIBC_FULL/lib/libm.so.6 $FS/lib/

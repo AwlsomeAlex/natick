@@ -56,21 +56,36 @@ build_ncurses() {
     #
     # source: https://github.com/ataraxialinux/ataraxia/blob/master/packages/ncurses/KagamiBuild#L19
     #
-    ./configure $BUILDFLAGS \
-		--prefix=/usr \
-		--with-default-terminfo-dir=/usr/share/terminfo \
-		--with-pkg-config-libdir=/usr/lib/pkgconfig \
-		--with-terminfo-dirs="/etc/terminfo:/usr/share/terminfo" \
-		--with-normal \
-		--with-shared \
-		--without-ada \
-		--without-debug \
-		--without-tests \
-		--enable-overwrite \
-		--enable-pc-files \
-		--enable-widec \
-		--disable-rpath-hack \
-		--disable-stripping
+    #./configure $BUILDFLAGS \
+    #	--prefix=/usr \
+	#	--with-default-terminfo-dir=/usr/share/terminfo \
+	#	--with-pkg-config-libdir=/usr/lib/pkgconfig \
+	#	--with-terminfo-dirs="/etc/terminfo:/usr/share/terminfo" \
+	#	--with-normal \
+	#	--with-shared \
+	#	--without-ada \
+	#	--without-debug \
+	#	--without-tests \
+	#	--enable-overwrite \
+	#	--enable-pc-files \
+	#	--enable-widec \
+	#	--disable-rpath-hack \
+	#	--disable-stripping
+
+    # Configure Ncurses (LFS)
+    #
+    # 
+    #
+    CFLAGS="$CFLAGS" ./configure \
+        --prefix=/usr \
+        --with-shared \
+        --without-debug \
+        --without-normal \
+        --enable-pc-files \
+        --enable-widec \
+        CPPFLAGS="-I$(pwd)/ncurses/widechar" \
+        LDFLAGS=-L$(pwd)/lib \
+        CPPFLAGS="-P"
 
     #-----------------------#
     # ----- Compiling ----- #
@@ -90,12 +105,12 @@ build_ncurses() {
     #
     # Source: https://github.com/ivandavidov/minimal/blob/master/src/minimal_overlay/bundles/ncurses/02_build.sh#L54
     #
-    #cd $FS/usr/lib
-    ln -s $FS/usr/lib/libncursesw.so.6 $FS/usr/lib/libncurses.so.6
-    ln -s $FS/usr/lib/libncurses.so.6 $FS/usr/lib/libncurses.so
-    ln -s $FS/usr/lib/libncursesw.so $FS/usr/lib/libtinfow.so.6
-    ln -s $FS/usr/lib/libtinfow.so.6 $FS/usr/lib/libtinfo.so.6
-    ln -s $FS/usr/lib/libtinfo.so.6 $FS/usr/lib/libtinfo.so
+    cd $FS/usr/lib
+    ln -s libncursesw.so.6 libncurses.so.6
+    ln -s libncurses.so.6 libncurses.so
+    ln -s libncursesw.so libtinfow.so.6
+    ln -s libtinfow.so.6 libtinfo.so.6
+    ln -s libtinfo.so.6 libtinfo.so
 
     # Strip ncurses binaries
     strip -g $FS/usr/bin/*    
