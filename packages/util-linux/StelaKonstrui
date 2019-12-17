@@ -14,7 +14,6 @@
 PKG_NAME=util-linux
 PKG_VERSION=2.34
 PKG_SRC=("https://kernel.org/pub/linux/utils/util-linux/v$PKG_VERSION/util-linux-$PKG_VERSION.tar.xz")
-PKG_SRC=("https://github.com/karelzak/util-linux/archive/v$PKG_VERSION.tar.gz")
 PKG_DEPS=("ncurses")
 
 # ----- Build Function ----- #
@@ -31,9 +30,6 @@ build_util-linux() {
     # Create directories
     mkdir -p $FS/usr/share/doc/util-linux
     mkdir -p $FS/usr/bin
-
-    # Autogen Script
-    ./autogen.sh
 
     # Configure util-linux
     CFLAGS="$CFLAGS" ./configure \
