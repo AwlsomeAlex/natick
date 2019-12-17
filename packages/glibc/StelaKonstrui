@@ -125,31 +125,6 @@ build_glibc() {
         ln -s $i.so.6 $i.so
         cd $currDir
     done
-        
-
-
-    # Copy .so.1 Libraries
-    #for i in $
-    
-    # Copy Dynamic Loader Library (libdl - ncurses)
-    #cp $GLIBC_FULL/lib/libdl.so.2 $FS/lib/
-    #currDir=$(pwd)
-    #cd $FS/lib
-    #ln -s libdl.so.2 libdl.so
-    #cd $currDir
-    
-    # Copy POSIX Realtime Extensions (librt - util-linux)
-    #cp $GLIBC_FULL/lib/librt.so.1 $FS/lib/
-    #currDir=$(pwd)
-    #cd $FS/lib
-    #ln -s librt.so.1 librt.so
-    #cd $currDir
-
-    # Copy Essential Libraries
-    #cp $GLIBC_FULL/lib/libm.so.6 $FS/lib/
-    #cp $GLIBC_FULL/lib/libc.so.6 $FS/lib/
-    #cp $GLIBC_FULL/lib/libresolv.so.2 $FS/lib/
-    #cp $GLIBC_FULL/lib/libnss_dns.so.2 $FS/lib/
 
     echo ""
     echo "+========================+"

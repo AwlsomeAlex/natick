@@ -209,7 +209,6 @@ function loka_build() {
 
     # ----- Build Package ----- #
     cd $DIR
-    echo $(pwd)
     echo -e "${BLUE}[....] ${NC}Building $PACKAGE...."
     build_$PACKAGE
     echo -e "${GREEN}[DONE] ${NC}Built $PACKAGE."
