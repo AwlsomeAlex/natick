@@ -35,6 +35,18 @@ build_glibc() {
     # GlibC Dummy Install Directory
     GLIBC_FULL=$WORK_DIR/glibc.fs_full
 
+    # so.0 Libraries
+    SO0=("libpthread")
+
+    # so.1 Libraries
+    SO1=("libBrokenLocale" "libanl" "libcrypt" "libnsl" "librt" "libthread_db" "libutil")
+
+    # so.2 Libraries
+    SO2=("libdl" "libnss_db" "libnss_dns" "libnss_files" "libnss_hesiod" "libresolv")
+
+    # so.6 Libraries
+    SO6=("libm" "libc")
+
     #---------------------------#
     # ----- Configuration ----- #
     #---------------------------#
@@ -81,20 +93,63 @@ build_glibc() {
         cp -r $GLIBC_FULL/lib/ld-* $FS/lib
         echo "Configured for 32-bit"
     fi
-
-    # Copy Dynamic Loader Library (libdl)
-    cp $GLIBC_FULL/lib/libdl.so.2 $FS/lib/
-    currDir=$(pwd)
-    cd $FS/lib
-    ln -s libdl.so.2 libdl.so
-    cd $currDir
     
+    # Copy and Dynamically Link the Libraries
+    currDir=$(pwd)
+
+    # so.0
+    for i in "${SO0[@]}"; do
+        cp $GLIBC_FULL/lib/$i.so.0 $FS/lib/
+        cd $FS/lib
+        ln -s $i.so.0 $i.so
+        cd $currDir
+    done
+    # so.1
+    for i in "${SO1[@]}"; do
+        cp $GLIBC_FULL/lib/$i.so.1 $FS/lib/
+        cd $FS/lib
+        ln -s $i.so.1 $i.so
+        cd $currDir
+    done
+    # so.2
+    for i in "${SO2[@]}"; do
+        cp $GLIBC_FULL/lib/$i.so.2 $FS/lib/
+        cd $FS/lib
+        ln -s $i.so.2 $i.so
+        cd $currDir
+    done
+    # so.6
+    for i in "${SO6[@]}"; do
+        cp $GLIBC_FULL/lib/$i.so.6 $FS/lib/
+        cd $FS/lib
+        ln -s $i.so.6 $i.so
+        cd $currDir
+    done
+        
+
+
+    # Copy .so.1 Libraries
+    #for i in $
+    
+    # Copy Dynamic Loader Library (libdl - ncurses)
+    #cp $GLIBC_FULL/lib/libdl.so.2 $FS/lib/
+    #currDir=$(pwd)
+    #cd $FS/lib
+    #ln -s libdl.so.2 libdl.so
+    #cd $currDir
+    
+    # Copy POSIX Realtime Extensions (librt - util-linux)
+    #cp $GLIBC_FULL/lib/librt.so.1 $FS/lib/
+    #currDir=$(pwd)
+    #cd $FS/lib
+    #ln -s librt.so.1 librt.so
+    #cd $currDir
 
     # Copy Essential Libraries
-    cp $GLIBC_FULL/lib/libm.so.6 $FS/lib/
-    cp $GLIBC_FULL/lib/libc.so.6 $FS/lib/
-    cp $GLIBC_FULL/lib/libresolv.so.2 $FS/lib/
-    cp $GLIBC_FULL/lib/libnss_dns.so.2 $FS/lib/
+    #cp $GLIBC_FULL/lib/libm.so.6 $FS/lib/
+    #cp $GLIBC_FULL/lib/libc.so.6 $FS/lib/
+    #cp $GLIBC_FULL/lib/libresolv.so.2 $FS/lib/
+    #cp $GLIBC_FULL/lib/libnss_dns.so.2 $FS/lib/
 
     echo ""
     echo "+========================+"

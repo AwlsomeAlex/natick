@@ -1,0 +1,73 @@
+#####################################
+#-----------------------------------#
+# StelaKonstrui Script - Util-Linux #
+#-----------------------------------#
+#####################################
+#
+# Description:  Random collection of Linux Utilities
+# URL:          https://github.com/karelzak/util-linux
+# Maintainer:   AwlsomeAlex
+# Section:      kerno
+#
+
+# ----- Package Information ----- #
+PKG_NAME=util-linux
+PKG_VERSION=2.34
+PKG_SRC=("https://kernel.org/pub/linux/utils/util-linux/v$PKG_VERSION/util-linux-$PKG_VERSION.tar.xz")
+PKG_SRC=("https://github.com/karelzak/util-linux/archive/v$PKG_VERSION.tar.gz")
+PKG_DEPS=("ncurses")
+
+# ----- Build Function ----- #
+build_util-linux() {
+    
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
+    
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+
+    # Create directories
+    mkdir -p $FS/usr/share/doc/util-linux
+    mkdir -p $FS/usr/bin
+
+    # Autogen Script
+    ./autogen.sh
+
+    # Configure util-linux
+    CFLAGS="$CFLAGS" ./configure \
+        --prefix=/usr \
+        --docdir=/usr/share/doc/util-linux \
+        --disable-chfn-chsh \
+        --disable-login \
+        --disable-nologin \
+        --disable-su \
+        --disable-setpriv \
+        --disable-runuser \
+        --disable-pylibmount \
+        --disable-static \
+        --disable-makeinstallchown \
+        --without-python \
+        --without-systemd \
+        --without-systemdsystemunitdir
+
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
+
+    # Compile util-linux
+    make -j $NUM_JOBS
+
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
+
+    # Install util-linux
+    make -j $NUM_JOBS DESTDIR=$FS install
+
+    echo ""
+    echo "+=====================+"
+    echo "| Util-linux Compiled |"
+    echo "+=====================+"
+}

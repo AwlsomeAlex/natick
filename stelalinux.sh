@@ -20,7 +20,7 @@ BUILD_NUMBER="git"
 INITRAMFS_PKG=("linux" "glibc" "busybox" "nova")       
 
 # Packages to be included in StelaLinux
-IMAGE_PKG=("linux" "glibc" "busybox" "nova" "syslinux" "ncurses" "vim")
+IMAGE_PKG=("linux" "glibc" "busybox" "nova" "syslinux" "ncurses" "vim" "util-linux")
 
 # Architecture for Packages
 export ARCH=x86_64
@@ -209,6 +209,7 @@ function loka_build() {
 
     # ----- Build Package ----- #
     cd $DIR
+    echo $(pwd)
     echo -e "${BLUE}[....] ${NC}Building $PACKAGE...."
     build_$PACKAGE
     echo -e "${GREEN}[DONE] ${NC}Built $PACKAGE."
