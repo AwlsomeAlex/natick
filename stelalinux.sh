@@ -8,6 +8,8 @@
 
 
 
+
+
 #------------------------------------#
 # ----- User Defined Variables ----- #
 #------------------------------------#
@@ -24,6 +26,8 @@ IMAGE_PKG=("linux" "glibc" "busybox" "nova" "syslinux" "ncurses" "vim" "util-lin
 
 # Architecture for Packages
 export ARCH=x86_64
+
+
 
 
 
@@ -67,9 +71,105 @@ BLINK='\033[5m'     # Blink
 NO_BLINK='\033[25m' # No Blink
 
 
+
+
+
+#--------------------------------------------#
+# ----- StelaLinux Toolchain Variables ----- #
+#--------------------------------------------#
+#
+# Script Outline By: protonesso
+#
+
+# ----- Target Information ----- #
+
+# Target System (x86_64 or i486)
+TARGET="x86_64"
+
+# Target Variable
+XTARGET="${TARGET}-linux-gnu"
+
+# Build-Specific Variables
+if [[ $TARGET == "x86_64" ]]; then
+    export BINUTIL_ARGS="--enable-targets=x86_64-pep --enable-default-hash-style=gnu"
+    export GCC_ARGS="--with-arch=x86_64 --with-tune=generic --enable-cet=auto --with-linker-hash-style=gnu"
+    export GLIBC_ARGS="--enable-static-pie --enable-cet"
+elif [[ $TARGET == "i486" ]]; then
+    export BINUTIL_ARGS="--enable-default-hash-style=gnu"
+    export GCC_ARGS="--with-arch=i486 --with-tune=genetic --with-linker-hash-style=gnu"
+    export GLIBC_ARGS="--enable-static-pie"
+else
+    echo "${RED}[FAIL] ${NC}Invalid Architecture: $TARGET"
+    exit
+fi
+
+# ----- Target Packages ----- #
+
+# file - 5.37
+FILE_SRC="http://ftp.astron.com/pub/file/file-5.37.tar.gz"
+
+# m4 - 1.4.18
+M4_SRC="http://ftp.gnu.org/gnu/m4/m4-1.4.18.tar.xz"
+
+# ncurses - 6.1
+NCURSES_SRC="https://ftp.gnu.org/pub/gnu/ncurses/ncurses-6.1.tar.gz"
+
+# libtool - 2.4.6
+LIBTOOL_SRC="http://ftp.gnu.org/gnu/libtool/libtool-2.4.6.tar.xz"
+
+# autoconf - 2.69
+AUTOCONF_SRC="http://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.xz"
+
+# automake - 1.16.1
+AUTOMAKE_SRC="http://ftp.gnu.org/gnu/automake/automake-1.16.1.tar.xz"
+
+# linux-headers - 5.4.4
+HEADER_SRC="https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.4.4.tar.xz"
+
+# binutils - 2.33.1
+BINUTILS_SRC="http://ftp.gnu.org/gnu/binutils/binutils-2.33.1.tar.xz"
+
+# gcc - 9.2.0
+GCC_SRC="http://ftp.gnu.org/gnu/gcc/gcc-9.2.0/gcc-9.2.0.tar.xz"
+
+# gmp - 6.1.2
+GMP_SRC="http://ftp.gnu.org/gnu/gmp/gmp-6.1.2.tar.xz"
+
+# mpfr - 4.0.2
+MPFR_SRC="http://www.mpfr.org/mpfr-4.0.2/mpfr-4.0.2.tar.xz"
+
+# mpc - 1.1.0
+MPC_SRC="http://ftp.gnu.org/gnu/mpc/mpc-1.1.0.tar.gz"
+
+# isl - 0.21
+ISL_SRC="http://isl.gforge.inria.fr/isl-0.21.tar.xz"
+
+# glibc - 2.30
+GLIBC_SRC="http://ftp.gnu.org/gnu/glibc/glibc-2.30.tar.xz"
+
+# pkgconf - 1.6.2
+PKGCONF_SRC="http://distfiles.dereferenced.org/pkgconf/pkgconf-1.6.3.tar.xz"
+
+# ----- Toolchain Directories ----- #
+
+# Main Toolchain Directory
+TDIR=$STELA/toolchain
+
+# Source/Work/Final Directory
+TSRC_DIR=$TDIR/source
+TWRK_DIR=$TDIR/work
+TFIN_DIR=$TDIR/final
+TOOLCHAIN=$TDIR/toolchain
+
+
+
+
+
 #------------------------------#
 # ----- Helper Functions ----- #
 #------------------------------#
+
+
 
 # title(): Shows the title of the program
 function loka_title() {
@@ -83,6 +183,8 @@ function loka_title() {
     echo "+=============================+"
     echo ""
 }
+
+
 
 #
 # NOTE: This MUST be done before every Git Commit
@@ -98,6 +200,8 @@ function loka_clean() {
     echo "| Directory Cleaned |"
     echo "+===================+"
 }
+
+
 
 # prepare(): Prepares the Build Envrionment
 function loka_prepare() {
@@ -116,6 +220,28 @@ function loka_prepare() {
         exit
     fi
 }
+
+
+
+# toolchain(): Builds the StelaLinux Toolchain
+#
+# Script Outline by protonesso
+#
+function loka_toolchain() {
+    loka_title
+
+    #------------------------------#
+    # ----- Stage 0: Prepare ----- #
+    #------------------------------#
+    
+
+    #---------------------------------#
+    # ----- Stage 1: GCC-static ----- #
+    #---------------------------------#
+
+}
+
+
 
 # build(): Builds a package
 function loka_build() {
@@ -214,6 +340,8 @@ function loka_build() {
     echo -e "${GREEN}[DONE] ${NC}Built $PACKAGE."
 }
 
+
+
 # initramfs(): Generate the initramfs archive
 function loka_initramfs() {
     loka_title
@@ -276,6 +404,8 @@ function loka_initramfs() {
     find . | cpio -R root:root -H newc -o | xz -9 --check=none > ../initramfs.cpio.xz
     echo -e "${GREEN}[DONE] ${NC}Generated InitramFS."
 }
+
+
 
 # image(): Generate a StelaLinux Live ISO
 function loka_image() {
@@ -345,6 +475,8 @@ function loka_image() {
     echo -e "${GREEN}[DONE] ${NC}Generated Disk Image."
 }
 
+
+
 # all(): Generates a complete StelaLinux Build
 function loka_all() {
 
@@ -361,12 +493,15 @@ function loka_all() {
     loka_image 
 }
 
+
+
 # usage(): Shows the usage
 function loka_usage() {
     echo "$EXECUTE [OPTION] (PACKAGE) (flag)"
     echo "StelaLinux Build Script - Used to build StelaLinux"
     echo ""
     echo "[OPTION]:"
+    echo "      toolchain:  Builds the toolchain required to build StelaLinux"
     echo "      build:      Builds a package from the Package Repository"
     echo "      initramfs:  Generate an InitramFS Archive"
     echo "      image:      Generate a bootable StelaLinux Live ISO"
@@ -388,11 +523,16 @@ function loka_usage() {
 
 
 
+
+
 #---------------------------#
 # ----- Main Function ----- #
 #---------------------------#
 function main() {
     case "$OPTION" in
+        toolchain )
+            loka_toolchain
+            ;;
         build )
             loka_build
             ;;
@@ -416,6 +556,8 @@ function main() {
             ;;
     esac
 }
+
+
 
 
 
