@@ -163,7 +163,7 @@ TSRC_DIR=$TDIR/source
 TWRK_DIR=$TDIR/work
 TFIN_DIR=$TDIR/final
 TOOLCHAIN=$TDIR/toolchain
-
+TROOT_DIR=$TFIN_DIR/root
 
 
 
@@ -251,7 +251,7 @@ function loka_toolchain() {
             read -p "Do you want to overwrite? (Y/n) " OPT
             if [ $OPT == 'Y' ]; then
                 echo -e "${BLUE}[....] ${NC}Removing Toolchain...."
-                rm -rf $TDIR
+                rm -rf $TWRK_DIR $TFIN_DIR
                 echo -e "${GREEN}[DONE] ${NC}Removed Toolchain."
             else
                 echo -e "${GREEN}[DONE] ${NC}Nothing."
@@ -260,20 +260,18 @@ function loka_toolchain() {
         fi
     fi
     echo -e "${BLUE}[....] ${NC}Creating Toolchain Directories...."
-    mkdir -p $TSRC_DIR $TWRK_DIR $TFIN_DIR
+    mkdir -p $TSRC_DIR $TWRK_DIR $TFIN_DIR/root
     echo -e "${GREEN}[DONE] ${NC}Created Toolchain Directories...."
 
     # Download Packages 
     for f in "${TOOL_PKG[@]}"; do
         SE=${f}_SRC
         typeset -n SOURCE=$SE
-        
-        #echo "${!SOURCE} = $SOURCE" 
         ARCHIVE_FILE=${SOURCE##*/}
         if [[ -f $TSRC_DIR/$ARCHIVE_FILE ]]; then
             echo -e "${GREEN}[DONE] ${NC}File already downloaded. Continuing...."
         else
-            echo -e "${BLUE}[....] ${NC}Downloading $ARCHIVE_DIR...."
+            echo -e "${BLUE}[....] ${NC}Downloading $ARCHIVE_FILE...."
             wget -q --show-progress -P $TSRC_DIR $SOURCE
         fi
         echo -e "${BLUE}[....] ${NC}Extracting $ARCHIVE_FILE...."
@@ -295,6 +293,95 @@ function loka_toolchain() {
     #---------------------------------#
     # ----- Stage 1: GCC-static ----- #
     #---------------------------------#
+
+    # Build file
+    echo -e "${BLUE}[....] ${NC}Building file...."
+    cd $TWRK_DIR/file-*
+    ./configure --prefix=$TFIN_DIR
+    make
+    make install
+    echo -e "${GREEN}[DONE] ${NC}Built file."
+
+    # Build m4
+    echo -e "${BLUE}[....] ${NC}Building m4...."
+    cd $TWRK_DIR/m4-*
+    ./configure --prefix=$TFIN_DIR \
+        --disable-static
+    make
+    make all
+    echo -e "${GREEN}[DONE] ${NC}Built m4."
+
+    # Build ncurses
+    echo -e "${BLUE}[....] ${NC}Building ncurses...."
+    cd $TWRK_DIR/ncurses-*
+    ./configure --prefix=$TFIN_DIR \
+        --without-debug
+    make -C include
+    make -C progs tic
+    cp progs/tic "$TFIN_DIR"/bin
+    echo -e "${GREEN}[DONE] ${NC}Built ncurses."
+
+    # Build libtool
+    echo -e "${BLUE}[....] ${NC}Building libtool...."
+    cd $TWRK_DIR/libtool-*
+    ./configure --prefix=$TFIN_DIR \
+        --disable-static
+    make
+    make install
+    echo -e "${GREEN}[DONE] ${NC}Built libtool."
+
+    # Build autoconf
+    echo -e "${BLUE}[....] ${NC}Building autoconf...."
+    cd $TWRK_DIR/autoconf-*
+    sed '361 s/{/\\{/' -i bin/autoscan.in
+    ./configure --prefix=$TFIN_DIR
+    make
+    make install
+    echo -e "${GREEN}[DONE] ${NC}Built autoconf."
+
+    # Build automake
+    echo -e "${BLUE}[....] ${NC}Building automake...."
+    cd $TWRK_DIR/automake-*
+    ./configure --prefix=$TFIN_DIR
+    make
+    make install
+    echo -e "${GREEN}[DONE] ${NC}Built automake."
+
+    # Build Linux Headers
+    echo -e "${BLUE}[....] ${NC}Building Linux Headers...."
+    cd $TWRK_DIR/linux-*
+    make mrproper
+    make ARCH=$TARGET INSTALL_HDR_PATH="$TROOT_DIR"/usr headers_install
+    find "$TFIN_DIR"/usr \( -name .install -o -name ..install.cmd \) -print0 | xargs -0 rm -rf
+    echo -e "${GREEN}[DONE] ${NC}Built Linux Headers."
+
+    # Build binutils
+    echo -e "${BLUE}[....] ${NC}Building binutils...."
+    cd $TWRK_DIR/binutils-*
+    mkdir build
+    cd build
+    ../configure --prefix=$TFIN_DIR \
+        --target=$XTARGET $BINUTILS_OPT \
+        --with-sysroot=$TROOT_DIR/usr \
+        --with-lib-path=$TROOT_DIR/usr/lib \
+        --with-pic \
+        --with-system-zlib \
+        --enable-64-bit-bfd \
+        --enable-deterministic-archives \
+        --enable-gold=yes \
+        --enable-plugins \
+        --enable-threads \
+        --disable-multilib \
+        --disable-nls \
+        --disable-werror
+    make MAKEINFO="true" configure-host
+    make MAKEINFO="true"
+    make MAKEINFO="true" install
+    rm -rf $TFIN_DIR/bin/$XTARGET-ld
+    ln -sf $XTARGET-ld.bfd $TFIN_DIR/bin/$XTARGET-ld
+    echo -e "${GREEN}[DONE] ${NC}Built binutils."
+
+
 
 }
 
