@@ -105,6 +105,9 @@ fi
 
 # ----- Target Packages ----- #
 
+# Array of Packages
+TOOL_PKG=("FILE" "M4" "NCURSES" "LIBTOOL" "AUTOCONF" "AUTOMAKE" "HEADER" "BINUTILS" "GCC" "GMP" "MPFR" "MPC" "ISL" "GLIBC" "PKGCONF")
+
 # file - 5.37
 FILE_SRC="http://ftp.astron.com/pub/file/file-5.37.tar.gz"
 
@@ -193,7 +196,8 @@ function loka_title() {
 function loka_clean() {
     loka_title
     echo -e "${BLUE}[....] ${NC}Cleaning Build Environment...."
-    rm -rf $SRC_DIR $WRK_DIR $FIN_DIR $STELA/*.iso
+    rm -rf $SRC_DIR $WRK_DIR $FIN_DIR $STELA/*.iso $TDIR
+    mkdir -p $TDIR
     echo -e "${GREEN}[DONE] ${NC}Cleaned Build Environment."
     echo ""
     echo "+===================+"
@@ -234,6 +238,59 @@ function loka_toolchain() {
     # ----- Stage 0: Prepare ----- #
     #------------------------------#
     
+    # ----- Prepare Directories ----- #
+    
+    # Check for Directories
+    if [ -d $TWRK_DIR ]; then
+        if [[ $FLAG == "-Y" ]]; then
+            echo -e "${BLUE}[....] ${NC}Removing Toolchain...."
+            rm -rf $TDIR
+            echo -e "${GREEN}[DONE] ${NC}Removed Toolchain."
+        else
+            echo -e "${ORANGE}[WARN] ${NC}Toolchain already exists."
+            read -p "Do you want to overwrite? (Y/n) " OPT
+            if [ $OPT == 'Y' ]; then
+                echo -e "${BLUE}[....] ${NC}Removing Toolchain...."
+                rm -rf $TDIR
+                echo -e "${GREEN}[DONE] ${NC}Removed Toolchain."
+            else
+                echo -e "${GREEN}[DONE] ${NC}Nothing."
+                exit
+            fi
+        fi
+    fi
+    echo -e "${BLUE}[....] ${NC}Creating Toolchain Directories...."
+    mkdir -p $TSRC_DIR $TWRK_DIR $TFIN_DIR
+    echo -e "${GREEN}[DONE] ${NC}Created Toolchain Directories...."
+
+    # Download Packages 
+    for f in "${TOOL_PKG[@]}"; do
+        SE=${f}_SRC
+        typeset -n SOURCE=$SE
+        
+        #echo "${!SOURCE} = $SOURCE" 
+        ARCHIVE_FILE=${SOURCE##*/}
+        if [[ -f $TSRC_DIR/$ARCHIVE_FILE ]]; then
+            echo -e "${GREEN}[DONE] ${NC}File already downloaded. Continuing...."
+        else
+            echo -e "${BLUE}[....] ${NC}Downloading $ARCHIVE_DIR...."
+            wget -q --show-progress -P $TSRC_DIR $SOURCE
+        fi
+        echo -e "${BLUE}[....] ${NC}Extracting $ARCHIVE_FILE...."
+        if [[ $ARCHIVE_FILE == *".bz2"* ]]; then
+                pv $TSRC_DIR/$ARCHIVE_FILE | tar -xjf - -C $TWRK_DIR/
+            elif [[ $ARCHIVE_FILE == *".xz"* ]]; then
+                pv $TSRC_DIR/$ARCHIVE_FILE | tar -xJf - -C $TWRK_DIR/
+            elif [[ $ARCHIVE_FILE == *".gz"* ]]; then
+                pv $TSRC_DIR/$ARCHIVE_FILE | tar -xzf - -C $TWRK_DIR/
+            elif [[ $ARCHIVE_FILE == *".zip"* ]]; then
+                unzip -o $TSRC_DIR/$ARCHIVE_FILE -d $TWRK_DIR/ | pv -l >/dev/null
+            else
+                echo -e "${RED}[FAIL] ${NC}Unknown File Format."
+                exit
+        fi
+        echo -e "${GREEN}[DONE] ${NC}Extracted $ARCHIVE_FILE."   
+    done
 
     #---------------------------------#
     # ----- Stage 1: GCC-static ----- #
