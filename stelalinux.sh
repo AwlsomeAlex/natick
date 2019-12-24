@@ -17,10 +17,10 @@ BUILD_NAME="Git Build"
 BUILD_NUMBER="git"
 
 # Packages to be included in initramfs
-INITRAMFS_PKG=("linux" "glibc" "busybox" "nova")       
+INITRAMFS_PKG=("glibc" "busybox" "nova" "linux")       
 
 # Packages to be included in StelaLinux
-IMAGE_PKG=("linux" "glibc" "busybox" "nova" "syslinux" "ncurses" "vim" "util-linux")
+IMAGE_PKG=("glibc" "busybox" "nova" "syslinux" "ncurses" "vim" "util-linux" "linux")
 
 # Architecture for Packages
 export ARCH=x86_64
@@ -359,11 +359,11 @@ function loka_toolchain() {
 
     # ----- Build Linux Headers ----- #
     echo -e "${BLUE}[....] ${NC}Building Linux Headers...."
-    mkdir -p $FS/usr/include
+    mkdir -p $TROOT_DIR/usr/include
     cd $TWRK_DIR/linux-$HEADER_VER
     make $MAKEFLAGS mrproper
-    make $MAKEFLAGS ARCH=$TARGET INSTALL_HDR_PATH="$FS"/usr headers_install
-    find "$FS"/usr \( -name .install -o -name ..install.cmd \) -print0 | xargs -0 rm -rf
+    make $MAKEFLAGS ARCH=$TARGET INSTALL_HDR_PATH="$TROOT_DIR"/usr headers_install
+    find "$TROOT_DIR"/usr \( -name .install -o -name ..install.cmd \) -print0 | xargs -0 rm -rf
     echo -e "${GREEN}[DONE] ${NC}Built Linux Headers."
 
     # ----- Build binutils ----- #
@@ -373,8 +373,8 @@ function loka_toolchain() {
     cd build
     ../configure --prefix=$TFIN_DIR \
         --target=$XTARGET $BINUTILS_OPT \
-        --with-sysroot=$FS \
-        --with-lib-path=$FS/usr/lib \
+        --with-sysroot=$TROOT_DIR \
+        --with-lib-path=$TROOT_DIR/usr/lib \
         --with-pic \
         --with-system-zlib \
         --enable-64-bit-bfd \
@@ -421,9 +421,9 @@ function loka_toolchain() {
         --build=$XHOST \
         --host=$XHOST \
         --target=$XTARGET $GCC_OPTS \
-        --with-sysroot=$FS \
-        --with-local-prefix=$FS \
-        --with-native-system-header-dir=$FS/usr/include \
+        --with-sysroot=$TROOT_DIR \
+        --with-local-prefix=$TROOT_DIR \
+        --with-native-system-header-dir=$TROOT_DIR/usr/include \
         --with-isl \
         --with-system-zlib \
         --with-newlib \
@@ -470,7 +470,7 @@ function loka_toolchain() {
         --build=$XHOST \
         --host=$XTARGET $GLIBC_ARGS \
         --with-binutils=$TFIN_DIR/bin \
-        --with-headers=$FS/usr/include \
+        --with-headers=$TROOT_DIR/usr/include \
         --without-gd \
         --without-selinux \
         --enable-add-ons \
@@ -482,7 +482,7 @@ function loka_toolchain() {
         --disable-werror \
         libc_cv_slibdir=/lib
     make $MAKEFLAGS
-    make $MAKEFLAGS install_root="$FS" install
+    make $MAKEFLAGS install_root="$TROOT_DIR" install
 
     # ----- Build GCC Final ----- #
     echo -e "${BLUE}[....] ${NC}Building GCC-Final...."
@@ -509,8 +509,8 @@ function loka_toolchain() {
         --build=$XHOST \
         --host=$XHOST \
         --target=$XTARGET $GCC_OPTS \
-        --with-sysroot=$FS \
-        --with-local-prefix=$FS \
+        --with-sysroot=$TROOT_DIR \
+        --with-local-prefix=$TROOT_DIR \
         --with-native-system-header-dir=/usr/include \
         --with-isl \
         --with-system-zlib \
@@ -540,10 +540,10 @@ function loka_toolchain() {
     LDFLAGS="-static" \
     ./configure \
         --prefix="$TFIN_DIR" \
-        --with-sysroot="$FS" \
-        --with-pkg-config-dir="$FS/usr/lib/pkgconfig:$FS/usr/share/pkgconfig" \
-        --with-system-libdir="$FS/usr/lib" \
-        --with-system-includedir="$FS/usr/include"
+        --with-sysroot="$TROOT_DIR" \
+        --with-pkg-config-dir="$TROOT_DIR/usr/lib/pkgconfig:$TROOT_DIR/usr/share/pkgconfig" \
+        --with-system-libdir="$TROOT_DIR/usr/lib" \
+        --with-system-includedir="$TROOT_DIR/usr/include"
     make -j $NUM_JOBS
     make install -j $NUM_JOBS
     
@@ -694,7 +694,7 @@ function loka_initramfs() {
             exit
         fi
         echo -e "${BLUE}[....] ${NC}Copying $i to InitramFS...."
-        cp -r --remove-destination $WRK_DIR/$i/$i.fs/* $INITRAMFS_DIR/fs
+        cp -a $WRK_DIR/$i/$i.fs/* $INITRAMFS_DIR/fs
         echo -e "${GREEN}[DONE] ${NC}Copied $i to InitramFS."
     done
 
@@ -705,7 +705,7 @@ function loka_initramfs() {
 
     # ----- Strip InitramFS ----- #
     echo -e "${BLUE}[....] ${NC}Stripping InitramFS...."
-    ${CROSS_COMPILE}strip -g \
+    $XTARGET-strip -g \
         $INITRAMFS_DIR/fs/bin/* \
         $INITRAMFS_DIR/fs/sbin/* \
         $INITRAMFS_DIR/fs/lib/* \

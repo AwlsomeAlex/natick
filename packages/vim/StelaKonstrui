@@ -70,6 +70,8 @@ build_vim() {
     export ac_cv_small_wchar_t=no
     export vim_cv_toupper_broken=no
 
+    CPPFLAGS="-I$WRK_DIR/ncurses/ncurses.fs/usr/include" \
+    LDFLAGS="-L$WRK_DIR/ncurses/ncurses.fs/usr/lib" \
     CFLAGS="$CFLAGS" ./configure \
         --build=$XHOST \
         --host=$XTARGET \
@@ -88,14 +90,14 @@ build_vim() {
     #-----------------------#
 
     # Compile VIM
-    make -j $NUM_JOBS
+    make $MAKEFLAGS
 
     #---------------------#
     # ----- Install ----- #
     #---------------------#
 
     # Install VIM to fs
-    make -j $NUM_JOBS install DESTDIR=$FS
+    make $MAKEFLAGS install DESTDIR=$FS
 
     # Copy vimrc to /etc
     mkdir $FS/etc
@@ -107,7 +109,7 @@ build_vim() {
     ln -sv vim $FS/bin/vi
 
     # Strip VIM
-    strip -g $FS/usr/bin/*
+    $XTARGET-strip -g $FS/usr/bin/*
 
 
     echo ""
