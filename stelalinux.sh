@@ -8,8 +8,6 @@
 
 
 
-
-
 #------------------------------------#
 # ----- User Defined Variables ----- #
 #------------------------------------#
@@ -26,10 +24,6 @@ IMAGE_PKG=("linux" "glibc" "busybox" "nova" "syslinux" "ncurses" "vim" "util-lin
 
 # Architecture for Packages
 export ARCH=x86_64
-
-
-
-
 
 #-----------------------------------------#
 # ----- StelaLinux Script Variables ----- #
@@ -54,12 +48,11 @@ INITRAMFS_DIR=$WRK_DIR/initramfs
 # ----- Compiling Flags ----- #
 
 # C Flags
-export CFLAGS="-Os -s -fno-stack-protector -fomit-frame-pointer -U_FORTIFY_SOURCE"
+export CFLAGS="-Os -s -fomit-frame-pointer -pipe"
 
 # C Build Factors (From Minimal Linux Live)
-JOB_FACTOR=2
-NUM_CORES="$(grep ^processor /proc/cpuinfo | wc -l)"
-export NUM_JOBS="$((NUM_CORES * JOB_FACTOR))"
+NUM_JOBS="$(expr $(nproc) + 1)"
+export MAKEFLAGS="-j$NUM_JOBS"
 
 # ----- Color Codes For Fancy Text ----- #
 NC='\033[0m'        # No Color
@@ -69,8 +62,6 @@ GREEN='\033[1;32m'  # Green
 ORANGE='\033[0;33m' # Orange
 BLINK='\033[5m'     # Blink
 NO_BLINK='\033[25m' # No Blink
-
-
 
 
 
@@ -87,7 +78,8 @@ NO_BLINK='\033[25m' # No Blink
 export TARGET="x86_64"
 
 # Target Variable
-export XTARGET="${TARGET}-linux-gnu"
+export XTARGET="${TARGET}-stela-linux-gnu"
+export XHOST="$(echo ${MACHTYPE} | sed -e 's/-[^-]*/-cross/')"
 
 # Build-Specific Variables
 if [[ $TARGET == "x86_64" ]]; then
@@ -106,9 +98,7 @@ fi
 # ----- Target Packages ----- #
 
 # Array of Packages
-#TOOL_PKG=("FILE" "M4" "NCURSES" "LIBTOOL" "AUTOCONF" "AUTOMAKE" "HEADER" "BINUTILS" "GCC" "GMP" "MPFR" "MPC" "ISL" "GLIBC" "PKGCONF")
-#TOOL_PKG=("FILE" "M4" "NCURSES" "LIBTOOL" "AUTOCONF" "AUTOMAKE" "HEADER" "BINUTILS" "GCC" "GMP" "MPFR" "MPC" "ISL") # Temporary
-TOOL_PKG=("FILE" "M4" "NCURSES" "PKGCONF" "HEADER" "BINUTILS" "GCC" "GMP" "MPFR" "MPC" "ISL")
+TOOL_PKG=("FILE" "M4" "NCURSES" "LIBTOOL" "AUTOCONF" "AUTOMAKE" "HEADER" "BINUTILS" "GCC" "GMP" "MPFR" "MPC" "ISL" "GLIBC" "PKGCONF")
 
 # file - 5.37
 FILE_VER="5.37"
@@ -143,7 +133,7 @@ BINUTILS_VER="2.33.1"
 BINUTILS_SRC="http://ftp.gnu.org/gnu/binutils/binutils-$BINUTILS_VER.tar.xz"
 
 # gcc - 9.2.0
-GCC_VER="8.2.0"
+GCC_VER="9.2.0"
 GCC_SRC="http://ftp.gnu.org/gnu/gcc/gcc-$GCC_VER/gcc-$GCC_VER.tar.xz"
 
 # gmp - 6.1.2
@@ -190,7 +180,6 @@ export PATH=$TFIN_DIR/bin:$PATH
 #------------------------------#
 
 
-
 # title(): Shows the title of the program
 function loka_title() {
     echo "+=============================+"
@@ -203,8 +192,6 @@ function loka_title() {
     echo "+=============================+"
     echo ""
 }
-
-
 
 #
 # NOTE: This MUST be done before every Git Commit
@@ -221,8 +208,6 @@ function loka_clean() {
     echo "| Directory Cleaned |"
     echo "+===================+"
 }
-
-
 
 # prepare(): Prepares the Build Envrionment
 function loka_prepare() {
@@ -241,7 +226,6 @@ function loka_prepare() {
         exit
     fi
 }
-
 
 
 # toolchain(): Builds the StelaLinux Toolchain
@@ -311,17 +295,13 @@ function loka_toolchain() {
     # ----- Stage 1: GCC-static ----- #
     #---------------------------------#
 
-
-
     # ----- Build file ----- #
     echo -e "${BLUE}[....] ${NC}Building file...."
     cd $TWRK_DIR/file-$FILE_VER
     ./configure --prefix=$TFIN_DIR
-    make -j $NUM_JOBS
-    make install -j $NUM_JOBS
+    make $MAKEFLAGS
+    make $MAKEFLAGS install
     echo -e "${GREEN}[DONE] ${NC}Built file."
-
-
 
     # ----- Build m4 ----- #
     echo -e "${BLUE}[....] ${NC}Building m4...."
@@ -332,86 +312,55 @@ function loka_toolchain() {
     echo "#define _IO_IN_BACKUP 0x100" >> lib/stdio-impl.h
 
     ./configure --prefix=$TFIN_DIR
-    make -j $NUM_JOBS
-    make install -j $NUM_JOBS
+    make $MAKEFLAGS
+    make $MAKEFLAGS install
     echo -e "${GREEN}[DONE] ${NC}Built m4."
-
-
 
     # ----- Build ncurses ----- #
     echo -e "${BLUE}[....] ${NC}Building ncurses...."
     cd $TWRK_DIR/ncurses-$NCURSES_VER
     ./configure --prefix=$TFIN_DIR \
         --without-debug
-    make -C include -j $NUM_JOBS
-    make -C progs tic -j $NUM_JOBS
+    make $MAKEFLAGS -C include
+    make $MAKEFLAGS -C progs tic
     cp progs/tic "$TFIN_DIR"/bin
     echo -e "${GREEN}[DONE] ${NC}Built ncurses."
 
-
-
     # ----- Build libtool ----- #
-    #echo -e "${BLUE}[....] ${NC}Building libtool...."
-    #cd $TWRK_DIR/libtool-$LIBTOOL_VER
-    #./configure --prefix=$TFIN_DIR \
-    #    --disable-static
-    #make -j $NUM_JOBS
-    #make install -j $NUM_JOBS
-    #echo -e "${GREEN}[DONE] ${NC}Built libtool."
-
-
+    echo -e "${BLUE}[....] ${NC}Building libtool...."
+    cd $TWRK_DIR/libtool-$LIBTOOL_VER
+    ./configure --prefix=$TFIN_DIR \
+        --disable-static
+    make $MAKEFLAGS
+    make $MAKEFLAGS install
+    echo -e "${GREEN}[DONE] ${NC}Built libtool."
 
     # ----- Build autoconf ----- #
-    #echo -e "${BLUE}[....] ${NC}Building autoconf...."
-    #cd $TWRK_DIR/autoconf-$AUTOCONF_VER
-    #sed '361 s/{/\\{/' -i bin/autoscan.in
-    #./configure --prefix=$TFIN_DIR
-    #make -j $NUM_JOBS
-    #make install -j $NUM_JOBS
-    #echo -e "${GREEN}[DONE] ${NC}Built autoconf."
-
-
+    echo -e "${BLUE}[....] ${NC}Building autoconf...."
+    cd $TWRK_DIR/autoconf-$AUTOCONF_VER
+    sed '361 s/{/\\{/' -i bin/autoscan.in
+    ./configure --prefix=$TFIN_DIR
+    make $MAKEFLAGS
+    make $MAKEFLAGS install
+    echo -e "${GREEN}[DONE] ${NC}Built autoconf."
 
     # ----- Build automake ----- #
-    #echo -e "${BLUE}[....] ${NC}Building automake...."
-    #cd $TWRK_DIR/automake-$AUTOMAKE_VER
-    #./configure --prefix=$TFIN_DIR \
-    #    --disable-nls
-    #make -j $NUM_JOBS
-    #make install -j $NUM_JOBS
-    #echo -e "${GREEN}[DONE] ${NC}Built automake."
-
-
-
-    # ----- Build pkgconf ----- #
-    echo -e "${BLUE}[....] ${NC}Building pkgconf...."
-    cd $TWRK_DIR/pkgconf-$PKGCONF_VER
-    LDFLAGS="-static" \
-    ./configure \
-        --prefix="$TFIN_DIR" \
-        --with-sysroot="$TROOT_DIR" \
-        --with-pkg-config-dir="$TROOT_DIR/usr/lib/pkgconfig:$TROOT_DIR/usr/share/pkgconfig" \
-        --with-system-libdir="$TROOT_DIR/usr/lib" \
-        --with-system-includedir="$TROOT_DIR/usr/include"
-    make -j $NUM_JOBS
-    make install -j $NUM_JOBS
-    
-    ln -sf pkgconf $TFIN_DIR/bin/pkg-config
-    ln -sf pkgconf $TFIN_DIR/bin/$XTARGET-pkg-config
-    ln -sf pkgconf $TFIN_DIR/bin/$XTARGET-pkgconf
-    
-
+    echo -e "${BLUE}[....] ${NC}Building automake...."
+    cd $TWRK_DIR/automake-$AUTOMAKE_VER
+    ./configure --prefix=$TFIN_DIR \
+        --disable-nls
+    make $MAKEFLAGS
+    make $MAKEFLAGS install
+    echo -e "${GREEN}[DONE] ${NC}Built automake."
 
     # ----- Build Linux Headers ----- #
     echo -e "${BLUE}[....] ${NC}Building Linux Headers...."
     mkdir -p $TROOT_DIR/usr/include
     cd $TWRK_DIR/linux-$HEADER_VER
-    make mrproper -j $NUM_JOBS
-    make ARCH=$TARGET INSTALL_HDR_PATH="$TROOT_DIR"/usr headers_install -j $NUM_JOBS
+    make $MAKEFLAGS mrproper
+    make $MAKEFLAGS ARCH=$TARGET INSTALL_HDR_PATH="$TROOT_DIR"/usr headers_install
     find "$TROOT_DIR"/usr \( -name .install -o -name ..install.cmd \) -print0 | xargs -0 rm -rf
     echo -e "${GREEN}[DONE] ${NC}Built Linux Headers."
-
-
 
     # ----- Build binutils ----- #
     echo -e "${BLUE}[....] ${NC}Building binutils...."
@@ -432,26 +381,23 @@ function loka_toolchain() {
         --disable-multilib \
         --disable-nls \
         --disable-werror
-    make MAKEINFO="true" configure-host -j $NUM_JOBS
-    make MAKEINFO="true" -j $NUM_JOBS
-    make MAKEINFO="true" install -j $NUM_JOBS
+    make $MAKEFLAGS MAKEINFO="true" configure-host
+    make $MAKEFLAGS MAKEINFO="true"
+    make $MAKEFLAGS MAKEINFO="true" install
     rm -rf $TFIN_DIR/bin/$XTARGET-ld
     ln -sf $XTARGET-ld.bfd $TFIN_DIR/bin/$XTARGET-ld
     echo -e "${GREEN}[DONE] ${NC}Built binutils."
 
-
     # ----- Build GCC Static ----- #
     echo -e "${BLUE}[....] ${NC}Building GCC-Static...."
-    cd $TWRK_DIR
+    cd $TWRK_DIR/gcc-$GCC_VER
     
     # Prepare Build
-    cp -r gcc-$GCC_VER gcc_static
-    cd gcc_static
     mkdir build
-    cp -r $TWRK_DIR/gmp-$GMP_VER gmp
-    cp -r $TWRK_DIR/mpfr-$MPFR_VER mpfr
-    cp -r $TWRK_DIR/mpc-$MPC_VER mpc
-    cp -r $TWRK_DIR/isl-$ISL_VER isl
+    cp -a $TWRK_DIR/gmp-$GMP_VER gmp
+    cp -a $TWRK_DIR/mpfr-$MPFR_VER mpfr
+    cp -a $TWRK_DIR/mpc-$MPC_VER mpc
+    cp -a $TWRK_DIR/isl-$ISL_VER isl
     
     # Apply Patch
     sed -i 's@\./fixinc\.sh@-c true@' gcc/Makefile.in
@@ -464,8 +410,8 @@ function loka_toolchain() {
         --prefix=$TFIN_DIR \
         --libdir=$TFIN_DIR/lib \
         --libexecdir=$TFIN_DIR/lib \
-        --build=$(cc -dumpmachine) \
-        --host=$(cc -dumpmachine) \
+        --build=$XHOST \
+        --host=$XHOST \
         --target=$XTARGET $GCC_OPTS \
         --with-sysroot=$TROOT_DIR \
         --with-local-prefix=$TROOT_DIR \
@@ -473,7 +419,7 @@ function loka_toolchain() {
         --with-isl \
         --with-system-zlib \
         --with-newlib \
-        --with-glibc-version=2.33.1 \
+        --with-glibc-version=2.30 \
         --without-headers \
         --enable-checking=release \
         --enable-default-pie \
@@ -493,8 +439,8 @@ function loka_toolchain() {
         --disable-nls \
         --disable-shared \
         --disable-threads
-    make all-gcc all-target-libgcc
-    make -j $NUM_JOBS install-gcc install-target-libgcc
+    make $MAKEFLAGS all-gcc all-target-libgcc
+    make -j1 install-gcc install-target-libgcc
 }
 
 # build(): Builds a package
@@ -595,7 +541,6 @@ function loka_build() {
 }
 
 
-
 # initramfs(): Generate the initramfs archive
 function loka_initramfs() {
     loka_title
@@ -658,7 +603,6 @@ function loka_initramfs() {
     find . | cpio -R root:root -H newc -o | xz -9 --check=none > ../initramfs.cpio.xz
     echo -e "${GREEN}[DONE] ${NC}Generated InitramFS."
 }
-
 
 
 # image(): Generate a StelaLinux Live ISO
@@ -730,7 +674,6 @@ function loka_image() {
 }
 
 
-
 # all(): Generates a complete StelaLinux Build
 function loka_all() {
 
@@ -746,7 +689,6 @@ function loka_all() {
     # ----- Generate Image ----- #
     loka_image 
 }
-
 
 
 # usage(): Shows the usage
@@ -774,8 +716,6 @@ function loka_usage() {
     echo "No penguins were harmed in the making of this distro."
     echo ""
 }
-
-
 
 
 
@@ -810,8 +750,6 @@ function main() {
             ;;
     esac
 }
-
-
 
 
 
