@@ -24,7 +24,7 @@ INITRAMFS_PKG=("glibc" "busybox" "nova" "linux")
 IMAGE_PKG=("glibc" "busybox" "nova" "syslinux" "ncurses" "vim" "linux")
 
 # Architecture for Packages
-export ARCH=x86_64
+export ARCH=i486
 
 #-----------------------------------------#
 # ----- StelaLinux Script Variables ----- #
@@ -76,7 +76,7 @@ NO_BLINK='\033[25m' # No Blink
 # ----- Target Information ----- #
 
 # Target System (x86_64 or i486)
-export TARGET="x86_64"
+export TARGET="i486"
 
 # Target Variable
 export XTARGET="${TARGET}-stela-linux-gnu"

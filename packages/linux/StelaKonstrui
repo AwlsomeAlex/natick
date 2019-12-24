@@ -38,8 +38,8 @@ build_linux() {
     #---------------------------#
     
     # Make Default Configuration
-    make mrproper $MAKEFLAGS
-    make defconfig $MAKEFLAGS
+    make mrproper ARCH=$KARCH $MAKEFLAGS
+    make defconfig ARCH=$KARCH $MAKEFLAGS
 
     # Prepare Linux Header Directory
     mkdir -p $FS/usr
