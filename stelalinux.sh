@@ -84,10 +84,10 @@ NO_BLINK='\033[25m' # No Blink
 # ----- Target Information ----- #
 
 # Target System (x86_64 or i486)
-TARGET="x86_64"
+export TARGET="x86_64"
 
 # Target Variable
-XTARGET="${TARGET}-linux-gnu"
+export XTARGET="${TARGET}-linux-gnu"
 
 # Build-Specific Variables
 if [[ $TARGET == "x86_64" ]]; then
@@ -459,8 +459,8 @@ function loka_toolchain() {
         --disable-nls \
         --disable-shared \
         --disable-threads
-    make all-gcc all-target-libgcc -j $NUM_JOBS
-    make -j1 install-gcc install-target-libgcc $NUM_JOBS
+    make all-gcc all-target-libgcc
+    make -j $NUM_JOBS install-gcc install-target-libgcc
 }
 
 # build(): Builds a package
