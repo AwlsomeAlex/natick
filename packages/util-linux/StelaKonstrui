@@ -33,6 +33,8 @@ build_util-linux() {
 
     # Configure util-linux
     CFLAGS="$CFLAGS" ./configure \
+        --build=$XHOST \
+        --host=$XTARGET \
         --prefix=/usr \
         --docdir=/usr/share/doc/util-linux \
         --disable-chfn-chsh \
@@ -53,14 +55,14 @@ build_util-linux() {
     #-----------------------#
 
     # Compile util-linux
-    make -j $NUM_JOBS
+    make $MAKEFLAGS
 
     #---------------------#
     # ----- Install ----- #
     #---------------------#
 
     # Install util-linux
-    make -j $NUM_JOBS DESTDIR=$FS install
+    make $MAKEFLAGS DESTDIR=$FS install
 
     echo ""
     echo "+=====================+"

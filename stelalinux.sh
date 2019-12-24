@@ -80,16 +80,20 @@ export TARGET="x86_64"
 # Target Variable
 export XTARGET="${TARGET}-stela-linux-gnu"
 export XHOST="$(echo ${MACHTYPE} | sed -e 's/-[^-]*/-cross/')"
+export HOSTCC="gcc"
+export HOSTCXX="g++"
 
 # Build-Specific Variables
 if [[ $TARGET == "x86_64" ]]; then
     export BINUTIL_ARGS="--enable-targets=x86_64-pep --enable-default-hash-style=gnu"
     export GCC_ARGS="--with-arch=x86_64 --with-tune=generic --enable-cet=auto --with-linker-hash-style=gnu"
     export GLIBC_ARGS="--enable-static-pie --enable-cet"
+    export KARCH="x86_64"
 elif [[ $TARGET == "i486" ]]; then
     export BINUTIL_ARGS="--enable-default-hash-style=gnu"
     export GCC_ARGS="--with-arch=i486 --with-tune=genetic --with-linker-hash-style=gnu"
     export GLIBC_ARGS="--enable-static-pie"
+    export KARCH="i386"
 else
     echo "${RED}[FAIL] ${NC}Invalid Architecture: $TARGET"
     exit
@@ -156,8 +160,8 @@ ISL_SRC="http://isl.gforge.inria.fr/isl-$ISL_VER.tar.xz"
 GLIBC_VER="2.30"
 GLIBC_SRC="http://ftp.gnu.org/gnu/glibc/glibc-$GLIBC_VER.tar.xz"
 
-# pkgconf - 1.6.2
-PKGCONF_VER="1.6.2"
+# pkgconf - 1.6.3
+PKGCONF_VER="1.6.3"
 PKGCONF_SRC="http://distfiles.dereferenced.org/pkgconf/pkgconf-$PKGCONF_VER.tar.xz"
 
 # ----- Toolchain Directories ----- #
@@ -355,11 +359,11 @@ function loka_toolchain() {
 
     # ----- Build Linux Headers ----- #
     echo -e "${BLUE}[....] ${NC}Building Linux Headers...."
-    mkdir -p $TROOT_DIR/usr/include
+    mkdir -p $FS/usr/include
     cd $TWRK_DIR/linux-$HEADER_VER
     make $MAKEFLAGS mrproper
-    make $MAKEFLAGS ARCH=$TARGET INSTALL_HDR_PATH="$TROOT_DIR"/usr headers_install
-    find "$TROOT_DIR"/usr \( -name .install -o -name ..install.cmd \) -print0 | xargs -0 rm -rf
+    make $MAKEFLAGS ARCH=$TARGET INSTALL_HDR_PATH="$FS"/usr headers_install
+    find "$FS"/usr \( -name .install -o -name ..install.cmd \) -print0 | xargs -0 rm -rf
     echo -e "${GREEN}[DONE] ${NC}Built Linux Headers."
 
     # ----- Build binutils ----- #
@@ -369,8 +373,8 @@ function loka_toolchain() {
     cd build
     ../configure --prefix=$TFIN_DIR \
         --target=$XTARGET $BINUTILS_OPT \
-        --with-sysroot=$TROOT_DIR/usr \
-        --with-lib-path=$TROOT_DIR/usr/lib \
+        --with-sysroot=$FS \
+        --with-lib-path=$FS/usr/lib \
         --with-pic \
         --with-system-zlib \
         --enable-64-bit-bfd \
@@ -390,7 +394,11 @@ function loka_toolchain() {
 
     # ----- Build GCC Static ----- #
     echo -e "${BLUE}[....] ${NC}Building GCC-Static...."
-    cd $TWRK_DIR/gcc-$GCC_VER
+    cd $TWRK_DIR
+    cp -a gcc-$GCC_VER gcc-static
+    cp -a gcc-$GCC_VER gcc-final
+
+    cd gcc-static
     
     # Prepare Build
     mkdir build
@@ -413,9 +421,9 @@ function loka_toolchain() {
         --build=$XHOST \
         --host=$XHOST \
         --target=$XTARGET $GCC_OPTS \
-        --with-sysroot=$TROOT_DIR \
-        --with-local-prefix=$TROOT_DIR \
-        --with-native-system-header-dir=$TROOT_DIR/usr/include \
+        --with-sysroot=$FS \
+        --with-local-prefix=$FS \
+        --with-native-system-header-dir=$FS/usr/include \
         --with-isl \
         --with-system-zlib \
         --with-newlib \
@@ -441,6 +449,110 @@ function loka_toolchain() {
         --disable-threads
     make $MAKEFLAGS all-gcc all-target-libgcc
     make -j1 install-gcc install-target-libgcc
+
+    # ----- Build GLIBC ----- #
+    echo -e "${BLUE}[....] ${NC}Building glibc...."
+    cd $TWRK_DIR/glibc-$GLIBC_VER
+    sed -i '/asm.socket.h/a# include <linux/sockios.h>' sysdeps/unix/sysv/linux/bits/socket.h
+ 
+    mkdir build
+    cd build
+    echo "build-programs=no" >> configparms
+ 
+    BUILD_CC="$HOSTCC" \
+    CC="$XTARGET-gcc" \
+    AR="$XTARGET-ar" \
+    RANLIB="$XTARGET-ranlib" \
+    ../configure \
+        --prefix=/usr \
+        --libdir=/usr/lib \
+        --libexecdir=/usr/lib \
+        --build=$XHOST \
+        --host=$XTARGET $GLIBC_ARGS \
+        --with-binutils=$TFIN_DIR/bin \
+        --with-headers=$FS/usr/include \
+        --without-gd \
+        --without-selinux \
+        --enable-add-ons \
+        --enable-bind-now \
+        --enable-lock-elision \
+        --enable-stack-protector=strong \
+        --enable-stackguard-randomization \
+        --disable-profile \
+        --disable-werror \
+        libc_cv_slibdir=/lib
+    make $MAKEFLAGS
+    make $MAKEFLAGS install_root="$FS" install
+
+    # ----- Build GCC Final ----- #
+    echo -e "${BLUE}[....] ${NC}Building GCC-Final...."
+    cd $TWRK_DIR/gcc-final
+    
+    # Prepare Build
+    mkdir build
+    cp -a $TWRK_DIR/gmp-$GMP_VER gmp
+    cp -a $TWRK_DIR/mpfr-$MPFR_VER mpfr
+    cp -a $TWRK_DIR/mpc-$MPC_VER mpc
+    cp -a $TWRK_DIR/isl-$ISL_VER isl
+    
+    # Apply Patch
+    sed -i 's@\./fixinc\.sh@-c true@' gcc/Makefile.in
+    wget -q --show-progress https://raw.githubusercontent.com/minitena/sde/master/toolchain/gcc/pure.patch
+    patch -Np1 -i pure.patch
+    
+    cd build
+    AR=ar \
+    ../configure \
+        --prefix=$TFIN_DIR \
+        --libdir=$TFIN_DIR/lib \
+        --libexecdir=$TFIN_DIR/lib \
+        --build=$XHOST \
+        --host=$XHOST \
+        --target=$XTARGET $GCC_OPTS \
+        --with-sysroot=$FS \
+        --with-local-prefix=$FS \
+        --with-native-system-header-dir=/usr/include \
+        --with-isl \
+        --with-system-zlib \
+        --enable-__cxa_atexit \
+        --enable-checking=release \
+        --enable-clocale=gnu \
+        --enable-default-pie \
+        --enable-default-ssp \
+        --enable-gnu-indirect-function \
+        --enable-gnu-unique-object \
+        --enable-languages=c,c++,lto \
+        --enable-linker-build-id \
+        --enable-lto \
+        --enable-shared \
+        --enable-threads=posix \
+        --disable-libstdcxx-pch \
+        --disable-libunwind-exceptions \
+        --disable-multilib \
+        --disable-nls \
+        --disable-werror
+    make $MAKEFLAGS AS_FOR_TARGET="$XTARGET-as" LD_FOR_TARGET="$XTARGET-ld"
+    make -j1 install
+
+    # ----- Build pkgconf ----- #
+    echo -e "${BLUE}[....] ${NC}Building pkgconf...."
+    cd $TWRK_DIR/pkgconf-$PKGCONF_VER
+    LDFLAGS="-static" \
+    ./configure \
+        --prefix="$TFIN_DIR" \
+        --with-sysroot="$FS" \
+        --with-pkg-config-dir="$FS/usr/lib/pkgconfig:$FS/usr/share/pkgconfig" \
+        --with-system-libdir="$FS/usr/lib" \
+        --with-system-includedir="$FS/usr/include"
+    make -j $NUM_JOBS
+    make install -j $NUM_JOBS
+    
+    ln -sf pkgconf $TFIN_DIR/bin/pkg-config
+    ln -sf pkgconf $TFIN_DIR/bin/$XTARGET-pkg-config
+    ln -sf pkgconf $TFIN_DIR/bin/$XTARGET-pkgconf
+
+    find "$TFIN_DIR" -name "*.pod" -print0 | xargs -0 rm -rf
+    find "$TFIN_DIR" -name ".packlist" -print0 | xargs -0 rm -rf
 }
 
 # build(): Builds a package
@@ -592,7 +704,7 @@ function loka_initramfs() {
 
     # ----- Strip InitramFS ----- #
     echo -e "${BLUE}[....] ${NC}Stripping InitramFS...."
-    strip -g \
+    ${CROSS_COMPILE}strip -g \
         $INITRAMFS_DIR/fs/bin/* \
         $INITRAMFS_DIR/fs/sbin/* \
         $INITRAMFS_DIR/fs/lib/* \
