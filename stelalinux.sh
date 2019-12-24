@@ -110,49 +110,64 @@ fi
 TOOL_PKG=("FILE" "M4" "NCURSES" "LIBTOOL" "AUTOCONF" "AUTOMAKE" "HEADER" "BINUTILS" "GCC" "GMP" "MPFR" "MPC" "ISL") # Temporary
 
 # file - 5.37
-FILE_SRC="http://ftp.astron.com/pub/file/file-5.37.tar.gz"
+FILE_VER="5.37"
+FILE_SRC="http://ftp.astron.com/pub/file/file-$FILE_VER.tar.gz"
 
 # m4 - 1.4.18
-M4_SRC="http://ftp.gnu.org/gnu/m4/m4-1.4.18.tar.xz"
+M4_VER="1.4.18"
+M4_SRC="http://ftp.gnu.org/gnu/m4/m4-$M4_VER.tar.xz"
 
 # ncurses - 6.1
-NCURSES_SRC="https://ftp.gnu.org/pub/gnu/ncurses/ncurses-6.1.tar.gz"
+NCURSES_VER="6.1"
+NCURSES_SRC="https://ftp.gnu.org/pub/gnu/ncurses/ncurses-$NCURSES_VER.tar.gz"
 
 # libtool - 2.4.6
-LIBTOOL_SRC="http://ftp.gnu.org/gnu/libtool/libtool-2.4.6.tar.xz"
+LIBTOOL_VER="2.4.6"
+LIBTOOL_SRC="http://ftp.gnu.org/gnu/libtool/libtool-$LIBTOOL_VER.tar.xz"
 
 # autoconf - 2.69
-AUTOCONF_SRC="http://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.xz"
+AUTOCONF_VER="2.69"
+AUTOCONF_SRC="http://ftp.gnu.org/gnu/autoconf/autoconf-$AUTOCONF_VER.tar.xz"
 
 # automake - 1.16.1
-AUTOMAKE_SRC="http://ftp.gnu.org/gnu/automake/automake-1.16.1.tar.xz"
+AUTOMAKE_VER="1.16.1"
+AUTOMAKE_SRC="http://ftp.gnu.org/gnu/automake/automake-$AUTOMAKE_VER.tar.xz"
 
 # linux-headers - 5.4.4
-HEADER_SRC="https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.4.4.tar.xz"
+HEADER_VER="5.4.4"
+HEADER_SRC="https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-$HEADER_VER.tar.xz"
 
 # binutils - 2.33.1
-BINUTILS_SRC="http://ftp.gnu.org/gnu/binutils/binutils-2.33.1.tar.xz"
+BINUTILS_VER="2.33.1"
+BINUTILS_SRC="http://ftp.gnu.org/gnu/binutils/binutils-$BINUTILS_VER.tar.xz"
 
 # gcc - 9.2.0
-GCC_SRC="http://ftp.gnu.org/gnu/gcc/gcc-9.2.0/gcc-9.2.0.tar.xz"
+GCC_VER="9.2.0"
+GCC_SRC="http://ftp.gnu.org/gnu/gcc/gcc-$GCC_VER/gcc-$GCC_VER.tar.xz"
 
 # gmp - 6.1.2
-GMP_SRC="http://ftp.gnu.org/gnu/gmp/gmp-6.1.2.tar.xz"
+GMP_VER="6.1.2"
+GMP_SRC="http://ftp.gnu.org/gnu/gmp/gmp-$GMP_VER.tar.xz"
 
 # mpfr - 4.0.2
-MPFR_SRC="http://www.mpfr.org/mpfr-4.0.2/mpfr-4.0.2.tar.xz"
+MPFR_VER="4.0.2"
+MPFR_SRC="http://www.mpfr.org/mpfr-$MPFR_VER/mpfr-$MPFR_VER.tar.xz"
 
 # mpc - 1.1.0
-MPC_SRC="http://ftp.gnu.org/gnu/mpc/mpc-1.1.0.tar.gz"
+MPC_VER="1.1.0"
+MPC_SRC="http://ftp.gnu.org/gnu/mpc/mpc-$MPC_VER.tar.gz"
 
 # isl - 0.21
-ISL_SRC="http://isl.gforge.inria.fr/isl-0.21.tar.xz"
+ISL_VER="0.21"
+ISL_SRC="http://isl.gforge.inria.fr/isl-$ISL_VER.tar.xz"
 
 # glibc - 2.30
-GLIBC_SRC="http://ftp.gnu.org/gnu/glibc/glibc-2.30.tar.xz"
+GLIBC_VER="2.30"
+GLIBC_SRC="http://ftp.gnu.org/gnu/glibc/glibc-$GLIBC_VER.tar.xz"
 
 # pkgconf - 1.6.2
-PKGCONF_SRC="http://distfiles.dereferenced.org/pkgconf/pkgconf-1.6.3.tar.xz"
+PKGCONF_VER="1.6.2"
+PKGCONF_SRC="http://distfiles.dereferenced.org/pkgconf/pkgconf-$PKGCONF_VER.tar.xz"
 
 # ----- Toolchain Directories ----- #
 
@@ -300,7 +315,7 @@ function loka_toolchain() {
 
     # ----- Build file ----- #
     echo -e "${BLUE}[....] ${NC}Building file...."
-    cd $TWRK_DIR/file-*
+    cd $TWRK_DIR/file-$FILE_VER
     ./configure --prefix=$TFIN_DIR
     make -j $NUM_JOBS
     make install -j $NUM_JOBS
@@ -310,7 +325,7 @@ function loka_toolchain() {
 
     # ----- Build m4 ----- #
     echo -e "${BLUE}[....] ${NC}Building m4...."
-    cd $TWRK_DIR/m4-*
+    cd $TWRK_DIR/m4-$M4_VER
 
     # Patching (Protonesso)
     sed -i 's/IO_ftrylockfile/IO_EOF_SEEN/' lib/*.c
@@ -325,7 +340,7 @@ function loka_toolchain() {
 
     # ----- Build ncurses ----- #
     echo -e "${BLUE}[....] ${NC}Building ncurses...."
-    cd $TWRK_DIR/ncurses-*
+    cd $TWRK_DIR/ncurses-$NCURSES_VER
     ./configure --prefix=$TFIN_DIR \
         --without-debug
     make -C include -j $NUM_JOBS
@@ -337,7 +352,7 @@ function loka_toolchain() {
 
     # ----- Build libtool ----- #
     echo -e "${BLUE}[....] ${NC}Building libtool...."
-    cd $TWRK_DIR/libtool-*
+    cd $TWRK_DIR/libtool-$LIBTOOL_VER
     ./configure --prefix=$TFIN_DIR \
         --disable-static
     make -j $NUM_JOBS
@@ -348,7 +363,7 @@ function loka_toolchain() {
 
     # ----- Build autoconf ----- #
     echo -e "${BLUE}[....] ${NC}Building autoconf...."
-    cd $TWRK_DIR/autoconf-*
+    cd $TWRK_DIR/autoconf-$AUTOCONF_VER
     sed '361 s/{/\\{/' -i bin/autoscan.in
     ./configure --prefix=$TFIN_DIR
     make -j $NUM_JOBS
@@ -359,7 +374,7 @@ function loka_toolchain() {
 
     # ----- Build automake ----- #
     echo -e "${BLUE}[....] ${NC}Building automake...."
-    cd $TWRK_DIR/automake-*
+    cd $TWRK_DIR/automake-$AUTOMAKE_VER
     ./configure --prefix=$TFIN_DIR \
         --disable-nls
     make -j $NUM_JOBS
@@ -371,7 +386,7 @@ function loka_toolchain() {
     # ----- Build Linux Headers ----- #
     echo -e "${BLUE}[....] ${NC}Building Linux Headers...."
     mkdir -p $TROOT_DIR/usr/include
-    cd $TWRK_DIR/linux-*
+    cd $TWRK_DIR/linux-$HEADER_VER
     make mrproper -j $NUM_JOBS
     make ARCH=$TARGET INSTALL_HDR_PATH="$TROOT_DIR"/usr headers_install -j $NUM_JOBS
     find "$TROOT_DIR"/usr \( -name .install -o -name ..install.cmd \) -print0 | xargs -0 rm -rf
@@ -381,7 +396,7 @@ function loka_toolchain() {
 
     # ----- Build binutils ----- #
     echo -e "${BLUE}[....] ${NC}Building binutils...."
-    cd $TWRK_DIR/binutils-*
+    cd $TWRK_DIR/binutils-$BINUTILS_VER
     mkdir build
     cd build
     ../configure --prefix=$TFIN_DIR \
@@ -411,13 +426,13 @@ function loka_toolchain() {
     cd $TWRK_DIR
     
     # Prepare Build
-    cp -r gcc-* gcc_static-*
-    cd gcc_static-*
+    cp -r gcc-$GCC_VER gcc_static
+    cd gcc_static
     mkdir build
-    cp -r $TWRK_DIR/gmp-* gmp
-    cp -r $TWRK_DIR/mpfr-* mpfr
-    cp -r $TWRK_DIR/mpc-* mpc
-    cp -r $TWRK_DIR/isl-* isl
+    cp -r $TWRK_DIR/gmp-$GMP_VER gmp
+    cp -r $TWRK_DIR/mpfr-$MPFR_VER mpfr
+    cp -r $TWRK_DIR/mpc-$MPC_VER mpc
+    cp -r $TWRK_DIR/isl-$ISL_VER isl
     
     # Apply Patch
     sed -i 's@\./fixinc\.sh@-c true@' gcc/Makefile.in
@@ -439,7 +454,7 @@ function loka_toolchain() {
         --with-isl \
         --with-system-zlib \
         --with-newlib \
-        --with-glibc-version=2.30 \
+        --with-glibc-version=2.33.1 \
         --without-headers \
         --enable-checking=release \
         --enable-default-pie \
