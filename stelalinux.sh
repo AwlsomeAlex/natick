@@ -142,7 +142,7 @@ BINUTILS_VER="2.33.1"
 BINUTILS_SRC="http://ftp.gnu.org/gnu/binutils/binutils-$BINUTILS_VER.tar.xz"
 
 # gcc - 9.2.0
-GCC_VER="9.2.0"
+GCC_VER="8.2.0"
 GCC_SRC="http://ftp.gnu.org/gnu/gcc/gcc-$GCC_VER/gcc-$GCC_VER.tar.xz"
 
 # gmp - 6.1.2
@@ -182,8 +182,7 @@ TOOLCHAIN=$TDIR/toolchain
 TROOT_DIR=$TFIN_DIR/root
 
 # ----- Path ----- #
-PATH=$TFIN_DIR/bin:$PATH
-
+export PATH=$TFIN_DIR/bin:$PATH
 
 #------------------------------#
 # ----- Helper Functions ----- #
