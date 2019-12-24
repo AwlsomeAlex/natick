@@ -16,6 +16,7 @@ StelaLinux has been my constant goal for my own linux distribution, with it star
 `sudo apt install rsync wget make gcc gawk g++ bc bison pv flex xorriso libelf-dev libssl-dev unzip`
 
 ### StelaLinux Script
+`stelalinux.sh toolchain`: Builds the stela-gcc toolchain for desired architecture
 `stelalinux.sh all`: Builds all packages required for StelaLinux, creates an initamfs, and a live image
 
 ## How to Install:
