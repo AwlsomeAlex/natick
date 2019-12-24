@@ -13,7 +13,7 @@ StelaLinux has been my constant goal for my own linux distribution, with it star
 
 ## How to Build:
 ### Dependencies (Debian-based Distributions)
-`sudo apt install libtools autopoint autoconf automake pkg-config rsync wget make gcc gawk g++ bc bison pv flex xorriso libelf-dev libssl-dev unzip libncurses-dev texinfo gettext`
+`sudo apt install libtool autopoint autoconf automake pkg-config rsync wget make gcc gawk g++ bc bison pv flex xorriso libelf-dev libssl-dev unzip libncurses-dev texinfo gettext`
 
 ### StelaLinux Script
 `stelalinux.sh all`: Builds all packages required for StelaLinux, creates an initamfs, and a live image
