@@ -20,7 +20,7 @@ BUILD_NUMBER="git"
 INITRAMFS_PKG=("glibc" "busybox" "nova" "linux")       
 
 # Packages to be included in StelaLinux
-IMAGE_PKG=("glibc" "busybox" "nova" "syslinux" "ncurses" "vim" "util-linux" "linux")
+IMAGE_PKG=("glibc" "busybox" "nova" "syslinux" "ncurses" "vim" "linux")
 
 # Architecture for Packages
 export ARCH=x86_64
@@ -681,8 +681,8 @@ function loka_initramfs() {
     echo -e "${BLUE}[....] ${NC}Creating InitramFS File Hierarchy...."
     mkdir -p $INITRAMFS_DIR/fs/{bin,boot,dev,etc,lib,mnt/root,proc,root,sbin,sys,tmp,usr/{bin,lib,share,include},run}
     if [[ $TARGET == "x86_64" ]]; then
-        ln -sf lib $INITRAMFS_DIR/lib64
-        ln -sf lib $INITRAMFS_DIR/usr/lib64
+        ln -sf lib $INITRAMFS_DIR/fs/lib64
+        ln -sf lib $INITRAMFS_DIR/fs/usr/lib64
     fi
     echo -e "${GREEN}[DONE] ${NC}Created InitramFS File Hierarchy."
 
@@ -753,7 +753,7 @@ function loka_image() {
 
     # ----- Create Filesystem Hierarchy ----- #
     echo -e "${BLUE}[....] ${NC}Creating Filesystem Hierarchy...."
-    mkdir -p $FIN_DIR/{bin,boot,dev,etc,lib,mnt/root,proc/sys/kernel/hotplug,root,sbin,sys,tmp,usr/{bin,lib,share,include}}
+    mkdir -p $FIN_DIR/{bin,boot,dev,etc,lib,mnt/root,proc,root,sbin,sys,tmp,usr/{bin,lib,share,include}}
     if [[ $TARGET == "x86_64" ]]; then
         ln -sf lib $FIN_DIR/lib64
         ln -sf lib $FIN_DIR/usr/lib64
