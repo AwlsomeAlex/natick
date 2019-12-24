@@ -106,7 +106,8 @@ fi
 # ----- Target Packages ----- #
 
 # Array of Packages
-TOOL_PKG=("FILE" "M4" "NCURSES" "LIBTOOL" "AUTOCONF" "AUTOMAKE" "HEADER" "BINUTILS" "GCC" "GMP" "MPFR" "MPC" "ISL" "GLIBC" "PKGCONF")
+#TOOL_PKG=("FILE" "M4" "NCURSES" "LIBTOOL" "AUTOCONF" "AUTOMAKE" "HEADER" "BINUTILS" "GCC" "GMP" "MPFR" "MPC" "ISL" "GLIBC" "PKGCONF")
+TOOL_PKG=("FILE" "M4" "NCURSES" "LIBTOOL" "AUTOCONF" "AUTOMAKE" "HEADER" "BINUTILS" "GCC" "GMP" "MPFR" "MPC" "ISL") # Temporary
 
 # file - 5.37
 FILE_SRC="http://ftp.astron.com/pub/file/file-5.37.tar.gz"
@@ -165,7 +166,8 @@ TFIN_DIR=$TDIR/final
 TOOLCHAIN=$TDIR/toolchain
 TROOT_DIR=$TFIN_DIR/root
 
-
+# ----- Path ----- #
+PATH=$TFIN_DIR/bin:$PATH
 
 
 #------------------------------#
@@ -294,68 +296,90 @@ function loka_toolchain() {
     # ----- Stage 1: GCC-static ----- #
     #---------------------------------#
 
-    # Build file
+
+
+    # ----- Build file ----- #
     echo -e "${BLUE}[....] ${NC}Building file...."
     cd $TWRK_DIR/file-*
     ./configure --prefix=$TFIN_DIR
-    make
-    make install
+    make -j $NUM_JOBS
+    make install -j $NUM_JOBS
     echo -e "${GREEN}[DONE] ${NC}Built file."
 
-    # Build m4
+
+
+    # ----- Build m4 ----- #
     echo -e "${BLUE}[....] ${NC}Building m4...."
     cd $TWRK_DIR/m4-*
-    ./configure --prefix=$TFIN_DIR \
-        --disable-static
-    make
-    make all
+
+    # Patching (Protonesso)
+    sed -i 's/IO_ftrylockfile/IO_EOF_SEEN/' lib/*.c
+    echo "#define _IO_IN_BACKUP 0x100" >> lib/stdio-impl.h
+
+    ./configure --prefix=$TFIN_DIR
+    make -j $NUM_JOBS
+    make install -j $NUM_JOBS
     echo -e "${GREEN}[DONE] ${NC}Built m4."
 
-    # Build ncurses
+
+
+    # ----- Build ncurses ----- #
     echo -e "${BLUE}[....] ${NC}Building ncurses...."
     cd $TWRK_DIR/ncurses-*
     ./configure --prefix=$TFIN_DIR \
         --without-debug
-    make -C include
-    make -C progs tic
+    make -C include -j $NUM_JOBS
+    make -C progs tic -j $NUM_JOBS
     cp progs/tic "$TFIN_DIR"/bin
     echo -e "${GREEN}[DONE] ${NC}Built ncurses."
 
-    # Build libtool
+
+
+    # ----- Build libtool ----- #
     echo -e "${BLUE}[....] ${NC}Building libtool...."
     cd $TWRK_DIR/libtool-*
     ./configure --prefix=$TFIN_DIR \
         --disable-static
-    make
-    make install
+    make -j $NUM_JOBS
+    make install -j $NUM_JOBS
     echo -e "${GREEN}[DONE] ${NC}Built libtool."
 
-    # Build autoconf
+
+
+    # ----- Build autoconf ----- #
     echo -e "${BLUE}[....] ${NC}Building autoconf...."
     cd $TWRK_DIR/autoconf-*
     sed '361 s/{/\\{/' -i bin/autoscan.in
     ./configure --prefix=$TFIN_DIR
-    make
-    make install
+    make -j $NUM_JOBS
+    make install -j $NUM_JOBS
     echo -e "${GREEN}[DONE] ${NC}Built autoconf."
 
-    # Build automake
+
+
+    # ----- Build automake ----- #
     echo -e "${BLUE}[....] ${NC}Building automake...."
     cd $TWRK_DIR/automake-*
-    ./configure --prefix=$TFIN_DIR
-    make
-    make install
+    ./configure --prefix=$TFIN_DIR \
+        --disable-nls
+    make -j $NUM_JOBS
+    make install -j $NUM_JOBS
     echo -e "${GREEN}[DONE] ${NC}Built automake."
 
-    # Build Linux Headers
+
+
+    # ----- Build Linux Headers ----- #
     echo -e "${BLUE}[....] ${NC}Building Linux Headers...."
+    mkdir -p $TROOT_DIR/usr/include
     cd $TWRK_DIR/linux-*
-    make mrproper
-    make ARCH=$TARGET INSTALL_HDR_PATH="$TROOT_DIR"/usr headers_install
-    find "$TFIN_DIR"/usr \( -name .install -o -name ..install.cmd \) -print0 | xargs -0 rm -rf
+    make mrproper -j $NUM_JOBS
+    make ARCH=$TARGET INSTALL_HDR_PATH="$TROOT_DIR"/usr headers_install -j $NUM_JOBS
+    find "$TROOT_DIR"/usr \( -name .install -o -name ..install.cmd \) -print0 | xargs -0 rm -rf
     echo -e "${GREEN}[DONE] ${NC}Built Linux Headers."
 
-    # Build binutils
+
+
+    # ----- Build binutils ----- #
     echo -e "${BLUE}[....] ${NC}Building binutils...."
     cd $TWRK_DIR/binutils-*
     mkdir build
@@ -374,18 +398,70 @@ function loka_toolchain() {
         --disable-multilib \
         --disable-nls \
         --disable-werror
-    make MAKEINFO="true" configure-host
-    make MAKEINFO="true"
-    make MAKEINFO="true" install
+    make MAKEINFO="true" configure-host -j $NUM_JOBS
+    make MAKEINFO="true" -j $NUM_JOBS
+    make MAKEINFO="true" install -j $NUM_JOBS
     rm -rf $TFIN_DIR/bin/$XTARGET-ld
     ln -sf $XTARGET-ld.bfd $TFIN_DIR/bin/$XTARGET-ld
     echo -e "${GREEN}[DONE] ${NC}Built binutils."
 
 
-
+    # ----- Build GCC Static ----- #
+    echo -e "${BLUE}[....] ${NC}Building GCC-Static...."
+    cd $TWRK_DIR
+    
+    # Prepare Build
+    cp -r gcc-* gcc_static-*
+    cd gcc_static-*
+    mkdir build
+    cp -r $TWRK_DIR/gmp-* gmp
+    cp -r $TWRK_DIR/mpfr-* mpfr
+    cp -r $TWRK_DIR/mpc-* mpc
+    cp -r $TWRK_DIR/isl-* isl
+    
+    # Apply Patch
+    sed -i 's@\./fixinc\.sh@-c true@' gcc/Makefile.in
+    wget -q --show-progress https://raw.githubusercontent.com/minitena/sde/master/toolchain/gcc/pure.patch
+    patch -Np1 -i pure.patch
+    
+    cd build
+    AR=ar \
+    ../configure \
+        --prefix=$TFIN_DIR \
+        --libdir=$TFIN_DIR/lib \
+        --libexecdir=$TFIN_DIR/lib \
+        --build=$(cc -dumpmachine) \
+        --host=$(cc -dumpmachine) \
+        --target=$XTARGET $GCC_OPTS \
+        --with-sysroot=$TROOT_DIR \
+        --with-local-prefix=$TROOT_DIR \
+        --with-native-system-header-dir=$TROOT_DIR/usr/include \
+        --with-isl \
+        --with-system-zlib \
+        --with-newlib \
+        --with-glibc-version=2.30 \
+        --without-headers \
+        --enable-checking=release \
+        --enable-default-pie \
+        --enable-default-ssp \
+        --enable-languages=c \
+        --enable-linker-build-id \
+        --enable-lto \
+        --disable-decimal-float \
+        --disable-libatomic \
+        --disable-libgomp \
+        --disable-libitm \
+        --disable-libquadmath \
+        --disable-libssp \
+        --disable-libstdcxx \
+        --disable-libvtv \
+        --disable-multilib \
+        --disable-nls \
+        --disable-shared \
+        --disable-threads
+    make all-gcc all-target-libgcc -j $NUM_JOBS
+    make -j1 install-gcc install-target-libgcc $NUM_JOBS
 }
-
-
 
 # build(): Builds a package
 function loka_build() {
