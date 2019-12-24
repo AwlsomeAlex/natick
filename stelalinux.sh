@@ -5,7 +5,8 @@
 #-------------------------------------------------#
 # Created by Alexander Barris (AwlsomeAlex) GPLv3 #
 ###################################################
-
+# Toolchain Contributed by protonesso
+#
 
 
 #------------------------------------#
@@ -69,7 +70,7 @@ NO_BLINK='\033[25m' # No Blink
 # ----- StelaLinux Toolchain Variables ----- #
 #--------------------------------------------#
 #
-# Script Outline By: protonesso
+# Implemented By: protonesso
 #
 
 # ----- Target Information ----- #
@@ -128,8 +129,8 @@ AUTOCONF_SRC="http://ftp.gnu.org/gnu/autoconf/autoconf-$AUTOCONF_VER.tar.xz"
 AUTOMAKE_VER="1.16.1"
 AUTOMAKE_SRC="http://ftp.gnu.org/gnu/automake/automake-$AUTOMAKE_VER.tar.xz"
 
-# linux-headers - 5.4.4
-HEADER_VER="5.4.4"
+# linux-headers - 5.4.6
+HEADER_VER="5.4.6"
 HEADER_SRC="https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-$HEADER_VER.tar.xz"
 
 # binutils - 2.33.1
@@ -234,7 +235,7 @@ function loka_prepare() {
 
 # toolchain(): Builds the StelaLinux Toolchain
 #
-# Script Outline by protonesso
+# Implemented by: protonesso
 #
 function loka_toolchain() {
     loka_title
@@ -450,6 +451,10 @@ function loka_toolchain() {
     make $MAKEFLAGS all-gcc all-target-libgcc
     make -j1 install-gcc install-target-libgcc
 
+    #--------------------------------#
+    # ----- Stage 2: Final GCC ----- #
+    #--------------------------------#
+
     # ----- Build GLIBC ----- #
     echo -e "${BLUE}[....] ${NC}Building glibc...."
     cd $TWRK_DIR/glibc-$GLIBC_VER
@@ -553,6 +558,7 @@ function loka_toolchain() {
 
     find "$TFIN_DIR" -name "*.pod" -print0 | xargs -0 rm -rf
     find "$TFIN_DIR" -name ".packlist" -print0 | xargs -0 rm -rf
+    echo -e "${GREEN}[DONE] ${NC}Toolchain for $XTARGET compiled!"
 }
 
 # build(): Builds a package

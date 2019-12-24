@@ -23,7 +23,7 @@ StelaLinux has been my constant goal for my own linux distribution, with it star
 
 ## Contributors:
 * AwlsomeAlex (Lead Developer)
-* [protonesso](https://github.com/protonesso) (Helpful Contributor)
+* [protonesso](https://github.com/protonesso) (Toolchain/Influence)
 
 ### Special Thanks:
 * [Ivandavidov](https://github.com/ivandavidov) ([MLL](https://github.com/ivandavidov/minimal))
