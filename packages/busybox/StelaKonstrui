@@ -46,7 +46,7 @@ build_busybox() {
     #-----------------------#
 
     # Compile BusyBox
-    make ARCH=$KARCH CROSS_COMPILE=${CROSS_COMPILE}EXTRA_CFLAGS="$CFLAGS" busybox $MAKEFLAGS
+    make ARCH=$KARCH CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS" busybox $MAKEFLAGS
     
     #---------------------#
     # ----- Install ----- #
