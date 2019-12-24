@@ -679,9 +679,10 @@ function loka_initramfs() {
     
     # ----- Create InitramFS Hierarchy ----- #
     echo -e "${BLUE}[....] ${NC}Creating InitramFS File Hierarchy...."
-    mkdir -p $INITRAMFS_DIR/fs/{bin,boot,dev,etc,lib,mnt/root,proc,root,sbin,sys,tmp,usr/share/include,run}
+    mkdir -p $INITRAMFS_DIR/fs/{bin,boot,dev,etc,lib,mnt/root,proc,root,sbin,sys,tmp,usr/{bin,lib,share,include},run}
     if [[ $TARGET == "x86_64" ]]; then
         ln -sf lib $INITRAMFS_DIR/lib64
+        ln -sf lib $INITRAMFS_DIR/usr/lib64
     fi
     echo -e "${GREEN}[DONE] ${NC}Created InitramFS File Hierarchy."
 
@@ -752,9 +753,10 @@ function loka_image() {
 
     # ----- Create Filesystem Hierarchy ----- #
     echo -e "${BLUE}[....] ${NC}Creating Filesystem Hierarchy...."
-    mkdir -p $FIN_DIR/{bin,boot,dev,etc,lib,mnt/root,proc/sys/kernel/hotplug,root,sbin,sys,tmp,usr/share}
+    mkdir -p $FIN_DIR/{bin,boot,dev,etc,lib,mnt/root,proc/sys/kernel/hotplug,root,sbin,sys,tmp,usr/{bin,lib,share,include}}
     if [[ $TARGET == "x86_64" ]]; then
         ln -sf lib $FIN_DIR/lib64
+        ln -sf lib $FIN_DIR/usr/lib64
     fi
     echo -e "${GREEN}[DONE] ${NC}Created Filesystem Hierarchy."
 
