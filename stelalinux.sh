@@ -363,7 +363,7 @@ function loka_toolchain() {
     mkdir -p $TROOT_DIR/usr/include
     cd $TWRK_DIR/linux-$HEADER_VER
     make $MAKEFLAGS mrproper
-    make $MAKEFLAGS ARCH=$TARGET INSTALL_HDR_PATH="$TROOT_DIR"/usr headers_install
+    make $MAKEFLAGS ARCH=$KARCH INSTALL_HDR_PATH="$TROOT_DIR"/usr headers_install
     find "$TROOT_DIR"/usr \( -name .install -o -name ..install.cmd \) -print0 | xargs -0 rm -rf
     echo -e "${GREEN}[DONE] ${NC}Built Linux Headers."
 
