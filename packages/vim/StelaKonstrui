@@ -57,9 +57,24 @@ build_vim() {
     #    --with-tlib=ncurses \
     #    --disable-xsmp \
     #    --disable-gpm \
-    #    --disable-selinux  
+    #    --disable-selinux
 
+    export vim_cv_terminfo=yes
+    export vim_cv_tgetent=zero
+    export vim_cv_tty_group=world
+    export vim_cv_tty_mode=0620
+    export vim_cv_getcwd_broken=no
+    export vim_cv_stat_ignores_slash=yes
+    export vim_cv_memmove_handles_overlap=yes
+    export ac_cv_sizeof_int=4
+    export ac_cv_small_wchar_t=no
+    export vim_cv_toupper_broken=no
+
+    CPPFLAGS="-I$WRK_DIR/ncurses/ncurses.fs/usr/include" \
+    LDFLAGS="-L$WRK_DIR/ncurses/ncurses.fs/usr/lib" \
     CFLAGS="$CFLAGS" ./configure \
+        --build=$XHOST \
+        --host=$XTARGET \
         --prefix=/usr \
         --localstatedir=/var/lib/vim \
         --with-compiledby='StelaLinux' \
@@ -75,14 +90,14 @@ build_vim() {
     #-----------------------#
 
     # Compile VIM
-    make -j $NUM_JOBS
+    make $MAKEFLAGS
 
     #---------------------#
     # ----- Install ----- #
     #---------------------#
 
     # Install VIM to fs
-    make -j $NUM_JOBS install DESTDIR=$FS
+    make $MAKEFLAGS install DESTDIR=$FS
 
     # Copy vimrc to /etc
     mkdir $FS/etc
@@ -94,7 +109,7 @@ build_vim() {
     ln -sv vim $FS/bin/vi
 
     # Strip VIM
-    strip -g $FS/usr/bin/*
+    $XTARGET-strip -g $FS/usr/bin/*
 
 
     echo ""

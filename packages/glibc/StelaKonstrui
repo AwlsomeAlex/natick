@@ -14,7 +14,7 @@
 PKG_NAME=glibc
 PKG_VERSION=2.30
 PKG_SRC=("https://ftp.gnu.org/gnu/glibc/glibc-$PKG_VERSION.tar.xz")
-PKG_DEPS=("linux")
+PKG_DEPS=()
 
 # ----- Build Function ----- #
 build_glibc() {
@@ -27,10 +27,7 @@ build_glibc() {
     GLIBC_SRC=$WORK_DIR/glibc-*
 
     # GlibC Object Directory
-    GLIBC_OBJ=$WORK_DIR/glibc-object   
-
-    # Linux Kernel Headers
-    KERNEL_HEADERS=$WRK_DIR/linux/linux.fs/usr/share
+    GLIBC_OBJ=$WORK_DIR/glibc-object
 
     # GlibC Dummy Install Directory
     GLIBC_FULL=$WORK_DIR/glibc.fs_full
@@ -57,21 +54,38 @@ build_glibc() {
 
     # Configure GlibC in GLIBC_OBJ
     cd $GLIBC_OBJ
-    
+
+    sed -i '/asm.socket.h/a# include <linux/sockios.h>' $GLIBC_SRC/sysdeps/unix/sysv/linux/bits/socket.h
+ 
+    BUILD_CC="$HOSTCC" \
+    CC="$XTARGET-gcc" \
+    AR="$XTARGET-ar" \
+    RANLIB="$XTARGET-ranlib" \
     $GLIBC_SRC/configure \
-        --prefix= \
-        --with-headers=$KERNEL_HEADERS/include \
+        --prefix=/usr \
+        --libdir=/usr/lib \
+        --libexecdir=/usr/lib \
+        --build=$XHOST \
+        --host=$XTARGET $GLIBC_ARGS \
+        --with-binutils=$TFIN_DIR/bin \
+        --with-headers=$TROOT_DIR/usr/include \
         --without-gd \
         --without-selinux \
+        --enable-add-ons \
+        --enable-bind-now \
+        --enable-lock-elision \
+        --enable-stack-protector=strong \
+        --enable-stackguard-randomization \
+        --disable-profile \
         --disable-werror \
-        CFLAGS="$CFLAGS"
+        libc_cv_slibdir=/lib
 
     #-----------------------#
     # ----- Compiling ----- #
     #-----------------------#
 
     # Compile GlibC
-    make -j $NUM_JOBS
+    make $MAKEFLAGS
     
     #---------------------#
     # ----- Install ----- #
@@ -79,20 +93,17 @@ build_glibc() {
     
     # Install to Dummy FS Directory
     make install \
-        DESTDIR=$GLIBC_FULL \
-        -j $NUM_JOBS
+        install_root=$GLIBC_FULL \
+        $MAKEFLAGS
+
+    mkdir -p localedata/install-locales/usr/lib/locale
+    make localedata/install-locales\
+        SUPPORTED-LOCALES="en_US.UTF-8/UTF-8 ja_JP.UTF-8/UTF-8" \
+        install_root=$GLIBC_FULL
 
     # Copy Dynamic Linker Library (ld)
-    if [[ $ARCH == "x86_64" ]]; then
-        mkdir -p $FS/lib64
-        mkdir -p $FS/lib
-        cp -r $GLIBC_FULL/lib/ld-* $FS/lib64
-        echo "Configured for 64-bit"
-    else
-        mkdir -p $FS/lib
-        cp -r $GLIBC_FULL/lib/ld-* $FS/lib
-        echo "Configured for 32-bit"
-    fi
+    mkdir -p $FS/lib
+    cp -r $GLIBC_FULL/lib/ld-* $FS/lib
     
     # Copy and Dynamically Link the Libraries
     currDir=$(pwd)

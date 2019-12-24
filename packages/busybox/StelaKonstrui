@@ -22,14 +22,21 @@ build_busybox() {
     #-----------------------------#
     # ----- Local Variables ----- #
     #-----------------------------#
+    export CROSS_COMPILE="$XTARGET-"
+    export CC="$XTARGET-gcc"
+    export CXX="$XTARGET-g++"
+    export AR="$XTARGET-ar"
+    export AS="$XTARGET-as"
+    export LD="$XTARGET-ld"
+    export STRIP="$XTARGET-strip"
     
     #---------------------------#
     # ----- Configuration ----- #
     #---------------------------#
    
     # Prepare BusyBox Configuration
-    make distclean -j $NUM_JOBS
-    make defconfig -j $NUM_JOBS
+    make distclean $MAKEFLAGS
+    make ARCH=$KARCH CROSS_COMPILE=${CROSS_COMPILE} defconfig $MAKEFLAGS
 
     # Turn off inetd
     sed -i "s/.*CONFIG_INETD.*/CONFIG_INETD=n/" .config
@@ -39,18 +46,14 @@ build_busybox() {
     #-----------------------#
 
     # Compile BusyBox
-    make \
-        EXTRA_CFLAGS="$CFLAGS" \
-        busybox -j $NUM_JOBS
+    make ARCH=$KARCH CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS" busybox $MAKEFLAGS
     
     #---------------------#
     # ----- Install ----- #
     #---------------------#
 
     # Install to FS
-    make \
-        CONFIG_PREFIX="$FS" \
-        install -j $NUM_JOBS    
+    make ARCH=$KARCH CROSS_COMPILE=${CROSS_COMPILE} CONFIG_PREFIX="$FS" install $MAKEFLAGS  
 
     # Remove linuxrc
     rm $FS/linuxrc

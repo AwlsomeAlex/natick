@@ -22,6 +22,13 @@ build_linux() {
     #-----------------------------#
     # ----- Local Variables ----- #
     #-----------------------------#
+    export CROSS_COMPILE="$XTARGET-"
+    export CC="$XTARGET-gcc"
+    export CXX="$XTARGET-g++"
+    export AR="$XTARGET-ar"
+    export AS="$XTARGET-as"
+    export LD="$XTARGET-ld"
+    export STRIP="$XTARGET-strip"
     
     # Image File Location
     IMAGE_FILE="arch/x86/boot/bzImage"
@@ -31,8 +38,8 @@ build_linux() {
     #---------------------------#
     
     # Make Default Configuration
-    make mrproper -j $NUM_JOBS
-    make defconfig -j $NUM_JOBS
+    make mrproper $MAKEFLAGS
+    make defconfig $MAKEFLAGS
 
     # Prepare Linux Header Directory
     mkdir -p $FS/usr
@@ -63,12 +70,7 @@ build_linux() {
     #-----------------------#
 
     # Compile Linux Kernel
-    make ARCH=$ARCH CFLAGS="$CFLAGS" bzImage -j $NUM_JOBS
-
-    # Compile Linux Kernel Headers (For GLIBC)
-    make \
-        INSTALL_HDR_PATH=$FS/usr/share \
-        headers_install -j $NUM_JOBS  
+    make ARCH=$KARCH CROSS_COMPILE=${CROSS_COMPILE} CFLAGS="$CFLAGS" bzImage $MAKEFLAGS
 
     #---------------------#
     # ----- Install ----- #

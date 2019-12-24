@@ -33,73 +33,41 @@ build_ncurses() {
     #
     sed -i '/LIBTOOL_INSTALL/d' c++/Makefile.in
 
-    # Configure ncurses (AwlsomeLinux + MLL)
-    #
-    # Source: https://github.com/ivandavidov/minimal/blob/master/src/minimal_overlay/bundles/ncurses/02_build.sh#L26
-    #
-    #CFLAGS="$CFLAGS" ./configure \
-    #    --prefix=/usr \
-    #    --with-termlib \
-    #    --with-terminfo-dir=/lib/terminfo \
-    #    --with-default-terminfo-dirs=/lib/terminfo \
-    #    --without-normal \
-    #    --without-debug \
-    #    --without-cxx-binding \
-    #    #--with-abi-version=5 \
-    #    --enable-widec \
-    #    --with-shared \
-    #    CPPFLAGS=-I$(pwd)/ncurses/widechar \
-    #    LDFLAGS=-L$(pwd)/lib \
-    #    CPPFLAGS="-P"
- 
-    # Configure ncurses (Ataraxia)
-    #
-    # source: https://github.com/ataraxialinux/ataraxia/blob/master/packages/ncurses/KagamiBuild#L19
-    #
-    #./configure $BUILDFLAGS \
-    #	--prefix=/usr \
-	#	--with-default-terminfo-dir=/usr/share/terminfo \
-	#	--with-pkg-config-libdir=/usr/lib/pkgconfig \
-	#	--with-terminfo-dirs="/etc/terminfo:/usr/share/terminfo" \
-	#	--with-normal \
-	#	--with-shared \
-	#	--without-ada \
-	#	--without-debug \
-	#	--without-tests \
-	#	--enable-overwrite \
-	#	--enable-pc-files \
-	#	--enable-widec \
-	#	--disable-rpath-hack \
-	#	--disable-stripping
-
-    # Configure Ncurses (LFS)
+   # Configure Ncurses (LFS)
     #
     # 
     #
     CFLAGS="$CFLAGS" ./configure \
-        --prefix=/usr \
-        --with-shared \
-        --without-debug \
-        --without-normal \
-        --enable-pc-files \
-        --enable-widec \
-        CPPFLAGS="-I$(pwd)/ncurses/widechar" \
-        LDFLAGS=-L$(pwd)/lib \
-        CPPFLAGS="-P"
+       --build=$XHOST \
+       --host=$XTARGET \
+       --prefix=/usr \
+	 --with-default-terminfo-dir=/usr/share/terminfo \
+	 --with-pkg-config-libdir=/usr/lib/pkgconfig \
+	 --with-terminfo-dirs="/etc/terminfo:/usr/share/terminfo" \
+	 --with-shared \
+	 --without-ada \
+	 --without-debug \
+	 --without-normal \
+	 --without-tests \
+	 --enable-overwrite \
+	 --enable-pc-files \
+	 --enable-widec \
+	 --disable-rpath-hack \
+	 --disable-stripping
 
     #-----------------------#
     # ----- Compiling ----- #
     #-----------------------#
 
     # Make ncurses
-    make -j $NUM_JOBS   
+    make $MAKEFLAGS
  
     #---------------------#
     # ----- Install ----- #
     #---------------------#
 
     # Install to FS
-    make -j $NUM_JOBS install DESTDIR=$FS
+    make $MAKEFLAGS install DESTDIR=$FS
 
     # Symlink wide character libraries (MLL)
     #

@@ -1,0 +1,47 @@
+##########################################
+#----------------------------------------#
+# StelaKonstrui Script - Vim Text Editor #
+#----------------------------------------#
+##########################################
+#
+# Description:  Compression library
+# URL:          http://www.zlib.net/
+# Maintainer:   AwlsomeAlex
+# Section:      libs
+#
+
+# ----- Package Information ----- #
+PKG_NAME=zlib
+PKG_VERSION=1.2.11
+PKG_SRC=("https://zlib.net/$PKG_NAME-$PKG_VERSION.tar.xz")
+PKG_DEPS=()
+
+# ----- Build Function ----- #
+build_zlib() {
+    #---------------------------#
+   # ----- Configuration ----- #
+    #---------------------------#
+
+   CHOST="$XTARGET" \
+   ./configure \
+        --prefix=/usr
+
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
+
+    # Compile VIM
+    make $MAKEFLAGS
+
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
+
+    # Install VIM to fs
+    make $MAKEFLAGS install DESTDIR=$FS
+
+    echo ""
+    echo "+===============+"
+    echo "| ZLIB Compiled |"
+    echo "+===============+"
+}
