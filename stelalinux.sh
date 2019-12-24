@@ -107,7 +107,8 @@ fi
 
 # Array of Packages
 #TOOL_PKG=("FILE" "M4" "NCURSES" "LIBTOOL" "AUTOCONF" "AUTOMAKE" "HEADER" "BINUTILS" "GCC" "GMP" "MPFR" "MPC" "ISL" "GLIBC" "PKGCONF")
-TOOL_PKG=("FILE" "M4" "NCURSES" "LIBTOOL" "AUTOCONF" "AUTOMAKE" "HEADER" "BINUTILS" "GCC" "GMP" "MPFR" "MPC" "ISL") # Temporary
+#TOOL_PKG=("FILE" "M4" "NCURSES" "LIBTOOL" "AUTOCONF" "AUTOMAKE" "HEADER" "BINUTILS" "GCC" "GMP" "MPFR" "MPC" "ISL") # Temporary
+TOOL_PKG=("FILE" "M4" "NCURSES" "PKGCONF" "HEADER" "BINUTILS" "GCC" "GMP" "MPFR" "MPC" "ISL")
 
 # file - 5.37
 FILE_VER="5.37"
@@ -350,36 +351,55 @@ function loka_toolchain() {
 
 
     # ----- Build libtool ----- #
-    echo -e "${BLUE}[....] ${NC}Building libtool...."
-    cd $TWRK_DIR/libtool-$LIBTOOL_VER
-    ./configure --prefix=$TFIN_DIR \
-        --disable-static
-    make -j $NUM_JOBS
-    make install -j $NUM_JOBS
-    echo -e "${GREEN}[DONE] ${NC}Built libtool."
+    #echo -e "${BLUE}[....] ${NC}Building libtool...."
+    #cd $TWRK_DIR/libtool-$LIBTOOL_VER
+    #./configure --prefix=$TFIN_DIR \
+    #    --disable-static
+    #make -j $NUM_JOBS
+    #make install -j $NUM_JOBS
+    #echo -e "${GREEN}[DONE] ${NC}Built libtool."
 
 
 
     # ----- Build autoconf ----- #
-    echo -e "${BLUE}[....] ${NC}Building autoconf...."
-    cd $TWRK_DIR/autoconf-$AUTOCONF_VER
-    sed '361 s/{/\\{/' -i bin/autoscan.in
-    ./configure --prefix=$TFIN_DIR
-    make -j $NUM_JOBS
-    make install -j $NUM_JOBS
-    echo -e "${GREEN}[DONE] ${NC}Built autoconf."
+    #echo -e "${BLUE}[....] ${NC}Building autoconf...."
+    #cd $TWRK_DIR/autoconf-$AUTOCONF_VER
+    #sed '361 s/{/\\{/' -i bin/autoscan.in
+    #./configure --prefix=$TFIN_DIR
+    #make -j $NUM_JOBS
+    #make install -j $NUM_JOBS
+    #echo -e "${GREEN}[DONE] ${NC}Built autoconf."
 
 
 
     # ----- Build automake ----- #
-    echo -e "${BLUE}[....] ${NC}Building automake...."
-    cd $TWRK_DIR/automake-$AUTOMAKE_VER
-    ./configure --prefix=$TFIN_DIR \
-        --disable-nls
+    #echo -e "${BLUE}[....] ${NC}Building automake...."
+    #cd $TWRK_DIR/automake-$AUTOMAKE_VER
+    #./configure --prefix=$TFIN_DIR \
+    #    --disable-nls
+    #make -j $NUM_JOBS
+    #make install -j $NUM_JOBS
+    #echo -e "${GREEN}[DONE] ${NC}Built automake."
+
+
+
+    # ----- Build pkgconf ----- #
+    echo -e "${BLUE}[....] ${NC}Building pkgconf...."
+    cd $TWRK_DIR/pkgconf-$PKGCONF_VER
+    LDFLAGS="-static" \
+    ./configure \
+        --prefix="$TFIN_DIR" \
+        --with-sysroot="$TROOT_DIR" \
+        --with-pkg-config-dir="$TROOT_DIR/usr/lib/pkgconfig:$TROOT_DIR/usr/share/pkgconfig" \
+        --with-system-libdir="$TROOT_DIR/usr/lib" \
+        --with-system-includedir="$TROOT_DIR/usr/include"
     make -j $NUM_JOBS
     make install -j $NUM_JOBS
-    echo -e "${GREEN}[DONE] ${NC}Built automake."
-
+    
+    ln -sf pkgconf $TFIN_DIR/bin/pkg-config
+    ln -sf pkgconf $TFIN_DIR/bin/$XTARGET-pkg-config
+    ln -sf pkgconf $TFIN_DIR/bin/$XTARGET-pkgconf
+    
 
 
     # ----- Build Linux Headers ----- #
