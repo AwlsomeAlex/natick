@@ -204,10 +204,19 @@ function loka_title() {
 # clean(): Cleans the StelaLinux Directory
 function loka_clean() {
     loka_title
-    echo -e "${BLUE}[....] ${NC}Cleaning Build Environment...."
-    rm -rf $SRC_DIR $WRK_DIR $FIN_DIR $STELA/*.iso $TDIR
-    mkdir -p $TDIR
-    echo -e "${GREEN}[DONE] ${NC}Cleaned Build Environment."
+    if [[ $PACKAGE == "--preserve-toolchain" ]]; then
+        echo -e "${BLUE}[....] ${NC}Cleaning StelaLinux Build Directories...."
+        rm -rf $SRC_DIR $WRK_DIR $FIN_DIR $STELA/*.iso
+        echo -e "${GREEN}[DONE] ${NC}Cleaned StelaLinux Build Directories."
+    elif [[ $PACKAGE == "" ]]; then
+        echo -e "${BLUE}[....] ${NC}Cleaning StelaLinux Repository...."
+        rm -rf $SRC_DIR $WRK_DIR $FIN_DIR $STELA/*.iso $TDIR
+        mkdir -p $TDIR
+        echo -e "${GREEN}[DONE] ${NC}Cleaned StelaLinux Repository."
+    else
+        echo -e "${RED}[FAIL] ${NC}Unknown flag: $PACKAGE"
+        exit
+    fi
     echo ""
     echo "+===================+"
     echo "| Directory Cleaned |"
@@ -834,7 +843,8 @@ function loka_usage() {
     echo "(PACKAGE): Specific Package to build"
     echo ""
     echo "(FLAG): Special Arguments for StelaLinux Build Script"
-    echo "      -Y:         Prompts yes to all option dialogs"
+    echo "      -Y:                     Prompts yes to all option dialogs"
+    echo "      --preserve-toolchain:   Cleans StelaLinux Build Directories ONLY"
     echo ""
     echo "Developed by Alexander Barris (AwlsomeAlex)"
     echo "Licensed under the GNU GPLv3"
