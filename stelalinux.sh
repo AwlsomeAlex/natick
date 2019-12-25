@@ -811,6 +811,9 @@ function loka_image() {
 # all(): Generates a complete StelaLinux Build
 function loka_all() {
 
+    # ----- Build Toolchain ----- #
+    loka_toolchain
+
     # ----- Build all packages in Image Package Array ----- #
     for p in "${IMAGE_PKG[@]}"; do
         PACKAGE="$p"
