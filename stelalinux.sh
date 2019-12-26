@@ -807,6 +807,31 @@ function loka_image() {
     echo -e "${GREEN}[DONE] ${NC}Generated Disk Image."
 }
 
+# qemu(): Starts a QEMU VM of StelaLinux
+function loka_qemu() {
+    if [ ! -f $STELA/StelaLinux-$BUILD_NUMBER-$ARCH.iso ]; then
+        echo -e "${RED}[FAIL] ${NC}No StelaLinux Image Found. Exiting..."
+        exit
+    fi
+    echo -e "${BLUE}[....] ${NC}Starting QEMU...."
+    if [[ $ARCH == "x86_64" ]]; then
+        if [[ $(which qemu-system-x86_64) == "" ]]; then
+            echo -e "${RED}[FAIL] ${NC}QEMU 64-bit is not installed."
+            exit
+        fi
+        qemu-system-x86_64 -m 512M -cdrom $STELA/StelaLinux-$BUILD_NUMBER-$ARCH.iso -boot d
+    elif [[ $ARCH == "i486" ]]; then
+        if [[ $(which qemu-system-i386) == "" ]]; then
+            echo -e "${RED}[FAIL] ${NC}QEMU 32-bit is not installed."
+            exit
+        fi
+        qemu-system-i386 -m 512M -cdrom $STELA/StelaLinux-$BUILD_NUMBER-$ARCH.iso -boot d
+    else
+        echo -e "${RED}[FAIL] ${NC}Unknown Architecture $ARCH"
+        exit
+    fi
+    echo -e "${GREEN}[DONE] ${NC}QEMU Ran Successfully"
+}
 
 # all(): Generates a complete StelaLinux Build
 function loka_all() {
@@ -842,6 +867,7 @@ function loka_usage() {
     echo "      qemu:       Start a QEMU Virtual Machine with StelaLinux"
     echo "      clean:      Clean the directory (MUST BE USED BEFORE COMMIT)"
     echo "      help:       Shows this dialog"
+    echo "      qemu:       Run StelaLinux in a QEMU VM"
     echo ""
     echo "(PACKAGE): Specific Package to build"
     echo ""
