@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -e
 ###################################################
 # StelaLinux - Minimal Linux Distribution (GlibC) #
 #-------------------------------------------------#
@@ -23,8 +23,9 @@ INITRAMFS_PKG=("glibc" "busybox" "nova" "linux")
 # Packages to be included in StelaLinux
 IMAGE_PKG=("glibc" "busybox" "nova" "syslinux" "ncurses" "vim" "linux")
 
-# Architecture for Packages
+# Architecture for Packages (x86_64 or i486)
 export ARCH=x86_64
+#export ARCH=i486
 
 #-----------------------------------------#
 # ----- StelaLinux Script Variables ----- #
@@ -77,6 +78,7 @@ NO_BLINK='\033[25m' # No Blink
 
 # Target System (x86_64 or i486)
 export TARGET="x86_64"
+#export TARGET="i486"
 
 # Target Variable
 export XTARGET="${TARGET}-stela-linux-gnu"
@@ -372,11 +374,11 @@ function loka_toolchain() {
     echo -e "${BLUE}[....] ${NC}Building Linux Headers...."
     mkdir -p $TROOT_DIR/usr/include
     cd $TWRK_DIR/linux-$HEADER_VER
-    make $MAKEFLAGS mrproper
-    make $MAKEFLAGS ARCH=$KARCH INSTALL_HDR_PATH="$TROOT_DIR"/usr headers_install
+    make $MAKEFLAGS ARCH=x86 mrproper
+    make $MAKEFLAGS ARCH=x86 INSTALL_HDR_PATH="$TROOT_DIR"/usr headers_install
     find "$TROOT_DIR"/usr \( -name .install -o -name ..install.cmd \) -print0 | xargs -0 rm -rf
     echo -e "${GREEN}[DONE] ${NC}Built Linux Headers."
-
+    
     # ----- Build binutils ----- #
     echo -e "${BLUE}[....] ${NC}Building binutils...."
     cd $TWRK_DIR/binutils-$BINUTILS_VER
@@ -721,11 +723,13 @@ function loka_initramfs() {
 
     # ----- Strip InitramFS ----- #
     echo -e "${BLUE}[....] ${NC}Stripping InitramFS...."
+    set +e
     $XTARGET-strip -g \
         $INITRAMFS_DIR/fs/bin/* \
         $INITRAMFS_DIR/fs/sbin/* \
         $INITRAMFS_DIR/fs/lib/* \
         2>/dev/null
+    set -e
     echo -e "${GREEN}[DONE] ${NC}Stripped InitramFS."
 
     # ----- Generate InitramFS ----- #

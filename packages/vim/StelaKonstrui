@@ -109,8 +109,9 @@ build_vim() {
     ln -sv vim $FS/bin/vi
 
     # Strip VIM
+    set +e
     $XTARGET-strip -g $FS/usr/bin/*
-
+    set -e
 
     echo ""
     echo "+==============+"

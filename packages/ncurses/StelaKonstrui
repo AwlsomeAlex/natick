@@ -81,7 +81,9 @@ build_ncurses() {
     ln -s libtinfo.so.6 libtinfo.so
 
     # Strip ncurses binaries
+    set +e
     strip -g $FS/usr/bin/*    
+    set -e
 
     echo ""
     echo "+==================+"
