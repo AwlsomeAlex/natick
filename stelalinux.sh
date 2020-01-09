@@ -101,12 +101,13 @@ else
 fi
 
 # ----- Target Packages ----- #
+# Last Updated: 1/8/2020
 
 # Array of Packages
 TOOL_PKG=("FILE" "M4" "NCURSES" "LIBTOOL" "AUTOCONF" "AUTOMAKE" "HEADER" "BINUTILS" "GCC" "GMP" "MPFR" "MPC" "ISL" "GLIBC" "PKGCONF")
 
-# file - 5.37
-FILE_VER="5.37"
+# file - 5.38
+FILE_VER="5.38"
 FILE_SRC="http://ftp.astron.com/pub/file/file-$FILE_VER.tar.gz"
 
 # m4 - 1.4.18
@@ -129,8 +130,8 @@ AUTOCONF_SRC="http://ftp.gnu.org/gnu/autoconf/autoconf-$AUTOCONF_VER.tar.xz"
 AUTOMAKE_VER="1.16.1"
 AUTOMAKE_SRC="http://ftp.gnu.org/gnu/automake/automake-$AUTOMAKE_VER.tar.xz"
 
-# linux-headers - 5.4.6
-HEADER_VER="5.4.6"
+# linux-headers - 5.4.8
+HEADER_VER="5.4.8"
 HEADER_SRC="https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-$HEADER_VER.tar.xz"
 
 # binutils - 2.33.1
