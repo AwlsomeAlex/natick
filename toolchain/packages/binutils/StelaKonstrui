@@ -27,7 +27,11 @@ build_binutils() {
     # ----- Configuration ----- #
     #---------------------------#
     
+    # Create Build Directory
+    mkdir build
+
     # Configure binutils
+    cd build
     ../configure --prefix=$TFIN_DIR \
         --target=$XTARGET $BINUTILS_OPT \
         --with-sysroot=$TROOT_DIR \
