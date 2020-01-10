@@ -255,9 +255,13 @@ function loka_toolchain() {
                 echo -e "${GREEN}[DONE] ${NC}Copied $f."
             fi
         done
-        # Temporary Fix for Zip Archives
+
+        # Temporary Fix for Zip Archives and gcc-static package
         if [[ $ARCHIVE_FILE == *".zip"* ]]; then
             export DIR=$TWRK_DIR/*-$PACKAGE
+        elif [[ $PACKAGE == "gcc-static" ]]; then
+            mv $TWRK_DIR/gcc-$PKG_VERSION $PACKAGE-$PKG_VERSION
+            export DIR=$TWRK_DIR/$PACKAGE-$PKG_VERSION
         else
             export DIR=$TWRK_DIR/$PACKAGE-*
         fi

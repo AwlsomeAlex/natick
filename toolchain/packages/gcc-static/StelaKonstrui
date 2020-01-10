@@ -13,7 +13,7 @@
 # ----- Package Information ----- #
 PKG_NAME=gcc-static
 PKG_VERSION=9.2.0
-PKG_SRC=("http://ftp.gnu.org/gnu/gcc/$PKG_NAME-$PKG_VERSION/$PKG_NAME-$PKG_VERSION.tar.xz")
+PKG_SRC=("http://ftp.gnu.org/gnu/gcc/gcc-$PKG_VERSION/gcc-$PKG_VERSION.tar.xz")
 PKG_DEPS=()
 
 # ----- Build Function ----- #
