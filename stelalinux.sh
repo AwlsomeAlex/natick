@@ -106,7 +106,7 @@ fi
 # Last Updated: 1/8/2020
 
 # Array of Packages
-TOOL_PKG=("file" "m4" "ncurses" "libtool" "autoconf" "automake" "header" "binutils" "gcc-extras" "gcc-static" "glibc" "gcc" "pkgconf")
+TOOL_PKG=("file" "m4" "ncurses" "libtool" "autoconf" "automake" "linux" "binutils" "gcc-extras" "gcc-static" "glibc" "gcc" "pkgconf")
 
 # ----- Toolchain Directories ----- #
 

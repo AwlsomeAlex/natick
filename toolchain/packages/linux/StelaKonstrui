@@ -11,13 +11,13 @@
 #
 
 # ----- Package Information ----- #
-PKG_NAME=header
+PKG_NAME=linux
 PKG_VERSION=5.4.8
-PKG_SRC=("https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-$PKG_VERSION.tar.xz")
+PKG_SRC=("https://cdn.kernel.org/pub/linux/kernel/v5.x/$PKG_NAME-$PKG_VERSION.tar.xz")
 PKG_DEPS=()
 
 # ----- Build Function ----- #
-build_header() {
+build_linux() {
     
     #-----------------------------#
     # ----- Local Variables ----- #
