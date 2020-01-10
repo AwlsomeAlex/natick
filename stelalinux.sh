@@ -218,7 +218,7 @@ function loka_toolchain() {
     echo -e "${GREEN}[DONE] ${NC}Created Toolchain Directories...."
 
     # ----- Build Packages ----- #
-    for t in "${TOOLCHAIN_PKG[@]}"; do
+    for t in "${TOOL_PKG[@]}"; do
         
         # --- Set and Source Package --- #
         PACKAGE="$t"
