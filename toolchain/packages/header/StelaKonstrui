@@ -1,0 +1,53 @@
+###########################################################
+#---------------------------------------------------------#
+# StelaKonstrui Script - Linux Kernel Headers (Toolchain) #
+#---------------------------------------------------------#
+###########################################################
+#
+# Description:  Headers for building modules for Linux Kernel
+# URL:          https://kernel.org/
+# Maintainer:   AwlsomeAlex
+# Section:      toolchain (Stage 1)
+#
+
+# ----- Package Information ----- #
+PKG_NAME=header
+PKG_VERSION=5.4.8
+PKG_SRC=("https://cdn.kernel.org/pub/linux/kernel/v5.x/$PKG_NAME-$PKG_VERSION.tar.xz")
+PKG_DEPS=()
+
+# ----- Build Function ----- #
+build_header() {
+    
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
+
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+    
+    # Create required directories
+    mkdir -p $TROOT_DIR/usr/include
+
+    # Generate configuration 
+    make $MAKEFLAGS ARCH=x86 mrproper
+
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
+
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
+    
+    # Install Headers to Toolchain Directory
+    make $MAKEFLAGS ARCH=x86 INSTALL_HDR_PATH="$TROOT_DIR"/usr headers_install
+
+    # Clean Directory 
+    find "$TROOT_DIR"/usr \( -name .install -o -name ..install.cmd \) -print0 | xargs -0 rm -rf
+
+    echo "+==================================+"
+    echo "| Toolchain Linux Headers Compiled |"
+    echo "+==================================+"
+}
