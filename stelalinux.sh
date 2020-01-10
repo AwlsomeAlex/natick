@@ -262,6 +262,8 @@ function loka_toolchain() {
         elif [[ $PACKAGE == "gcc-static" ]]; then
             mv $TWRK_DIR/gcc-$PKG_VERSION $TWRK_DIR/$PACKAGE-$PKG_VERSION
             export DIR=$TWRK_DIR/$PACKAGE-$PKG_VERSION
+        elif [[ $PACKAGE == "gcc" ]]; then
+            export DIR=$TWRK_DIR/$PACKAGE-$PKG_VERSION
         else
             export DIR=$TWRK_DIR/$PACKAGE-*
         fi
@@ -273,6 +275,7 @@ function loka_toolchain() {
             continue
         fi
 
+        echo $DIR
         cd $DIR
         echo -e "${BLUE}[....] ${NC}Building $PACKAGE...."
         build_$PACKAGE
