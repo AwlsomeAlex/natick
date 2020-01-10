@@ -263,6 +263,12 @@ function loka_toolchain() {
         fi
 
         # --- Build Package ---- #
+        
+        # Skip gcc-extras since nothing is compiled
+        if [[ $PACKAGE == "gcc-extras" ]]; then
+            continue
+        fi
+
         cd $DIR
         echo -e "${BLUE}[....] ${NC}Building $PACKAGE...."
         build_$PACKAGE
