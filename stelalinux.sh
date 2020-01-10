@@ -106,7 +106,7 @@ fi
 # Last Updated: 1/8/2020
 
 # Array of Packages
-TOOL_PKG=("FILE" "M4" "NCURSES" "LIBTOOL" "AUTOCONF" "AUTOMAKE" "HEADER" "BINUTILS" "GCC" "GMP" "MPFR" "MPC" "ISL" "GLIBC" "PKGCONF")
+TOOL_PKG=("file" "m4" "ncurses" "libtool" "autoconf" "automake" "header" "binutils" "gcc" "gmp" "mpfr" "mpc" "isl" "glibc" "pkgconf")
 
 # file - 5.38
 FILE_VER="5.38"
