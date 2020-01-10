@@ -260,7 +260,7 @@ function loka_toolchain() {
         if [[ $ARCHIVE_FILE == *".zip"* ]]; then
             export DIR=$TWRK_DIR/*-$PACKAGE
         elif [[ $PACKAGE == "gcc-static" ]]; then
-            mv $TWRK_DIR/gcc-$PKG_VERSION $PACKAGE-$PKG_VERSION
+            mv $TWRK_DIR/gcc-$PKG_VERSION $TWRK_DIR/$PACKAGE-$PKG_VERSION
             export DIR=$TWRK_DIR/$PACKAGE-$PKG_VERSION
         else
             export DIR=$TWRK_DIR/$PACKAGE-*
