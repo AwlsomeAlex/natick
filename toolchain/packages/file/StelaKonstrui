@@ -1,0 +1,50 @@
+###########################################
+#-----------------------------------------#
+# StelaKonstrui Script - file (Toolchain) #
+#-----------------------------------------#
+###########################################
+#
+# Description:  The Open Source implementation of UNIX file(1)
+# URL:          https://darwinsys.com/file
+# Maintainer:   AwlsomeAlex
+# Section:      toolchain (Stage 1)
+#
+
+# ----- Package Information ----- #
+PKG_NAME=file
+PKG_VERSION=5.38
+PKG_SRC=("http://ftp.astron.com/pub/$PKG_NAME/$PKG_NAME-$PKG_VERSION.tar.gz")
+PKG_DEPS=()
+
+# ----- Build Function ----- #
+build_file() {
+    
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
+
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+    
+    # Configure Package
+    ./configure --prefix=$TFIN_DIR
+
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
+
+    # Compile Package
+    make $MAKEFLAGS
+
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
+    
+    # Install Package to Toolchain Directory
+    make $MAKEFLAGS install
+
+    echo "+=========================+"
+    echo "| Toolchain file Compiled |"
+    echo "+=========================+"
+}

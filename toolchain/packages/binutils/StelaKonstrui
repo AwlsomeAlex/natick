@@ -1,0 +1,72 @@
+###############################################
+#---------------------------------------------#
+# StelaKonstrui Script - binutils (Toolchain) #
+#---------------------------------------------#
+###############################################
+#
+# Description:  A set of programs to assemble and manipulate binary and object files
+# URL:          https://www.gnu.org/software/binutils
+# Maintainer:   AwlsomeAlex
+# Section:      toolchain (Stage 1)
+#
+
+# ----- Package Information ----- #
+PKG_NAME=binutils
+PKG_VERSION=2.33.1
+PKG_SRC=("http://ftp.gnu.org/gnu/$PKG_NAME/$PKG_NAME-$PKG_VERSION.tar.xz")
+PKG_DEPS=()
+
+# ----- Build Function ----- #
+build_binutils() {
+    
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
+
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+    
+    # Create Build Directory
+    mkdir build
+
+    # Configure binutils
+    cd build
+    ../configure --prefix=$TFIN_DIR \
+        --target=$XTARGET $BINUTILS_OPT \
+        --with-sysroot=$TROOT_DIR \
+        --with-lib-path=$TROOT_DIR/usr/lib \
+        --with-pic \
+        --with-system-zlib \
+        --enable-64-bit-bfd \
+        --enable-deterministic-archives \
+        --enable-gold=yes \
+        --enable-plugins \
+        --enable-threads \
+        --disable-multilib \
+        --disable-nls \
+        --disable-werror
+
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
+
+    # Compile binutils
+    make $MAKEFLAGS MAKEINFO="true" configure-host
+    make $MAKEFLAGS MAKEINFO="true"
+
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
+    
+    # Install binutils to Toolchain Directory
+    make $MAKEFLAGS MAKEINFO="true" install
+
+    # Fix Link
+    rm -rf $TFIN_DIR/bin/$XTARGET-ld
+    ln -sf $XTARGET-ld.bfd $TFIN_DIR/bin/$XTARGET-ld
+
+    echo "+=============================+"
+    echo "| Toolchain binutils Compiled |"
+    echo "+=============================+"
+}

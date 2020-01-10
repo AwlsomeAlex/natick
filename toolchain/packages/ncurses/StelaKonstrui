@@ -1,0 +1,54 @@
+##############################################
+#--------------------------------------------#
+# StelaKonstrui Script - ncurses (Toolchain) #
+#--------------------------------------------#
+##############################################
+#
+# Description:  System V Release 4.0 curses emulation library
+# URL:          https://invisible-island.net/ncurses/ncurses.html
+# Maintainer:   AwlsomeAlex
+# Section:      toolchain (Stage 1)
+#
+
+# ----- Package Information ----- #
+PKG_NAME=ncurses
+PKG_VERSION=6.1
+PKG_SRC=("https://ftp.gnu.org/pub/gnu/$PKG_NAME/$PKG_NAME-$PKG_VERSION.tar.gz")
+PKG_DEPS=()
+
+# ----- Build Function ----- #
+build_ncurses() {
+    
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
+
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+    
+    # Configure ncurses
+    ./configure  --prefix=$TFIN_DIR \
+        --without-debug
+
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
+
+    # Make ncurses libraries
+    make $MAKEFLAGS -C include
+
+    # Make ncurses executables
+    make $MAKEFLAGS -C progs tic
+
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
+    
+    # Install ncurses executables to Toolchain Directory
+    cp progs/tic "$TFIN_DIR"/bin
+
+    echo "+============================+"
+    echo "| Toolchain ncurses Compiled |"
+    echo "+============================+"
+}

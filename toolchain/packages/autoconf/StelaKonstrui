@@ -1,0 +1,53 @@
+###############################################
+#---------------------------------------------#
+# StelaKonstrui Script - autoconf (Toolchain) #
+#---------------------------------------------#
+###############################################
+#
+# Description:  A GNU tool for automatically configuring source code
+# URL:          https://www.gnu.org/software/autoconf
+# Maintainer:   AwlsomeAlex
+# Section:      toolchain (Stage 1)
+#
+
+# ----- Package Information ----- #
+PKG_NAME=autoconf
+PKG_VERSION=2.69
+PKG_SRC=("http://ftp.gnu.org/gnu/$PKG_NAME/$PKG_NAME-$PKG_VERSION.tar.xz")
+PKG_DEPS=()
+
+# ----- Build Function ----- #
+build_autoconf() {
+    
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
+
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+    
+    # Patch autoconf
+    sed '361 s/{/\\{/' -i bin/autoscan.in
+    
+    # Configure autoconf
+    ./configure --prefix=$TFIN_DIR
+
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
+
+    # Compile autoconf
+    make $MAKEFLAGS
+
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
+    
+    # Install autoconf to Toolchain Directory
+    make $MAKEFLAGS install
+
+    echo "+=============================+"
+    echo "| Toolchain autoconf Compiled |"
+    echo "+=============================+"
+}
