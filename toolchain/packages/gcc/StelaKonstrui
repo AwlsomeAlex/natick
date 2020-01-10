@@ -1,0 +1,92 @@
+##########################################
+#----------------------------------------#
+# StelaKonstrui Script - gcc (Toolchain) #
+#----------------------------------------#
+##########################################
+#
+# Description:  The GNU Compiler Collection - C/C++ Frontend (Stage 2 Compiler)
+# URL:          https://gcc.gnu.org/
+# Maintainer:   AwlsomeAlex
+# Section:      toolchain (Stage 2)
+#
+
+# ----- Package Information ----- #
+PKG_NAME=gcc
+PKG_VERSION=9.2.0
+PKG_SRC=("http://ftp.gnu.org/gnu/gcc/$PKG_NAME-$PKG_VERSION/$PKG_NAME-$PKG_VERSION.tar.xz")
+PKG_DEPS=()
+
+# ----- Build Function ----- #
+build_gcc() {
+    
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
+
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+
+    # Prepare Build Directory
+    mkdir build
+    cp -a $TWRK_DIR/gmp-6.1.2 gmp
+    cp -a $TWRK_DIR/mpfr-4.0.2 mpfr
+    cp -a $TWRK_DIR/mpc-1.1.0 mpc
+    cp -a $TWRK_DIR/isl-0.21 isl    
+
+    # Apply GCC Patches
+    sed -i 's@\./fixinc\.sh@-c true@' gcc/Makefile.in
+    wget -q --show-progress https://raw.githubusercontent.com/minitena/sde/master/toolchain/gcc/pure.patch
+    patch -Np1 -i pure.patch
+    
+    # Configure gcc
+    cd build
+    AR=ar \
+    ../configure \
+        --prefix=$TFIN_DIR \
+        --libdir=$TFIN_DIR/lib \
+        --libexecdir=$TFIN_DIR/lib \
+        --build=$XHOST \
+        --host=$XHOST \
+        --target=$XTARGET $GCC_OPTS \
+        --with-sysroot=$TROOT_DIR \
+        --with-local-prefix=$TROOT_DIR \
+        --with-native-system-header-dir=/usr/include \
+        --with-isl \
+        --with-system-zlib \
+        --enable-__cxa_atexit \
+        --enable-checking=release \
+        --enable-clocale=gnu \
+        --enable-default-pie \
+        --enable-default-ssp \
+        --enable-gnu-indirect-function \
+        --enable-gnu-unique-object \
+        --enable-languages=c,c++,lto \
+        --enable-linker-build-id \
+        --enable-lto \
+        --enable-shared \
+        --enable-threads=posix \
+        --disable-libstdcxx-pch \
+        --disable-libunwind-exceptions \
+        --disable-multilib \
+        --disable-nls \
+        --disable-werror
+    
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
+
+    # Compile gcc
+    make $MAKEFLAGS AS_FOR_TARGET="$XTARGET-as" LD_FOR_TARGET="$XTARGET-ld"
+    
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
+    
+    # Install gcc to Toolchain Directory
+    make -j1 install
+
+    echo "+========================+"
+    echo "| Toolchain gcc Compiled |"
+    echo "+========================+"
+}

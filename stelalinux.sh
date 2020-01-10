@@ -106,79 +106,19 @@ fi
 # Last Updated: 1/8/2020
 
 # Array of Packages
-TOOL_PKG=("file" "m4" "ncurses" "libtool" "autoconf" "automake" "header" "binutils" "gcc" "gmp" "mpfr" "mpc" "isl" "glibc" "pkgconf")
-
-# file - 5.38
-FILE_VER="5.38"
-FILE_SRC="http://ftp.astron.com/pub/file/file-$FILE_VER.tar.gz"
-
-# m4 - 1.4.18
-M4_VER="1.4.18"
-M4_SRC="http://ftp.gnu.org/gnu/m4/m4-$M4_VER.tar.xz"
-
-# ncurses - 6.1
-NCURSES_VER="6.1"
-NCURSES_SRC="https://ftp.gnu.org/pub/gnu/ncurses/ncurses-$NCURSES_VER.tar.gz"
-
-# libtool - 2.4.6
-LIBTOOL_VER="2.4.6"
-LIBTOOL_SRC="http://ftp.gnu.org/gnu/libtool/libtool-$LIBTOOL_VER.tar.xz"
-
-# autoconf - 2.69
-AUTOCONF_VER="2.69"
-AUTOCONF_SRC="http://ftp.gnu.org/gnu/autoconf/autoconf-$AUTOCONF_VER.tar.xz"
-
-# automake - 1.16.1
-AUTOMAKE_VER="1.16.1"
-AUTOMAKE_SRC="http://ftp.gnu.org/gnu/automake/automake-$AUTOMAKE_VER.tar.xz"
-
-# linux-headers - 5.4.8
-HEADER_VER="5.4.8"
-HEADER_SRC="https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-$HEADER_VER.tar.xz"
-
-# binutils - 2.33.1
-BINUTILS_VER="2.33.1"
-BINUTILS_SRC="http://ftp.gnu.org/gnu/binutils/binutils-$BINUTILS_VER.tar.xz"
-
-# gcc - 9.2.0
-GCC_VER="9.2.0"
-GCC_SRC="http://ftp.gnu.org/gnu/gcc/gcc-$GCC_VER/gcc-$GCC_VER.tar.xz"
-
-# gmp - 6.1.2
-GMP_VER="6.1.2"
-GMP_SRC="http://ftp.gnu.org/gnu/gmp/gmp-$GMP_VER.tar.xz"
-
-# mpfr - 4.0.2
-MPFR_VER="4.0.2"
-MPFR_SRC="http://www.mpfr.org/mpfr-$MPFR_VER/mpfr-$MPFR_VER.tar.xz"
-
-# mpc - 1.1.0
-MPC_VER="1.1.0"
-MPC_SRC="http://ftp.gnu.org/gnu/mpc/mpc-$MPC_VER.tar.gz"
-
-# isl - 0.21
-ISL_VER="0.21"
-ISL_SRC="http://isl.gforge.inria.fr/isl-$ISL_VER.tar.xz"
-
-# glibc - 2.30
-GLIBC_VER="2.30"
-GLIBC_SRC="http://ftp.gnu.org/gnu/glibc/glibc-$GLIBC_VER.tar.xz"
-
-# pkgconf - 1.6.3
-PKGCONF_VER="1.6.3"
-PKGCONF_SRC="http://distfiles.dereferenced.org/pkgconf/pkgconf-$PKGCONF_VER.tar.xz"
+TOOL_PKG=("file" "m4" "ncurses" "libtool" "autoconf" "automake" "header" "binutils" "gcc-extras" "gcc-static" "glibc" "gcc" "pkgconf")
 
 # ----- Toolchain Directories ----- #
 
 # Main Toolchain Directory
-TDIR=$STELA/toolchain
+export TDIR=$STELA/toolchain
 
 # Source/Work/Final Directory
-TSRC_DIR=$TDIR/source
-TWRK_DIR=$TDIR/work
-TFIN_DIR=$TDIR/final
-TOOLCHAIN=$TDIR/toolchain
-TROOT_DIR=$TFIN_DIR/root
+export TSRC_DIR=$TDIR/source
+export TWRK_DIR=$TDIR/work
+export TFIN_DIR=$TDIR/final
+export TOOLCHAIN=$TDIR/toolchain
+export TROOT_DIR=$TFIN_DIR/root
 
 # ----- Path ----- #
 export PATH=$TFIN_DIR/bin:$PATH
