@@ -117,6 +117,7 @@ export TDIR=$STELA/toolchain
 export TSRC_DIR=$TDIR/source
 export TWRK_DIR=$TDIR/work
 export TFIN_DIR=$TDIR/final
+export TPKG_DIR=$TDIR/packages
 export TOOLCHAIN=$TDIR/toolchain
 export TROOT_DIR=$TFIN_DIR/root
 
@@ -153,8 +154,7 @@ function loka_clean() {
         echo -e "${GREEN}[DONE] ${NC}Cleaned StelaLinux Build Directories."
     elif [[ $PACKAGE == "" ]]; then
         echo -e "${BLUE}[....] ${NC}Cleaning StelaLinux Repository...."
-        rm -rf $SRC_DIR $WRK_DIR $FIN_DIR $STELA/*.iso $TDIR
-        mkdir -p $TDIR
+        rm -rf $SRC_DIR $WRK_DIR $FIN_DIR $STELA/*.iso $TWRK_DIR $TFIN_DIR $TSRC_DIR
         echo -e "${GREEN}[DONE] ${NC}Cleaned StelaLinux Repository."
     else
         echo -e "${RED}[FAIL] ${NC}Unknown flag: $PACKAGE"
@@ -191,10 +191,6 @@ function loka_prepare() {
 #
 function loka_toolchain() {
     loka_title
-
-    #------------------------------#
-    # ----- Stage 0: Prepare ----- #
-    #------------------------------#
     
     # ----- Prepare Directories ----- #
     
@@ -202,7 +198,7 @@ function loka_toolchain() {
     if [ -d $TWRK_DIR ]; then
         if [[ $FLAG == "-Y" ]]; then
             echo -e "${BLUE}[....] ${NC}Removing Toolchain...."
-            rm -rf $TDIR
+            rm -rf $TWRK_DIR $TFIN_DIR 
             echo -e "${GREEN}[DONE] ${NC}Removed Toolchain."
         else
             echo -e "${ORANGE}[WARN] ${NC}Toolchain already exists."
@@ -221,296 +217,58 @@ function loka_toolchain() {
     mkdir -p $TSRC_DIR $TWRK_DIR $TFIN_DIR/root
     echo -e "${GREEN}[DONE] ${NC}Created Toolchain Directories...."
 
-    # Download Packages 
-    for f in "${TOOL_PKG[@]}"; do
-        SE=${f}_SRC
-        typeset -n SOURCE=$SE
-        ARCHIVE_FILE=${SOURCE##*/}
-        if [[ -f $TSRC_DIR/$ARCHIVE_FILE ]]; then
-            echo -e "${GREEN}[DONE] ${NC}File already downloaded. Continuing...."
+    # ----- Build Packages ----- #
+    for t in "${TOOLCHAIN_PKG[@]}"; do
+        
+        # --- Set and Source Package --- #
+        PACKAGE="$t"
+        source $TPKG_DIR/$PACKAGE/StelaKonstrui
+
+        # --- Download Archives --- #
+        for f in "${PKG_SRC[@]}"; do
+            if [[ $f == *"http"* ]]; then   # If string is a URL
+                ARCHIVE_FILE=${f##*/}
+                if [[ -f $TSRC_DIR/$ARCHIVE_FILE ]]; then
+                    echo -e "${GREEN}[DONE] ${NC}File already downloaded. Continuing...."
+                else
+                    echo -e "${BLUE}[....] ${NC}Downloading $ARCHIVE_FILE...."
+                    wget -q --show-progress -P $TSRC_DIR $f
+                    echo -e "${GREEN}[DONE] ${NC}Downloaded $ARCHIVE_FILE."
+                fi
+                echo -e "${BLUE}[....] ${NC}Extracting $ARCHIVE_FILE...."
+                if [[ $ARCHIVE_FILE == *".bz2"* ]]; then
+                    pv $TSRC_DIR/$ARCHIVE_FILE | tar -xjf - -C $TWRK_DIR/
+                elif [[ $ARCHIVE_FILE == *".xz"* ]]; then
+                    pv $TSRC_DIR/$ARCHIVE_FILE | tar -xJf - -C $TWRK_DIR/
+                elif [[ $ARCHIVE_FILE == *".gz"* ]]; then
+                    pv $TSRC_DIR/$ARCHIVE_FILE | tar -xzf - -C $TWRK_DIR/
+                elif [[ $ARCHIVE_FILE == *".zip"* ]]; then
+                    unzip -o $TSRC_DIR/$ARCHIVE_FILE -d $TWRK_DIR/ | pv -l >/dev/null
+                else
+                    echo -e "${RED}[FAIL] ${NC}Unknown File Format."
+                    exit
+                fi
+                echo -e "${GREEN}[DONE] ${NC}Extracted $ARCHIVE_FILE."
+            else # If string is a file
+                echo -e "${BLUE}[....] ${NC}Copying File $f...."
+                cp -r $REPO_DIR/$f $TWRK_DIR
+                echo -e "${GREEN}[DONE] ${NC}Copied $f."
+            fi
+        done
+        # Temporary Fix for Zip Archives
+        if [[ $ARCHIVE_FILE == *".zip"* ]]; then
+            export DIR=$TWRK_DIR/*-$PACKAGE
         else
-            echo -e "${BLUE}[....] ${NC}Downloading $ARCHIVE_FILE...."
-            wget -q --show-progress -P $TSRC_DIR $SOURCE
+            export DIR=$TWRK_DIR/$PACKAGE-*
         fi
-        echo -e "${BLUE}[....] ${NC}Extracting $ARCHIVE_FILE...."
-        if [[ $ARCHIVE_FILE == *".bz2"* ]]; then
-                pv $TSRC_DIR/$ARCHIVE_FILE | tar -xjf - -C $TWRK_DIR/
-            elif [[ $ARCHIVE_FILE == *".xz"* ]]; then
-                pv $TSRC_DIR/$ARCHIVE_FILE | tar -xJf - -C $TWRK_DIR/
-            elif [[ $ARCHIVE_FILE == *".gz"* ]]; then
-                pv $TSRC_DIR/$ARCHIVE_FILE | tar -xzf - -C $TWRK_DIR/
-            elif [[ $ARCHIVE_FILE == *".zip"* ]]; then
-                unzip -o $TSRC_DIR/$ARCHIVE_FILE -d $TWRK_DIR/ | pv -l >/dev/null
-            else
-                echo -e "${RED}[FAIL] ${NC}Unknown File Format."
-                exit
-        fi
-        echo -e "${GREEN}[DONE] ${NC}Extracted $ARCHIVE_FILE."   
+
+        # --- Build Package ---- #
+        cd $DIR
+        echo -e "${BLUE}[....] ${NC}Building $PACKAGE...."
+        build_$PACKAGE
+        echo -e "${GREEN}[DONE] ${NC}Built $PACKAGE."
+    
     done
-
-    #---------------------------------#
-    # ----- Stage 1: GCC-static ----- #
-    #---------------------------------#
-
-    # ----- Build file ----- #
-    echo -e "${BLUE}[....] ${NC}Building file...."
-    cd $TWRK_DIR/file-$FILE_VER
-    ./configure --prefix=$TFIN_DIR
-    make $MAKEFLAGS
-    make $MAKEFLAGS install
-    echo -e "${GREEN}[DONE] ${NC}Built file."
-
-    # ----- Build m4 ----- #
-    echo -e "${BLUE}[....] ${NC}Building m4...."
-    cd $TWRK_DIR/m4-$M4_VER
-
-    # Patching (Protonesso)
-    sed -i 's/IO_ftrylockfile/IO_EOF_SEEN/' lib/*.c
-    echo "#define _IO_IN_BACKUP 0x100" >> lib/stdio-impl.h
-
-    ./configure --prefix=$TFIN_DIR
-    make $MAKEFLAGS
-    make $MAKEFLAGS install
-    echo -e "${GREEN}[DONE] ${NC}Built m4."
-
-    # ----- Build ncurses ----- #
-    echo -e "${BLUE}[....] ${NC}Building ncurses...."
-    cd $TWRK_DIR/ncurses-$NCURSES_VER
-    ./configure --prefix=$TFIN_DIR \
-        --without-debug
-    make $MAKEFLAGS -C include
-    make $MAKEFLAGS -C progs tic
-    cp progs/tic "$TFIN_DIR"/bin
-    echo -e "${GREEN}[DONE] ${NC}Built ncurses."
-
-    # ----- Build libtool ----- #
-    echo -e "${BLUE}[....] ${NC}Building libtool...."
-    cd $TWRK_DIR/libtool-$LIBTOOL_VER
-    ./configure --prefix=$TFIN_DIR \
-        --disable-static
-    make $MAKEFLAGS
-    make $MAKEFLAGS install
-    echo -e "${GREEN}[DONE] ${NC}Built libtool."
-
-    # ----- Build autoconf ----- #
-    echo -e "${BLUE}[....] ${NC}Building autoconf...."
-    cd $TWRK_DIR/autoconf-$AUTOCONF_VER
-    sed '361 s/{/\\{/' -i bin/autoscan.in
-    ./configure --prefix=$TFIN_DIR
-    make $MAKEFLAGS
-    make $MAKEFLAGS install
-    echo -e "${GREEN}[DONE] ${NC}Built autoconf."
-
-    # ----- Build automake ----- #
-    echo -e "${BLUE}[....] ${NC}Building automake...."
-    cd $TWRK_DIR/automake-$AUTOMAKE_VER
-    ./configure --prefix=$TFIN_DIR \
-        --disable-nls
-    make $MAKEFLAGS
-    make $MAKEFLAGS install
-    echo -e "${GREEN}[DONE] ${NC}Built automake."
-
-    # ----- Build Linux Headers ----- #
-    echo -e "${BLUE}[....] ${NC}Building Linux Headers...."
-    mkdir -p $TROOT_DIR/usr/include
-    cd $TWRK_DIR/linux-$HEADER_VER
-    make $MAKEFLAGS ARCH=x86 mrproper
-    make $MAKEFLAGS ARCH=x86 INSTALL_HDR_PATH="$TROOT_DIR"/usr headers_install
-    find "$TROOT_DIR"/usr \( -name .install -o -name ..install.cmd \) -print0 | xargs -0 rm -rf
-    echo -e "${GREEN}[DONE] ${NC}Built Linux Headers."
-    
-    # ----- Build binutils ----- #
-    echo -e "${BLUE}[....] ${NC}Building binutils...."
-    cd $TWRK_DIR/binutils-$BINUTILS_VER
-    mkdir build
-    cd build
-    ../configure --prefix=$TFIN_DIR \
-        --target=$XTARGET $BINUTILS_OPT \
-        --with-sysroot=$TROOT_DIR \
-        --with-lib-path=$TROOT_DIR/usr/lib \
-        --with-pic \
-        --with-system-zlib \
-        --enable-64-bit-bfd \
-        --enable-deterministic-archives \
-        --enable-gold=yes \
-        --enable-plugins \
-        --enable-threads \
-        --disable-multilib \
-        --disable-nls \
-        --disable-werror
-    make $MAKEFLAGS MAKEINFO="true" configure-host
-    make $MAKEFLAGS MAKEINFO="true"
-    make $MAKEFLAGS MAKEINFO="true" install
-    rm -rf $TFIN_DIR/bin/$XTARGET-ld
-    ln -sf $XTARGET-ld.bfd $TFIN_DIR/bin/$XTARGET-ld
-    echo -e "${GREEN}[DONE] ${NC}Built binutils."
-
-    # ----- Build GCC Static ----- #
-    echo -e "${BLUE}[....] ${NC}Building GCC-Static...."
-    cd $TWRK_DIR
-    cp -a gcc-$GCC_VER gcc-static
-    cp -a gcc-$GCC_VER gcc-final
-
-    cd gcc-static
-    
-    # Prepare Build
-    mkdir build
-    cp -a $TWRK_DIR/gmp-$GMP_VER gmp
-    cp -a $TWRK_DIR/mpfr-$MPFR_VER mpfr
-    cp -a $TWRK_DIR/mpc-$MPC_VER mpc
-    cp -a $TWRK_DIR/isl-$ISL_VER isl
-    
-    # Apply Patch
-    sed -i 's@\./fixinc\.sh@-c true@' gcc/Makefile.in
-    wget -q --show-progress https://raw.githubusercontent.com/minitena/sde/master/toolchain/gcc/pure.patch
-    patch -Np1 -i pure.patch
-    
-    cd build
-    AR=ar \
-    ../configure \
-        --prefix=$TFIN_DIR \
-        --libdir=$TFIN_DIR/lib \
-        --libexecdir=$TFIN_DIR/lib \
-        --build=$XHOST \
-        --host=$XHOST \
-        --target=$XTARGET $GCC_OPTS \
-        --with-sysroot=$TROOT_DIR \
-        --with-local-prefix=$TROOT_DIR \
-        --with-native-system-header-dir=$TROOT_DIR/usr/include \
-        --with-isl \
-        --with-system-zlib \
-        --with-newlib \
-        --with-glibc-version=2.30 \
-        --without-headers \
-        --enable-checking=release \
-        --enable-default-pie \
-        --enable-default-ssp \
-        --enable-languages=c \
-        --enable-linker-build-id \
-        --enable-lto \
-        --disable-decimal-float \
-        --disable-libatomic \
-        --disable-libgomp \
-        --disable-libitm \
-        --disable-libquadmath \
-        --disable-libssp \
-        --disable-libstdcxx \
-        --disable-libvtv \
-        --disable-multilib \
-        --disable-nls \
-        --disable-shared \
-        --disable-threads
-    make $MAKEFLAGS all-gcc all-target-libgcc
-    make -j1 install-gcc install-target-libgcc
-
-    #--------------------------------#
-    # ----- Stage 2: Final GCC ----- #
-    #--------------------------------#
-
-    # ----- Build GLIBC ----- #
-    echo -e "${BLUE}[....] ${NC}Building glibc...."
-    cd $TWRK_DIR/glibc-$GLIBC_VER
-    sed -i '/asm.socket.h/a# include <linux/sockios.h>' sysdeps/unix/sysv/linux/bits/socket.h
- 
-    mkdir build
-    cd build
-    echo "build-programs=no" >> configparms
- 
-    BUILD_CC="$HOSTCC" \
-    CC="$XTARGET-gcc" \
-    AR="$XTARGET-ar" \
-    RANLIB="$XTARGET-ranlib" \
-    ../configure \
-        --prefix=/usr \
-        --libdir=/usr/lib \
-        --libexecdir=/usr/lib \
-        --build=$XHOST \
-        --host=$XTARGET $GLIBC_ARGS \
-        --with-binutils=$TFIN_DIR/bin \
-        --with-headers=$TROOT_DIR/usr/include \
-        --without-gd \
-        --without-selinux \
-        --enable-add-ons \
-        --enable-bind-now \
-        --enable-lock-elision \
-        --enable-stack-protector=strong \
-        --enable-stackguard-randomization \
-        --disable-profile \
-        --disable-werror \
-        libc_cv_slibdir=/lib
-    make $MAKEFLAGS
-    make $MAKEFLAGS install_root="$TROOT_DIR" install
-
-    # ----- Build GCC Final ----- #
-    echo -e "${BLUE}[....] ${NC}Building GCC-Final...."
-    cd $TWRK_DIR/gcc-final
-    
-    # Prepare Build
-    mkdir build
-    cp -a $TWRK_DIR/gmp-$GMP_VER gmp
-    cp -a $TWRK_DIR/mpfr-$MPFR_VER mpfr
-    cp -a $TWRK_DIR/mpc-$MPC_VER mpc
-    cp -a $TWRK_DIR/isl-$ISL_VER isl
-    
-    # Apply Patch
-    sed -i 's@\./fixinc\.sh@-c true@' gcc/Makefile.in
-    wget -q --show-progress https://raw.githubusercontent.com/minitena/sde/master/toolchain/gcc/pure.patch
-    patch -Np1 -i pure.patch
-    
-    cd build
-    AR=ar \
-    ../configure \
-        --prefix=$TFIN_DIR \
-        --libdir=$TFIN_DIR/lib \
-        --libexecdir=$TFIN_DIR/lib \
-        --build=$XHOST \
-        --host=$XHOST \
-        --target=$XTARGET $GCC_OPTS \
-        --with-sysroot=$TROOT_DIR \
-        --with-local-prefix=$TROOT_DIR \
-        --with-native-system-header-dir=/usr/include \
-        --with-isl \
-        --with-system-zlib \
-        --enable-__cxa_atexit \
-        --enable-checking=release \
-        --enable-clocale=gnu \
-        --enable-default-pie \
-        --enable-default-ssp \
-        --enable-gnu-indirect-function \
-        --enable-gnu-unique-object \
-        --enable-languages=c,c++,lto \
-        --enable-linker-build-id \
-        --enable-lto \
-        --enable-shared \
-        --enable-threads=posix \
-        --disable-libstdcxx-pch \
-        --disable-libunwind-exceptions \
-        --disable-multilib \
-        --disable-nls \
-        --disable-werror
-    make $MAKEFLAGS AS_FOR_TARGET="$XTARGET-as" LD_FOR_TARGET="$XTARGET-ld"
-    make -j1 install
-
-    # ----- Build pkgconf ----- #
-    echo -e "${BLUE}[....] ${NC}Building pkgconf...."
-    cd $TWRK_DIR/pkgconf-$PKGCONF_VER
-    LDFLAGS="-static" \
-    ./configure \
-        --prefix="$TFIN_DIR" \
-        --with-sysroot="$TROOT_DIR" \
-        --with-pkg-config-dir="$TROOT_DIR/usr/lib/pkgconfig:$TROOT_DIR/usr/share/pkgconfig" \
-        --with-system-libdir="$TROOT_DIR/usr/lib" \
-        --with-system-includedir="$TROOT_DIR/usr/include"
-    make -j $NUM_JOBS
-    make install -j $NUM_JOBS
-    
-    ln -sf pkgconf $TFIN_DIR/bin/pkg-config
-    ln -sf pkgconf $TFIN_DIR/bin/$XTARGET-pkg-config
-    ln -sf pkgconf $TFIN_DIR/bin/$XTARGET-pkgconf
-
-    find "$TFIN_DIR" -name "*.pod" -print0 | xargs -0 rm -rf
-    find "$TFIN_DIR" -name ".packlist" -print0 | xargs -0 rm -rf
-    echo -e "${GREEN}[DONE] ${NC}Toolchain for $XTARGET compiled!"
 }
 
 # build(): Builds a package
