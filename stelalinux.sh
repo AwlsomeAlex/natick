@@ -275,7 +275,6 @@ function loka_toolchain() {
             continue
         fi
 
-        echo $DIR
         cd $DIR
         echo -e "${BLUE}[....] ${NC}Building $PACKAGE...."
         build_$PACKAGE
