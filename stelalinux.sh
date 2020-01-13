@@ -23,9 +23,11 @@ INITRAMFS_PKG=("glibc" "busybox" "nova" "linux")
 # Packages to be included in StelaLinux
 IMAGE_PKG=("glibc" "busybox" "nova" "syslinux" "ncurses" "vim" "linux")
 
-# Architecture for Packages (x86_64 or i486)
-export ARCH=x86_64
-#export ARCH=i486
+# Architecture for Packages (x86_64 or i686/i586)
+#export ARCH=i586
+export ARCH=i686
+#export ARCH=x86_64
+
 
 #-----------------------------------------#
 # ----- StelaLinux Script Variables ----- #
@@ -76,9 +78,10 @@ NO_BLINK='\033[25m' # No Blink
 
 # ----- Target Information ----- #
 
-# Target System (x86_64 or i486)
-export TARGET="x86_64"
-#export TARGET="i486"
+# Target System (x86_64 or i686/i586)
+#export TARGET="i586"
+export TARGET="i686"
+#export TARGET="x86_64"
 
 # Target Variable
 export XTARGET="${TARGET}-stela-linux-gnu"
@@ -93,17 +96,25 @@ if [[ $TARGET == "x86_64" ]]; then
     export GLIBC_ARGS="--enable-static-pie --enable-cet"
     export KARCH="x86_64"
 elif [[ $TARGET == "i486" ]]; then
+   echo -e "${RED}[FAIL] ${NC}As of 1/12/2020, i486 is no longer supported. :("
+   exit
+elif [[ $TARGET == "i586" ]]; then
     export BINUTIL_ARGS="--enable-default-hash-style=gnu"
-    export GCC_ARGS="--with-arch=i486 --with-tune=genetic --with-linker-hash-style=gnu"
+    export GCC_ARGS="--with-arch=i586 --with-tune=genetic --with-linker-hash-style=gnu"
+    export GLIBC_ARGS="--enable-static-pie"
+    export KARCH="i386" 
+elif [[ $TARGET == "i686" ]]; then
+    export BINUTIL_ARGS="--enable-default-hash-style=gnu"
+    export GCC_ARGS="--with-arch=i686 --with-tune=genetic --with-linker-hash-style=gnu"
     export GLIBC_ARGS="--enable-static-pie"
     export KARCH="i386"
 else
-    echo "${RED}[FAIL] ${NC}Invalid Architecture: $TARGET"
+    echo -e "${RED}[FAIL] ${NC}Invalid Architecture: $TARGET"
     exit
 fi
 
 # ----- Target Packages ----- #
-# Last Updated: 1/8/2020
+# Last Updated: 1/12/2020
 
 # Array of Packages
 TOOL_PKG=("file" "m4" "ncurses" "libtool" "autoconf" "automake" "linux" "binutils" "gcc-extras" "gcc-static" "glibc" "gcc" "pkgconf")
@@ -534,13 +545,13 @@ function loka_qemu() {
             echo -e "${RED}[FAIL] ${NC}QEMU 64-bit is not installed."
             exit
         fi
-        qemu-system-x86_64 -m 512M -cdrom $STELA/StelaLinux-$BUILD_NUMBER-$ARCH.iso -boot d
-    elif [[ $ARCH == "i486" ]]; then
+        qemu-system-x86_64 -enable-kvm -m 512M -cdrom $STELA/StelaLinux-$BUILD_NUMBER-$ARCH.iso -boot d
+    elif [[ $ARCH == "i586" ]] || [[ $ARCH == "i686" ]]; then
         if [[ $(which qemu-system-i386) == "" ]]; then
             echo -e "${RED}[FAIL] ${NC}QEMU 32-bit is not installed."
             exit
         fi
-        qemu-system-i386 -m 512M -cdrom $STELA/StelaLinux-$BUILD_NUMBER-$ARCH.iso -boot d
+        qemu-system-i386 -enable-kvm -m 512M -cdrom $STELA/StelaLinux-$BUILD_NUMBER-$ARCH.iso -boot d
     else
         echo -e "${RED}[FAIL] ${NC}Unknown Architecture $ARCH"
         exit
@@ -552,7 +563,10 @@ function loka_qemu() {
 function loka_all() {
 
     # ----- Build Toolchain ----- #
-    loka_toolchain
+    
+    if [[ $PACKAGE != "--skip-toolchain" ]]; then
+        loka_toolchain
+    fi
 
     # ----- Build all packages in Image Package Array ----- #
     for p in "${IMAGE_PKG[@]}"; do
@@ -587,8 +601,9 @@ function loka_usage() {
     echo "(PACKAGE): Specific Package to build"
     echo ""
     echo "(FLAG): Special Arguments for StelaLinux Build Script"
-    echo "      -Y:                     Prompts yes to all option dialogs"
-    echo "      --preserve-toolchain:   Cleans StelaLinux Build Directories ONLY"
+    echo "      -Y:                     (*) Prompts yes to all option dialogs"
+    echo "      --preserve-toolchain:   (clean) Cleans StelaLinux Build Directories ONLY"
+    echo "      --skip-toolchain:       (all) Skips building the toolchain"
     echo ""
     echo "Developed by Alexander Barris (AwlsomeAlex)"
     echo "Licensed under the GNU GPLv3"

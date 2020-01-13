@@ -12,7 +12,7 @@
 
 # ----- Package Information ----- #
 PKG_NAME=linux
-PKG_VERSION=5.4.8
+PKG_VERSION=5.4.11
 PKG_SRC=("https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-$PKG_VERSION.tar.xz")
 PKG_DEPS=()
 
@@ -59,10 +59,17 @@ build_linux() {
     echo "CONFIG_RESET_ATTACK_MITIGATION=y" >> .config                                      # Requests RAM clearing after reboot (Attack Migration)
     echo "CONFIG_APPLE_PROPERTIES=n" >> .config                                             # Disable Mac Properties
     if [[ $ARCH == 'x86_64' ]]; then
+        echo -e "${GREEN}64-bit Detected ${NC}"
         echo "CONFIG_EFI_MIXED=y" >> .config                                                # Enable Mixed EFI
-    else
+    elif [[ $ARCH == 'i586' ]]; then
+        echo -e "${GREEN}32-bit (no SSE2) Detected ${NC}"
         sed -i 's:CONFIG_M686=y:# CONFIG_M686 is not set:g' .config                         # Turn off i686 target
-        sed -i 's:# CONFIG_M486 is not set:CONFIG_M486=y:g' .config                         # Turn on i486 target
+        sed -i 's:# CONFIG_M586 is not set:CONFIG_M586=y:g' .config                         # Turn on i586 target
+    elif [[ $ARCH == 'i686' ]]; then
+        echo -e "${GREEN}32-bit Detected ${NC}"
+    else
+        echo -e "${RED}[FAIL] ${NC}Unknown Kernel Architecture: $ARCH"
+        exit 1
     fi
 
     #-----------------------#

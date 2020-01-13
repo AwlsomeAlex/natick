@@ -41,14 +41,14 @@ build_pkgconf() {
     #-----------------------#
 
     # Compile pkgconf
-    make -j $NUM_JOBS
+    make $MAKEFLAGS
 
     #---------------------#
     # ----- Install ----- #
     #---------------------#
     
     # Install pkgconf to Toolchain Directory
-    make install -j $NUM_JOBS
+    make $MAKEFLAGS install
 
     # Correct Linking
     ln -sf pkgconf $TFIN_DIR/bin/pkg-config

@@ -12,7 +12,7 @@
 
 # ----- Package Information ----- #
 PKG_NAME=linux
-PKG_VERSION=5.4.8
+PKG_VERSION=5.4.11
 PKG_SRC=("https://cdn.kernel.org/pub/linux/kernel/v5.x/$PKG_NAME-$PKG_VERSION.tar.xz")
 PKG_DEPS=()
 
@@ -31,7 +31,7 @@ build_linux() {
     mkdir -p $TROOT_DIR/usr/include
 
     # Generate configuration 
-    make $MAKEFLAGS ARCH=x86 mrproper
+    make $MAKEFLAGS ARCH=$KARCH mrproper
 
     #-----------------------#
     # ----- Compiling ----- #
@@ -42,7 +42,7 @@ build_linux() {
     #---------------------#
     
     # Install Headers to Toolchain Directory
-    make $MAKEFLAGS ARCH=x86 INSTALL_HDR_PATH="$TROOT_DIR"/usr headers_install
+    make $MAKEFLAGS ARCH=$KARCH INSTALL_HDR_PATH="$TROOT_DIR"/usr headers_install
 
     # Clean Directory 
     find "$TROOT_DIR"/usr \( -name .install -o -name ..install.cmd \) -print0 | xargs -0 rm -rf
