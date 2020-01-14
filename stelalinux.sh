@@ -25,8 +25,8 @@ IMAGE_PKG=("glibc" "busybox" "nova" "syslinux" "ncurses" "vim" "linux")
 
 # Architecture for Packages (x86_64 or i686/i586)
 #export ARCH=i586
-export ARCH=i686
-#export ARCH=x86_64
+#export ARCH=i686
+export ARCH=x86_64
 
 
 #-----------------------------------------#
@@ -80,8 +80,8 @@ NO_BLINK='\033[25m' # No Blink
 
 # Target System (x86_64 or i686/i586)
 #export TARGET="i586"
-export TARGET="i686"
-#export TARGET="x86_64"
+#export TARGET="i686"
+export TARGET="x86_64"
 
 # Target Variable
 export XTARGET="${TARGET}-stela-linux-gnu"
@@ -112,6 +112,10 @@ else
     echo -e "${RED}[FAIL] ${NC}Invalid Architecture: $TARGET"
     exit
 fi
+
+# ----- pkgconfig Variables ----- #
+PKG_CONFIG_PATH="$TROOT_DIR/usr/lib/pkgconfig:$TROOT_DIR/usr/share/pkgconfig"
+PKG_CONFIG_SYSROOT_DIR="$TROOT_DIR"
 
 # ----- Target Packages ----- #
 # Last Updated: 1/12/2020

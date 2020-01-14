@@ -14,7 +14,7 @@
 PKG_NAME=util-linux
 PKG_VERSION=2.34
 PKG_SRC=("https://kernel.org/pub/linux/utils/util-linux/v$PKG_VERSION/util-linux-$PKG_VERSION.tar.xz")
-PKG_DEPS=("zlib" "ncurses")
+PKG_DEPS=("ncurses")
 
 # ----- Build Function ----- #
 build_util-linux() {
@@ -30,11 +30,22 @@ build_util-linux() {
     mkdir -p $FS/usr/share/doc/util-linux
     mkdir -p $FS/usr/bin
 
+    # Apply Patches
+    #echo "$(pwd)"
+    #cp ../namespace-fix.patch include/
+    #cp ../prlimit-fix.patch sys-utils
+    #cd include
+    #patch < namespace-fix.patch
+    #cd ..
+    #cd sys-utils
+    #patch < prlimit-fix.patch
+    #cd ..
+
     # Configure util-linux
-    #CPPFLAGS="-I$WRK_DIR/ncurses/ncurses.fs/usr/include" \
     #LDFLAGS="-L$WRK_DIR/ncurses/ncurses.fs/usr/lib" \
     #CPPFLAGS="-I$WRK_DIR/ncurses/ncurses.fs/usr/include -I$WRK_DIR/zlib/zlib.fs/usr/include" \
-    #LDFLAGS="-L$WRK_DIR/ncurses/ncurses.fs/usr/lib -L$WRK_DIR/zlib/zlib.fs/usr/lib" \
+    CPPFLAGS="-I$WRK_DIR/ncurses/ncurses.fs/usr/include" \
+    LDFLAGS="-L$WRK_DIR/ncurses/ncurses.fs/usr/lib" \
     CFLAGS="$CFLAGS" ./configure \
         --build=$XHOST \
         --host=$XTARGET \
