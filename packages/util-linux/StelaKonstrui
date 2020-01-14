@@ -13,7 +13,7 @@
 # ----- Package Information ----- #
 PKG_NAME=util-linux
 PKG_VERSION=2.34
-PKG_SRC=("https://kernel.org/pub/linux/utils/util-linux/v$PKG_VERSION/util-linux-$PKG_VERSION.tar.xz")
+PKG_SRC=("fix-static.patch" "https://kernel.org/pub/linux/utils/util-linux/v$PKG_VERSION/util-linux-$PKG_VERSION.tar.xz")
 PKG_DEPS=("ncurses")
 
 # ----- Build Function ----- #
@@ -31,15 +31,8 @@ build_util-linux() {
     mkdir -p $FS/usr/bin
 
     # Apply Patches
-    #echo "$(pwd)"
-    #cp ../namespace-fix.patch include/
-    #cp ../prlimit-fix.patch sys-utils
-    #cd include
-    #patch < namespace-fix.patch
-    #cd ..
-    #cd sys-utils
-    #patch < prlimit-fix.patch
-    #cd ..
+    cp ../fix-static.patch .
+    patch -p1 < fix-static.patch
 
     # Configure util-linux
     #LDFLAGS="-L$WRK_DIR/ncurses/ncurses.fs/usr/lib" \

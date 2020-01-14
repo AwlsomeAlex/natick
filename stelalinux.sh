@@ -21,7 +21,7 @@ BUILD_NUMBER="git"
 INITRAMFS_PKG=("glibc" "busybox" "nova" "linux")       
 
 # Packages to be included in StelaLinux
-IMAGE_PKG=("glibc" "busybox" "nova" "syslinux" "ncurses" "vim" "linux")
+IMAGE_PKG=("glibc" "busybox" "nova" "syslinux" "ncurses" "vim" "linux" "util-linux")
 
 # Architecture for Packages (x86_64 or i686/i586)
 #export ARCH=i586
@@ -304,7 +304,7 @@ function loka_build() {
     REPO_DIR=$RDIR/$PACKAGE
     WORK_DIR=$WRK_DIR/$PACKAGE
     FS=$WORK_DIR/$PACKAGE.fs
-
+    
     echo $WORK_DIR
     loka_title
     
@@ -318,7 +318,11 @@ function loka_build() {
         echo -e "${RED}[FAIL] ${NC}Package $PACKAGE Not Found in Repo."
         exit
     fi
-
+    
+    # ----- Source Build Script ----- #
+    source $REPO_DIR/StelaKonstrui
+    
+    if [[ ! $FLAG == "--preserve" ]]; then
     # ----- Prepare Work Directory ----- #
     if [ -d $WORK_DIR ]; then
         if [[ $FLAG == "-Y" ]]; then
@@ -339,7 +343,6 @@ function loka_build() {
         fi
     fi
     mkdir -p $FS
-    source $REPO_DIR/StelaKonstrui
 
     # ----- Check Dependencies ----- #
     for d in "${PKG_DEPS[@]}"; do
@@ -381,13 +384,15 @@ function loka_build() {
             echo -e "${GREEN}[DONE] ${NC}Copied $f."
         fi
     done
+    fi
     # Temporary Fix for Zip Archives 
     if [[ $ARCHIVE_FILE == *".zip"* ]]; then
         export DIR=$WORK_DIR/*-$PACKAGE
     else
         export DIR=$WORK_DIR/$PACKAGE-*
     fi
-
+    
+    
     # ----- Build Package ----- #
     cd $DIR
     echo -e "${BLUE}[....] ${NC}Building $PACKAGE...."

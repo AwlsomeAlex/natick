@@ -85,7 +85,7 @@ build_glibc() {
     #-----------------------#
 
     # Compile GlibC
-    make $MAKEFLAGS
+    make -j1
     
     #---------------------#
     # ----- Install ----- #

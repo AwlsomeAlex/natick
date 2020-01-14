@@ -64,7 +64,7 @@ build_glibc() {
     #-----------------------#
 
     # Compile glibc
-    make $MAKEFLAGS
+    make -j1
 
     #---------------------#
     # ----- Install ----- #
