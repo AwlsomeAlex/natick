@@ -21,7 +21,7 @@ BUILD_NUMBER="git"
 INITRAMFS_PKG=("glibc" "busybox" "nova" "linux")       
 
 # Packages to be included in StelaLinux
-IMAGE_PKG=("glibc" "busybox" "nova" "syslinux" "ncurses" "vim" "linux" "util-linux")
+IMAGE_PKG=("glibc" "busybox" "nova" "linux" "syslinux" "ncurses" "vim" "zlib" "util-linux")
 
 # Architecture for Packages (x86_64 or i686/i586)
 #export ARCH=i586
@@ -137,6 +137,7 @@ export TOOLCHAIN=$TDIR/toolchain
 export TROOT_DIR=$TFIN_DIR/root
 
 # ----- Path ----- #
+export LC_ALL="POSIX"
 export PATH=$TFIN_DIR/bin:$PATH
 
 #------------------------------#

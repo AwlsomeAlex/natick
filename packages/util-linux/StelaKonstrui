@@ -14,7 +14,7 @@
 PKG_NAME=util-linux
 PKG_VERSION=2.34
 PKG_SRC=("fix-static.patch" "https://kernel.org/pub/linux/utils/util-linux/v$PKG_VERSION/util-linux-$PKG_VERSION.tar.xz")
-PKG_DEPS=("ncurses")
+PKG_DEPS=("zlib" "ncurses")
 
 # ----- Build Function ----- #
 build_util-linux() {
@@ -35,26 +35,24 @@ build_util-linux() {
     patch -p1 < fix-static.patch
 
     # Configure util-linux
-    #LDFLAGS="-L$WRK_DIR/ncurses/ncurses.fs/usr/lib" \
-    #CPPFLAGS="-I$WRK_DIR/ncurses/ncurses.fs/usr/include -I$WRK_DIR/zlib/zlib.fs/usr/include" \
-    CPPFLAGS="-I$WRK_DIR/ncurses/ncurses.fs/usr/include" \
-    LDFLAGS="-L$WRK_DIR/ncurses/ncurses.fs/usr/lib" \
+    LDFLAGS="-L$WRK_DIR/ncurses/ncurses.fs/usr/lib -L$WRK_DIR/zlib/zlib.fs/usr/include" \
+    CPPFLAGS="-I$WRK_DIR/ncurses/ncurses.fs/usr/include -I$WRK_DIR/zlib/zlib.fs/usr/include" \
     CFLAGS="$CFLAGS" ./configure \
         --build=$XHOST \
         --host=$XTARGET \
         --prefix=/usr \
         --docdir=/usr/share/doc/util-linux \
-        --disable-chfn-chsh \
-        --disable-login \
-        --disable-nologin \
-        --disable-su \
-        --disable-setpriv \
-        --disable-runuser \
+        --disable-chfn-chsh  \
+        --disable-login      \
+        --disable-nologin    \
+        --disable-su         \
+        --disable-setpriv    \
+        --disable-runuser    \
         --disable-pylibmount \
-        --disable-static \
+        --disable-static     \
         --disable-makeinstall-chown \
-        --without-python \
-        --without-systemd \
+        --without-python     \
+        --without-systemd    \
         --without-systemdsystemunitdir
 
     #-----------------------#
