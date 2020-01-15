@@ -28,6 +28,9 @@ INITRAMFS_PKG=()
 # StelaLinux Package List
 IMAGE_PKG=()
 
+# StelaLinux Toolchain Package List
+TOOL_PKG=("file")
+
 # StelaLinux Target Architecture (Supported: i686/x86_64)
 #export ARCH=i686
 export ARCH=x86_64
@@ -89,6 +92,9 @@ export TWRK_DIR="$TDIR/work"
 # Final Toolchain Directory
 export TFIN_DIR="$TDIR/final"
 
+# Toolchain Package Repository
+export TR_DIR="$TDIR/packages"
+
 # ----- Host Compiler Information ----- #
 export HOSTCC="gcc"
 export HOSTCXX="g++"
@@ -130,6 +136,19 @@ export STRIP="$XTARGET-strip"
 # ----- Helper Functions ----- #
 #------------------------------#
 
+# title(): Shows the title of the program
+function title() {
+    sprint "+=============================+"
+    sprint "|   StelaLinux Build Script   |"
+    sprint "+-----------------------------+"
+    sprint "| Created by Alexander Barris |"
+    sprint "|          GNU GPLv3          |"
+    sprint "+=============================+"
+    sprint "|   musl C Library Branch     |"
+    sprint "+=============================+"
+    sprint ""
+}
+
 # sprint($1: message $2: type of message): Prints a line
 function sprint() {
 
@@ -162,50 +181,58 @@ function sprint() {
 }
 
 
-# prepare(): Prepare Build Environment
+# prepare($1: location): Prepare Build Environment
 function prepare() {
     
+    # Local Variables
+    location=$1
+
     # ----- Check for StelaLinux Package Repository ----- #
     if [ ! -d $RDIR ]; then
         sprint "Package Repository Not Found!" "fail"
         echo -e "${BLINK}That's tragic. -Tepper${NO_BLINK}"
         exit
     fi
-
-    # ----- Check for Toolchain Directories ----- #
-    if [ -d $TWRK_DIR ]; then
-        if [[ $FLAG != "-Y" ]]; then
-            sprint "Toolchain Already Exists." "warn"
-            read -p "Do you want to overwrite? (Y/n) " OPT
-            if [ $OPT != 'Y' ]; then
-                sprint "Nothing." "done"
-                exit
+    
+    if [[ $location == "-t" ]] || [[ $location == "-a" ]]; then
+        # ----- Check for Toolchain Directories ----- #
+        if [ -d $TWRK_DIR ]; then
+            if [[ $FLAG != "-Y" ]]; then
+                sprint "Toolchain Already Exists." "warn"
+                read -p "Do you want to overwrite? (Y/n) " OPT
+                if [ $OPT != 'Y' ]; then
+                    sprint "Nothing." "done"
+                    exit
+                fi
             fi
+            sprint "Removing Toolchain...." "...."
+            rm -rf $TWRK_DIR $TFIN_DIR
+            sprint "Removed Toolchain." "done"
         fi
-        sprint "Removing Toolchain...." "...."
-        rm -rf $TWRK_DIR $TFIN_DIR
-        sprint "Removed Toolchain." "done"
         sprint "Creating Toolchain Directories...." "...."
         mkdir -p $TSRC_DIR $TWRK_DIR $TFIN_DIR/root
         sprint "Created Toolchain Directories" "done"
-    fi
-
+    elif [[ $location == "-p" ]] || [[ $location == "-a" ]]; then
     # ----- Check for Build Environment ----- #
-    if [ -d $WRK_DIR ]; then
-        if [[ $FLAG != "-Y" ]]; then
-            sprint "Build Environment Already Exists." "warn"
-            read -p "Do you want to overwrite? (Y/n) " OPT
-            if [ $OPT != 'Y' ]; then
-                sprint "Nothing." "done"
-                exit
+        if [ -d $WRK_DIR ]; then
+            if [[ $FLAG != "-Y" ]]; then
+                sprint "Build Environment Already Exists." "warn"
+                read -p "Do you want to overwrite? (Y/n) " OPT
+                if [ $OPT != 'Y' ]; then
+                    sprint "Nothing." "done"
+                    exit
+                fi
             fi
+            sprint "Removing Build Environment...." "...."
+            rm -rf $WRK_DIR
+            sprint "Removed Build Environment." "done"
         fi
-        sprint "Removing Build Environment...." "...."
-        rm -rf $WRK_DIR
-        sprint "Removed Build Environment." "done"
         sprint "Creating Build Environment...." "...."
         mkdir -p $SRC_DIR $WRK_DIR $FIN_DIR
         sprint "Created Build Environment" "done"
+    else
+        echo -e "${RED}[FAIL] ${ORANGE}prepare: ${NC}Invalid Location: $location"
+        exit
     fi
 }
 
@@ -287,22 +314,9 @@ function extract() {
 # ----- stela Functions ----- #
 #-----------------------------#
 
-# loka_title(): Shows the title of the program
-function loka_title() {
-    sprint "+=============================+"
-    sprint "|   StelaLinux Build Script   |"
-    sprint "+-----------------------------+"
-    sprint "| Created by Alexander Barris |"
-    sprint "|          GNU GPLv3          |"
-    sprint "+=============================+"
-    sprint "|   musl C Library Branch     |"
-    sprint "+=============================+"
-    sprint ""
-}
-
 # loka_clean(): Cleans the StelaLinux Directories
 function loka_clean() {
-    loka_title
+    title
 
     # ----- Clean Build Directories & ISO ----- #
     sprint "Cleaning StelaLinux Build Directories...." "...."
@@ -318,9 +332,24 @@ function loka_clean() {
 }
 
 # toolchain(): Build Toolchain
-function toolchain() {
-    loka_title
-    loka_prepare
+function loka_toolchain() {
+    title
+    prepare -t
+
+    # ----- Unset Cross Compiler Variables ----- #
+    unset CROSS_COMPILE
+    unset CC
+    unset CXX
+    unset AR
+    unset AS
+    unset RANLIB
+    unset LD
+    unset STRIP
+    unset BUILDFLAGS
+    unset TOOLFLAGS
+    unset PERLFLAGS
+    unset PKG_CONFIG_PATH
+    unset PKG_CONFIG_SYSROOT_DIR
 
     # ----- Build Packages ----- #
     for t in "${TOOL_PKG[@]}"; do
