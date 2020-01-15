@@ -1,45 +1,36 @@
-# StelaLinux - A Minimal Linux Distribution
+# StelaLinux - A Minimal Linux Distribution (musl branch)
+StelaLinux is an experimental Linux Distribution built with the Linux Kernel, musl C Library, the BusyBox Userland, and a custom init script. Various packages are also included.
 
-I have experimented with this type of project in the past, with AwlBuntu, AwlsomeLinux, MLL, and StarLinux, but now I want to finish it. StelaLinux (Stela is Esperanto for Star) is **hopefully** the last iteration before StelaLinux can be a production standard for my Minimal Linux Distribution. This repository contains scripts needed to build StelaLinux and create the packages for the package repository. 
-
-I decided to take a different approach for StelaLinux and instead of using only a minimal subset of the GNU C Library, I will instead use the fully capable musl libc library and build all of the packages (including the Linux Kernel) using that. 
-
-![StelaLinux Technical Preview 1](StelaLinux.png)
+StelaLinux (formally StarLinux, AwlsomeLinux, and AwlBuntu) has been my project in researching how a Linux Distribution works, along with building one from the ground up. It was originally based off of Minimal Linux Live, as I reworked a few things, but evolved into a totally different standalone project. Now it is more of a Linux From Scratch-like distribution. StelaLinux contains a toolchain for building musl-based packages, an init-script (called Xiongnu), a package manager in Rust called fox (in development), and a package repository for building packages. 
 
 ## Kerno Features:
-* Latest LTS Linux Kernel (5.4)
-* musl libc (1.1.24)
-* BusyBox Userland Stable (1.31.1)
-* In-house INIT Scripts (TBD)
+- Latest LTS Linux Kernel (5.4.x)
+- musl C Library (1.1.24)
+- BusyBox Userland (1.31.1)
+- Xiongnu Init (GIT)
 
-## How to Build:
-### Dependencies (Ubuntu 18.04/19.10 & Debian 10):
+## Building StelaLinux:
+#### Dependencies (Debian-based Distributions)
+`sudo apt install build-essential m4 bison flex textinfo bc pv flex rsync unzip libssl-dev libelf-dev`
 
-`sudo apt install wget make gcc g++ bc bison pv flex xorriso libelf-dev libssl-dev unzip libncurses-dev`
+#### Dependencies (Fedora-based Distributions)
+`TBA`
 
-### musl-gcc wrapper:
+#### Dependencies (Arch-based Distributions)
+`TBA`
 
-Cross Compiler Toolchain provided via musl.cc
+### Stela (StelaLinux Build Script)
+`./stela toolchain` - Builds the StelaLinux Toolchain
 
-### stelalinux.sh Script:
-* `stelalinux.sh toolchain`: Downloads and prepares the musl-gcc Cross Compiler
-* `stelalinux.sh build (package)`: Builds a specific package to be installed to StelaLinux
-* `stelalinux.sh initramfs`: Generates an initramfs for StelaLinux to boot off of
-* `stelalinux.sh image`: Generates a bootable StelaLinux Live Image with Syslinux Bootloader
+## Installing StelaLinux:
+`TBA`
 
-## How to Install:
-**Install via ArchLinux (Experimental)**
+## Contributors:
+* AwlsomeAlex (Lead Developer)
+* [protonesso](https://github.com/protonesso) (Toolchain/Influence)
 
-TO BE ADDED
+### Special Thanks:
+* [Ivandavidov](https://github.com/ivandavidov) ([MLL](https://github.com/ivandavidov/minimal))
+* [Linux From Scratch Project](http://www.linuxfromscratch.org/)
 
-**Install via Install Script**
 
-TO BE DEVELOPED!
-
-## Developer:
-* AwlsomeAlex (Project Manager)
-
-## Special Thanks:
-* Ivandavidov (MLL)
-* zv.io (MUSL Cross Compiler)
-* protonesso (Very Helpful Contributor)
