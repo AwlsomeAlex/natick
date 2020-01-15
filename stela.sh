@@ -209,6 +209,79 @@ function prepare() {
     fi
 }
 
+# download($1: location $2: url): Downloads a file
+function download() {
+    
+    # Local Variables
+    location=$1
+    url=$2
+    archive_file=${url##*/}
+
+    # Download File
+    if [[ $location == "-t" ]]; then
+        if [[ -f $TSRC_DIR/$archive_file ]]; then
+            sprint "$archive_file already downloaded. Continuing...." "done"
+        else
+            sprint "Downloading $archive_file...." "...."
+            wget -q --show-progress -P $TSRC_DIR $url
+            sprint "Downloaded $archive_file." "done"
+        fi
+    elif [[ $location == "-p" ]]; then
+        if [[ -f $SRC_DIR/$archive_file ]]; then
+            sprint "$archive_file already downloaded. Continuing...." "done"
+        else
+            sprint "Downloading $archive_file...." "...."
+            wget -q --show-progress -P $SRC_DIR $url
+            sprint "Downloaded $archive_file." "done"
+        fi
+    else
+        echo -e "${RED}[FAIL] ${ORANGE}download: ${NC}Invalid Location: $location"
+        exit
+    fi
+}
+
+# extract($1: location $2: url): Extracts a file
+function extract() {
+
+    # Local Variables
+    location=$1
+    url=$2
+    archive_file=${url##*/}
+
+    # Download File
+    sprint "Extracting $archive_file...." "...."
+    if [[ $location == "-t" ]]; then
+        if [[ $archive_file == *".bz2"* ]]; then
+            pv $TSRC_DIR/$archive_file | tar -xjf - -C $TWRK_DIR/
+        elif [[ $archive_file == *".xz"* ]]; then
+            pv $TSRC_DIR/$archive_file | tar -xJf - -C $TWRK_DIR/
+        elif [[ $archive_file == *".gz"* ]]; then
+            pv $TSRC_DIR/$archive_file | tar -xzf - -C $TWRK_DIR/
+        elif [[ $archive_file == *".zip"* ]]; then
+            unzip -o $TSRC_DIR/$archive_file -d $TWRK_DIR/ | pv -l >/dev/null
+        else
+            sprint "Unknown File Format." "fail"
+            exit
+        fi
+    elif [[ $location == "-p" ]]; then
+        if [[ $archive_file == *".bz2"* ]]; then
+            pv $SRC_DIR/$archive_file | tar -xjf - -C $WRK_DIR/
+        elif [[ $archive_file == *".xz"* ]]; then
+            pv $SRC_DIR/$archive_file | tar -xJf - -C $WRK_DIR/
+        elif [[ $archive_file == *".gz"* ]]; then
+            pv $SRC_DIR/$archive_file | tar -xzf - -C $WRK_DIR/
+        elif [[ $archive_file == *".zip"* ]]; then
+            unzip -o $SRC_DIR/$archive_file -d $WRK_DIR/ | pv -l >/dev/null
+        else
+            sprint "Unknown File Format." "fail"
+            exit
+        fi
+    else
+        echo -e "${RED}[FAIL] ${ORANGE}extract: ${NC}Invalid Location: $location"
+        exit
+    fi
+    sprint "Extracted $archive_file." "done"
+}
 
 #-----------------------------#
 # ----- stela Functions ----- #
@@ -244,6 +317,90 @@ function loka_clean() {
     fi
 }
 
-# loka_prepare(): Prepare Build Environment
-function loka_prepare
+# toolchain(): Build Toolchain
+function toolchain() {
+    loka_title
+    loka_prepare
 
+    # ----- Build Packages ----- #
+    for t in "${TOOL_PKG[@]}"; do
+        
+        # --- Set Variables --- #
+        PACKAGE="$t"
+        source "$TR_DIR/$PACKAGE/StelaKonstrui"
+
+        # --- Download/Move Files --- #
+        for f in "${PKG_SRC[@]}"; do
+            if [[ $f == *"http"* ]]; then
+                download -t $f
+                extract -t $f
+            fi     
+        done  
+
+        # --- Set Directory --- #
+        if [[ $PACKAGE == "gcc-static" ]]; then
+            mv $TWRK_DIR/gcc-$PKG_VERSION $TWRK_DIR/$PACKAGE-$PKG_VERSION
+            export DIR=$TWRK_DIR/$PACKAGE-$PKG_VERSION
+        elif [[ $PACKAGE == "gcc" ]]; then
+            export DIR=$TWRK_DIR/$PACKAGE-$PKG_VERSION
+        else
+            export DIR=$TWRK_DIR/$PACKAGE-*
+        fi
+
+        # --- Build Package --- #
+        cd $DIR
+        sprint "Building $PACKAGE...." "...."
+        build_$PACKAGE
+        sprint "Built $PACKAGE." "done"
+    done
+}
+
+# usage(): Shows the usage
+function loka_usage() {
+    sprint "$EXECUTE [OPTION] (PACKAGE) (flag)"
+    sprint "StelaLinux Build Script - Used to build StelaLinux"
+    sprint ""
+    sprint "[OPTION]:"
+    sprint "      toolchain:  Builds the toolchain required to build StelaLinux"
+    sprint "      clean:      Clean the directory (MUST BE USED BEFORE COMMIT)"
+    sprint "      help:       Shows this dialog"
+    sprint ""
+    sprint "(PACKAGE): Specific Package to build"
+    sprint ""
+    sprint "(FLAG): Special Arguments for StelaLinux Build Script"
+    sprint "      -Y:                     (*) Prompts yes to all option dialogs"
+    sprint "      --preserve-toolchain:   (clean) Cleans StelaLinux Build Directories ONLY"
+    sprint "      --skip-toolchain:       (all) Skips building the toolchain"
+    sprint ""
+    sprint "Developed by Alexander Barris (AwlsomeAlex)"
+    sprint "Licensed under the GNU GPLv3"
+    sprint "No penguins were harmed in the making of this distro."
+    sprint ""
+}
+
+
+#---------------------------#
+# ----- Main Function ----- #
+#---------------------------#
+function main() {
+    case "$OPTION" in
+        toolchain )
+            loka_toolchain
+            ;;
+        clean )
+            loka_clean
+            ;;
+        * )
+            loka_usage
+            ;;
+    esac
+}
+
+# ----- Arguments ----- #
+EXECUTE=$0
+OPTION=$1
+PACKAGE=$2
+FLAG=$3
+
+# ----- Execution ----- #
+main
