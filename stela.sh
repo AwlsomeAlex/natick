@@ -162,6 +162,54 @@ function sprint() {
 }
 
 
+# prepare(): Prepare Build Environment
+function prepare() {
+    
+    # ----- Check for StelaLinux Package Repository ----- #
+    if [ ! -d $RDIR ]; then
+        sprint "Package Repository Not Found!" "fail"
+        echo -e "${BLINK}That's tragic. -Tepper${NO_BLINK}"
+        exit
+    fi
+
+    # ----- Check for Toolchain Directories ----- #
+    if [ -d $TWRK_DIR ]; then
+        if [[ $FLAG != "-Y" ]]; then
+            sprint "Toolchain Already Exists." "warn"
+            read -p "Do you want to overwrite? (Y/n) " OPT
+            if [ $OPT != 'Y' ]; then
+                sprint "Nothing." "done"
+                exit
+            fi
+        fi
+        sprint "Removing Toolchain...." "...."
+        rm -rf $TWRK_DIR $TFIN_DIR
+        sprint "Removed Toolchain." "done"
+        sprint "Creating Toolchain Directories...." "...."
+        mkdir -p $TSRC_DIR $TWRK_DIR $TFIN_DIR/root
+        sprint "Created Toolchain Directories" "done"
+    fi
+
+    # ----- Check for Build Environment ----- #
+    if [ -d $WRK_DIR ]; then
+        if [[ $FLAG != "-Y" ]]; then
+            sprint "Build Environment Already Exists." "warn"
+            read -p "Do you want to overwrite? (Y/n) " OPT
+            if [ $OPT != 'Y' ]; then
+                sprint "Nothing." "done"
+                exit
+            fi
+        fi
+        sprint "Removing Build Environment...." "...."
+        rm -rf $WRK_DIR
+        sprint "Removed Build Environment." "done"
+        sprint "Creating Build Environment...." "...."
+        mkdir -p $SRC_DIR $WRK_DIR $FIN_DIR
+        sprint "Created Build Environment" "done"
+    fi
+}
+
+
 #-----------------------------#
 # ----- stela Functions ----- #
 #-----------------------------#
@@ -179,4 +227,23 @@ function loka_title() {
     sprint ""
 }
 
-loka_title
+# loka_clean(): Cleans the StelaLinux Directories
+function loka_clean() {
+    loka_title
+
+    # ----- Clean Build Directories & ISO ----- #
+    sprint "Cleaning StelaLinux Build Directories...." "...."
+    rm -rf $SRC_DIR $WRK_DIR $FIN_DIR $STELA/*.iso
+    sprint "Cleaned StelaLinux Build Directories." "done"
+
+    # ----- Check if cleaning toolchain ----- #
+    if [[ $PACKAGE != "--preserve-toolchain" ]]; then
+        sprint "Cleaning StelaLinux Toolchain...." "...."
+        rm -rf $TSRC_DIR $TWRK_DIR $TFIN_DIR
+        sprint "Cleaned StelaLinux Toolchain." "done"
+    fi
+}
+
+# loka_prepare(): Prepare Build Environment
+function loka_prepare
+
