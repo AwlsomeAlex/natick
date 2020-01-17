@@ -1,0 +1,47 @@
+###############################################
+#---------------------------------------------#
+# StelaKonstrui Script - automake (Toolchain) #
+#---------------------------------------------#
+###############################################
+#
+# Description:  A GNU tool for automatically creating Makefiles
+# URL:          https://www.gnu.org/software/automake
+# Maintainer:   AwlsomeAlex
+# Section:      toolchain (Stage 1)
+#
+
+# ----- Package Information ----- #
+PKG_NAME=automake
+PKG_VERSION=1.16.1
+PKG_SRC=("http://ftp.gnu.org/gnu/$PKG_NAME/$PKG_NAME-$PKG_VERSION.tar.xz")
+
+# ----- Build Function ----- #
+build_automake() {
+    
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
+
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+    
+    # Configure Package
+    ./configure \
+        --prefix="$TFIN_DIR" \
+        --disable-nls
+        
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
+
+    # Compile Package
+    make $MAKEFLAGS
+
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
+    
+    # Install Package to Toolchain Directory
+    make $MAKEFLAGS install
+}

@@ -1,0 +1,47 @@
+##############################################
+#--------------------------------------------#
+# StelaKonstrui Script - libtool (Toolchain) #
+#--------------------------------------------#
+##############################################
+#
+# Description:  A generic library support script
+# URL:          https://www.gnu.org/software/libtool
+# Maintainer:   AwlsomeAlex
+# Section:      toolchain (Stage 1)
+#
+
+# ----- Package Information ----- #
+PKG_NAME=libtool
+PKG_VERSION=2.4.6
+PKG_SRC=("http://ftp.gnu.org/gnu/libtool/libtool-$PKG_VERSION.tar.xz")
+
+# ----- Build Function ----- #
+build_libtool() {
+    
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
+
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+    
+    # Configure Package
+    ./configure \
+        --prefix="$TFIN_DIR" \
+        --disable-static
+        
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
+
+    # Compile Package
+    make $MAKEFLAGS
+
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
+    
+    # Install Package to Toolchain Directory
+    make $MAKEFLAGS install
+}

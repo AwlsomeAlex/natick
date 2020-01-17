@@ -1,0 +1,50 @@
+#########################################
+#---------------------------------------#
+# StelaKonstrui Script - m4 (Toolchain) #
+#---------------------------------------#
+#########################################
+#
+# Description:  GNU Implementation of traditional UNIX macro processor
+# URL:          https://gnu.org/software/m4
+# Maintainer:   AwlsomeAlex
+# Section:      toolchain (Stage 1)
+#
+
+# ----- Package Information ----- #
+PKG_NAME=m4
+PKG_VERSION=1.4.18
+PKG_SRC=("http://ftp.gnu.org/m4/m4-$PKG_VERSION.tar.gz")
+
+# ----- Build Function ----- #
+build_m4() {
+    
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
+
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+    
+    # Patch for GLIBC Systems
+    sed -i 's/IO_ftrylockfile/IO_EOF_SEEN/' lib/*.c
+	echo "#define _IO_IN_BACKUP 0x100" >> lib/stdio-impl.h
+
+    # Configure Package
+    ./configure \
+        --prefix="$TFIN_DIR"
+        
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
+
+    # Compile Package
+    make $MAKEFLAGS
+
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
+    
+    # Install Package to Toolchain Directory
+    make $MAKEFLAGS install
+}
