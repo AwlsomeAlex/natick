@@ -37,6 +37,8 @@ build_musl() {
     local PKG_CONFIG_PATH="$FIN_DIR/usr/lib/pkgconfig:$FIN_DIR/usr/share/pkgconfig"
     local PKG_CONFIG_SYSROOT="$FIN_DIR"
 
+    install_dir="$TWRK_DIR/musl.fs"
+
     #---------------------------#
     # ----- Configuration ----- #
     #---------------------------#
@@ -45,7 +47,7 @@ build_musl() {
     mkdir -p "$TWRK_DIR"/musl.fs/usr/bin
 
     # Compile a few test stuff
-    ${CROSS_COMPILE}cc $CFLAGS -c "$TD_DIR"/musl/__stack_chk_fail_local.c -o __stack_chk_fail_local.o
+    ${CROSS_COMPILE}cc $CFLAGS -c "$TR_DIR"/musl/__stack_chk_fail_local.c -o __stack_chk_fail_local.o
 	${CROSS_COMPILE}ar r libssp_nonshared.a __stack_chk_fail_local.o
 
     # Configure Package
@@ -67,7 +69,7 @@ build_musl() {
     #---------------------#
     
     # Install Package
-    make $MAKEFLAGS DESTDIR="$TWKR_DIR"/musl.fs install
+    make DESTDIR="$install_dir" install
 
     # Copy other libraries
     cp libssp_nonshared.a "$TWRK_DIR"/musl.fs/usr/lib
@@ -76,11 +78,11 @@ build_musl() {
     ln -sf ../lib/libc.so "$TWRK_DIR"/musl.fs/usr/bin/ldd
 
     # Create fake ldconfig
-    cat > "$PKG"/usr/bin/ldconfig << "EOF"
+    cat > "$TWRK_DIR"/musl.fs/usr/bin/ldconfig << "EOF"
 #!/bin/sh
 echo "adjusting libs..."
 true
 EOF
 
-	chmod +x "$PKG"/usr/bin/ldconfig
+	chmod +x "$TWRK_DIR"/musl.fs/usr/bin/ldconfig
 }
