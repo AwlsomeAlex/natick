@@ -1,22 +1,22 @@
-#################################################
-#-----------------------------------------------#
-# StelaKonstrui Script - gcc-static (Toolchain) #
-#-----------------------------------------------#
-#################################################
+##########################################
+#----------------------------------------#
+# StelaKonstrui Script - gcc (Toolchain) #
+#----------------------------------------#
+##########################################
 #
-# Description:  The GNU Compiler Collection - C Frontend (Static, Stage 1 Compiler)
+# Description:  The GNU Compiler Collection - C/C++/Fortran Frontend (Stage 2 Compiler)
 # URL:          https://gcc.gnu.org/
 # Maintainer:   AwlsomeAlex
-# Section:      toolchain (Stage 1)
+# Section:      toolchain (Stage 2)
 #
 
 # ----- Package Information ----- #
-PKG_NAME=gcc-static
+PKG_NAME=gcc
 PKG_VERSION=9.2.0
 PKG_SRC=("http://ftp.gnu.org/gnu/gcc/gcc-$PKG_VERSION/gcc-$PKG_VERSION.tar.xz")
 
 # ----- Build Function ----- #
-build_gcc-static() {
+build_gcc() {
     
     #-----------------------------#
     # ----- Local Variables ----- #
@@ -40,7 +40,10 @@ build_gcc-static() {
 
     # Set Hash Style
     HASHCONFIG="--with-linker-hash-style=gnu"
-    
+   
+    # Set Languages
+    LANGS="c,c++,fortran,lto"
+ 
     # Set Build Flags
     export CFLAGS_FOR_BUILD=" "
 	export FFLAGS_FOR_BUILD=" "
@@ -87,12 +90,11 @@ build_gcc-static() {
     cd build
 
     # Configure Package
-    
     AR=ar \
 	../configure \
 		--prefix="$TFIN_DIR" \
 		--libdir="$TFIN_DIR/lib" \
-		--libexecdir="$TFIN_DIR/lib" \
+		--libexecdir="$TFIN/lib" \
 		--build=$XHOST \
 		--host=$XHOST \
 		--target=$XTARGET $GCCOPTS $HASHCONFIG \
@@ -100,50 +102,44 @@ build_gcc-static() {
 		--with-bugurl="https://github.com/awlsomealex/stelalinux/issues" \
 		--with-sysroot="$FIN_DIR" \
 		--with-local-prefix="$FIN_DIR" \
-		--with-native-system-header-dir="$FIN_DIR/usr/include" \
+		--with-native-system-header-dir="/usr/include" \
 		--with-isl \
 		--with-system-zlib \
-		--with-newlib \
-		--without-headers \
+		--enable-__cxa_atexit \
 		--enable-checking=release \
 		--enable-clocale=generic \
 		--enable-default-pie \
 		--enable-default-ssp \
-		--enable-languages=c \
+		--enable-languages="$LANGS" \
+		--enable-libstdcxx-time \
 		--enable-linker-build-id \
 		--enable-lto \
-		--disable-decimal-float \
+		--enable-shared \
+		--enable-threads=posix \
+		--enable-tls \
 		--disable-gnu-indirect-function \
-		--disable-libatomic \
-		--disable-libcilkrts \
-		--disable-libgomp \
-		--disable-libitm \
 		--disable-libmudflap \
-		--disable-libquadmath \
 		--disable-libsanitizer \
 		--disable-libssp \
-		--disable-libstdcxx \
-		--disable-libvtv \
+		--disable-libstdcxx-pch \
 		--disable-multilib \
 		--disable-nls \
-		--disable-shared \
 		--disable-symvers \
-		--disable-threads \
-		--disable-werror
+		--disable-werror    
 
     #-----------------------#
     # ----- Compiling ----- #
     #-----------------------#
-
+    
     # Compile Package
-    make $MAKEFLAGS all-gcc all-target-libgcc
+    make $MAKEFLAGS AS_FOR_TARGET="$XTARGET-as" LD_FOR_TARGET="$XTARGET-ld"
     
     #---------------------#
     # ----- Install ----- #
     #---------------------#
     
     # Install Package to Toolchain Directory
-    make $MAKEFLAGS install-gcc install-target-libgcc
+    make $MAKEFILES install
 
     # Symlink gcc
     ln -sf $XTARGET-gcc "$TFIN_DIR"/bin/$XTARGET-cc

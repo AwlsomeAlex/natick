@@ -1,0 +1,86 @@
+###########################################
+#-----------------------------------------#
+# StelaKonstrui Script - musl (Toolchain) #
+#-----------------------------------------#
+###########################################
+#
+# Description:  The MUSL C Library
+# URL:          https://www.musl-libc.org/
+# Maintainer:   AwlsomeAlex
+# Section:      toolchain (Stage 2)
+#
+
+# ----- Package Information ----- #
+PKG_NAME=musl
+PKG_VERSION=1.1.24
+PKG_SRC=("http://www.musl-libc.org/releases/musl-$PKG_VERSION.tar.gz")
+
+# ----- Build Function ----- #
+build_musl() {
+
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
+    
+    # Set Cross Compiler Variables
+    local CROSS_COMPILE="$XTARGET-"
+    local CC="$XTARGET-gcc"
+    local CXX="$XTARGET-g++"
+    local AR="$XTARGET-ar"
+    local AS="$XTARGET-as"
+    local RANLIB="$XTARGET-ranlib"
+    local LD="$XTARGET-ld"
+    local STRIP="$XTARGET-strip"
+    local BUILDFLAGS="--build=$XHOST --host=$XTARGET"
+    local TOOLFLAGS="--build=$XHOST --host=$XTARGET --target=$XTARGET"
+    local PERLFLAGS="--target=$XTARGET"
+    local PKG_CONFIG_PATH="$FIN_DIR/usr/lib/pkgconfig:$FIN_DIR/usr/share/pkgconfig"
+    local PKG_CONFIG_SYSROOT="$FIN_DIR"
+
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+
+    # Make RootFS Directory (Only Linux Headers and MUSL do this....)
+    mkdir -p "$TWRK_DIR"/musl.fs/usr/bin
+
+    # Compile a few test stuff
+    ${CROSS_COMPILE}cc $CFLAGS -c "$TD_DIR"/musl/__stack_chk_fail_local.c -o __stack_chk_fail_local.o
+	${CROSS_COMPILE}ar r libssp_nonshared.a __stack_chk_fail_local.o
+
+    # Configure Package
+    ./configure $TOOLFLAGS \
+		--prefix=/usr \
+		--libdir=/usr/lib \
+		--syslibdir=/usr/lib \
+		--enable-optimize=size    
+
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
+
+    # Compile Package
+    make $MAKEFLAGS
+
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
+    
+    # Install Package
+    make $MAKEFLAGS DESTDIR="$TWKR_DIR"/musl.fs install
+
+    # Copy other libraries
+    cp libssp_nonshared.a "$TWRK_DIR"/musl.fs/usr/lib
+
+    # Create fake ldd
+    ln -sf ../lib/libc.so "$TWRK_DIR"/musl.fs/usr/bin/ldd
+
+    # Create fake ldconfig
+    cat > "$PKG"/usr/bin/ldconfig << "EOF"
+#!/bin/sh
+echo "adjusting libs..."
+true
+EOF
+
+	chmod +x "$PKG"/usr/bin/ldconfig
+}

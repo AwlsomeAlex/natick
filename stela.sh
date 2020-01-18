@@ -20,8 +20,8 @@ set -e
 # ----- Build Information ----- #
 
 # StelaLinux Build Information
-BUILD_NAME="Git Build"
-BUILD_NUMBER="git"
+export BUILD_NAME="Git Build"
+export BUILD_NUMBER="git"
 
 # InitramFS Package List
 INITRAMFS_PKG=()
@@ -30,7 +30,7 @@ INITRAMFS_PKG=()
 IMAGE_PKG=()
 
 # StelaLinux Toolchain Package List
-TOOL_PKG=("file" "m4" "ncurses" "libtool" "autoconf" "automake" "linux" "binutils" "gcc-extras" "gcc-static")
+TOOL_PKG=("file" "m4" "ncurses" "libtool" "autoconf" "automake" "linux" "binutils" "gcc-extras" "gcc-static" "musl" "gcc")
 
 # StelaLinux Target Architecture (Supported: i686/x86_64)
 #export ARCH=i686
@@ -346,21 +346,6 @@ function tutmonda_toolchain() {
     loka_title
     loka_prepare -a
 
-    # ----- Unset Cross Compiler Variables ----- #
-    unset CROSS_COMPILE
-    unset CC
-    unset CXX
-    unset AR
-    unset AS
-    unset RANLIB
-    unset LD
-    unset STRIP
-    unset BUILDFLAGS
-    unset TOOLFLAGS
-    unset PERLFLAGS
-    unset PKG_CONFIG_PATH
-    unset PKG_CONFIG_SYSROOT_DIR
-
     # ----- Build Packages ----- #
     for t in "${TOOL_PKG[@]}"; do
         
@@ -368,6 +353,21 @@ function tutmonda_toolchain() {
         PACKAGE="$t"
         source "$TR_DIR/$PACKAGE/StelaKonstrui"
 
+        # ----- Unset Cross Compiler Variables ----- #
+        unset CROSS_COMPILE
+        unset CC
+        unset CXX
+        unset AR
+        unset AS
+        unset RANLIB
+        unset LD
+        unset STRIP
+        unset BUILDFLAGS
+        unset TOOLFLAGS
+        unset PERLFLAGS
+        unset PKG_CONFIG_PATH
+        unset PKG_CONFIG_SYSROOT_DIR
+        
         # --- Download/Move Files --- #
         for f in "${PKG_SRC[@]}"; do
             if [[ $f == *"http"* ]]; then
