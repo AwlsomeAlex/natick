@@ -27,11 +27,11 @@ build_autoconf() {
     #---------------------------#
     
     # Perl Patches
-    patch -p1 -i ../autoconf-2.69-perl-5.22-autoscan.patch
-    patch -p1 -i ../autoconf-2.69-perl-5.28.patch
+    patch -p1 -i $TR_DIR/autoconf/autoconf-2.69-perl-5.22-autoscan.patch
+    patch -p1 -i $TR_DIR/autoconf/autoconf-2.69-perl-5.28.patch
 
     # Libtool Patch
-    patch -p1 -i ../autoconf-2.69-libtool-compatibility.patch
+    patch -p1 -i $TR_DIR/autoconf/autoconf-2.69-libtool-compatibility.patch
 
     # Configure Package
     ./configure \

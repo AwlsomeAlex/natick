@@ -29,7 +29,7 @@ INITRAMFS_PKG=()
 IMAGE_PKG=()
 
 # StelaLinux Toolchain Package List
-TOOL_PKG=("file")
+TOOL_PKG=("file" "m4" "ncurses" "libtool" "autoconf" "automake")
 
 # StelaLinux Target Architecture (Supported: i686/x86_64)
 #export ARCH=i686
@@ -136,21 +136,21 @@ export STRIP="$XTARGET-strip"
 # ----- Helper Functions ----- #
 #------------------------------#
 
-# title(): Shows the title of the program
-function title() {
-    sprint "+=============================+"
-    sprint "|   StelaLinux Build Script   |"
-    sprint "+-----------------------------+"
-    sprint "| Created by Alexander Barris |"
-    sprint "|          GNU GPLv3          |"
-    sprint "+=============================+"
-    sprint "|   musl C Library Branch     |"
-    sprint "+=============================+"
-    sprint ""
+# loka_title(): Shows the loka_title of the program
+function loka_title() {
+    loka_print "+=============================+"
+    loka_print "|   StelaLinux Build Script   |"
+    loka_print "+-----------------------------+"
+    loka_print "| Created by Alexander Barris |"
+    loka_print "|          GNU GPLv3          |"
+    loka_print "+=============================+"
+    loka_print "|   musl C Library Branch     |"
+    loka_print "+=============================+"
+    loka_print ""
 }
 
-# sprint($1: message $2: type of message): Prints a line
-function sprint() {
+# loka_print($1: message $2: type of message): Prints a line
+function loka_print() {
 
     # Local Variables
     message=$1
@@ -174,22 +174,22 @@ function sprint() {
             echo -e "${NC}$message"                     # Normal Message    
             ;;
         *)
-            echo -e "${RED}[FAIL] ${ORANGE}sprint: ${NC}Invalid kind: $kind"
+            echo -e "${RED}[FAIL] ${ORANGE}loka_print: ${NC}Invalid kind: $kind"
             exit
             ;;
     esac
 }
 
 
-# prepare($1: location): Prepare Build Environment
-function prepare() {
+# loka_prepare($1: location): Prepare Build Environment
+function loka_prepare() {
     
     # Local Variables
     location=$1
 
     # ----- Check for StelaLinux Package Repository ----- #
     if [ ! -d $RDIR ]; then
-        sprint "Package Repository Not Found!" "fail"
+        loka_print "Package Repository Not Found!" "fail"
         echo -e "${BLINK}That's tragic. -Tepper${NO_BLINK}"
         exit
     fi
@@ -198,46 +198,46 @@ function prepare() {
         # ----- Check for Toolchain Directories ----- #
         if [ -d $TWRK_DIR ]; then
             if [[ $FLAG != "-Y" ]]; then
-                sprint "Toolchain Already Exists." "warn"
+                loka_print "Toolchain Already Exists." "warn"
                 read -p "Do you want to overwrite? (Y/n) " OPT
                 if [ $OPT != 'Y' ]; then
-                    sprint "Nothing." "done"
+                    loka_print "Nothing." "done"
                     exit
                 fi
             fi
-            sprint "Removing Toolchain...." "...."
+            loka_print "Removing Toolchain...." "...."
             rm -rf $TWRK_DIR $TFIN_DIR
-            sprint "Removed Toolchain." "done"
+            loka_print "Removed Toolchain." "done"
         fi
-        sprint "Creating Toolchain Directories...." "...."
+        loka_print "Creating Toolchain Directories...." "...."
         mkdir -p $TSRC_DIR $TWRK_DIR $TFIN_DIR/root
-        sprint "Created Toolchain Directories" "done"
+        loka_print "Created Toolchain Directories" "done"
     elif [[ $location == "-p" ]] || [[ $location == "-a" ]]; then
     # ----- Check for Build Environment ----- #
         if [ -d $WRK_DIR ]; then
             if [[ $FLAG != "-Y" ]]; then
-                sprint "Build Environment Already Exists." "warn"
+                loka_print "Build Environment Already Exists." "warn"
                 read -p "Do you want to overwrite? (Y/n) " OPT
                 if [ $OPT != 'Y' ]; then
-                    sprint "Nothing." "done"
+                    loka_print "Nothing." "done"
                     exit
                 fi
             fi
-            sprint "Removing Build Environment...." "...."
+            loka_print "Removing Build Environment...." "...."
             rm -rf $WRK_DIR
-            sprint "Removed Build Environment." "done"
+            loka_print "Removed Build Environment." "done"
         fi
-        sprint "Creating Build Environment...." "...."
+        loka_print "Creating Build Environment...." "...."
         mkdir -p $SRC_DIR $WRK_DIR $FIN_DIR
-        sprint "Created Build Environment" "done"
+        loka_print "Created Build Environment" "done"
     else
-        echo -e "${RED}[FAIL] ${ORANGE}prepare: ${NC}Invalid Location: $location"
+        echo -e "${RED}[FAIL] ${ORANGE}loka_prepare: ${NC}Invalid Location: $location"
         exit
     fi
 }
 
-# download($1: location $2: url): Downloads a file
-function download() {
+# loka_download($1: location $2: url): Downloads a file
+function loka_download() {
     
     # Local Variables
     location=$1
@@ -247,28 +247,28 @@ function download() {
     # Download File
     if [[ $location == "-t" ]]; then
         if [[ -f $TSRC_DIR/$archive_file ]]; then
-            sprint "$archive_file already downloaded. Continuing...." "done"
+            loka_print "$archive_file already loka_downloaded. Continuing...." "done"
         else
-            sprint "Downloading $archive_file...." "...."
+            loka_print "Downloading $archive_file...." "...."
             wget -q --show-progress -P $TSRC_DIR $url
-            sprint "Downloaded $archive_file." "done"
+            loka_print "Downloaded $archive_file." "done"
         fi
     elif [[ $location == "-p" ]]; then
         if [[ -f $SRC_DIR/$archive_file ]]; then
-            sprint "$archive_file already downloaded. Continuing...." "done"
+            loka_print "$archive_file already loka_downloaded. Continuing...." "done"
         else
-            sprint "Downloading $archive_file...." "...."
+            loka_print "Downloading $archive_file...." "...."
             wget -q --show-progress -P $SRC_DIR $url
-            sprint "Downloaded $archive_file." "done"
+            loka_print "Downloaded $archive_file." "done"
         fi
     else
-        echo -e "${RED}[FAIL] ${ORANGE}download: ${NC}Invalid Location: $location"
+        echo -e "${RED}[FAIL] ${ORANGE}loka_download: ${NC}Invalid Location: $location"
         exit
     fi
 }
 
-# extract($1: location $2: url): Extracts a file
-function extract() {
+# loka_extract($1: location $2: url): Extracts a file
+function loka_extract() {
 
     # Local Variables
     location=$1
@@ -276,7 +276,7 @@ function extract() {
     archive_file=${url##*/}
 
     # Download File
-    sprint "Extracting $archive_file...." "...."
+    loka_print "Extracting $archive_file...." "...."
     if [[ $location == "-t" ]]; then
         if [[ $archive_file == *".bz2"* ]]; then
             pv $TSRC_DIR/$archive_file | tar -xjf - -C $TWRK_DIR/
@@ -287,7 +287,7 @@ function extract() {
         elif [[ $archive_file == *".zip"* ]]; then
             unzip -o $TSRC_DIR/$archive_file -d $TWRK_DIR/ | pv -l >/dev/null
         else
-            sprint "Unknown File Format." "fail"
+            loka_print "Unknown File Format." "fail"
             exit
         fi
     elif [[ $location == "-p" ]]; then
@@ -300,14 +300,23 @@ function extract() {
         elif [[ $archive_file == *".zip"* ]]; then
             unzip -o $SRC_DIR/$archive_file -d $WRK_DIR/ | pv -l >/dev/null
         else
-            sprint "Unknown File Format." "fail"
+            loka_print "Unknown File Format." "fail"
             exit
         fi
     else
-        echo -e "${RED}[FAIL] ${ORANGE}extract: ${NC}Invalid Location: $location"
+        echo -e "${RED}[FAIL] ${ORANGE}loka_extract: ${NC}Invalid Location: $location"
         exit
     fi
-    sprint "Extracted $archive_file." "done"
+    loka_print "Extracted $archive_file." "done"
+}
+
+# loka_install($1: Package Directory): Install a locally built package to the StelaLinux Root Directory
+function loka_install() {
+    package_dir=$1
+
+    loka_print "Installing $package_dir to Root Filesystem...." "...."
+    cp -r $package_dir/* $FIN_DIR
+    loka_print "Installed $package_dir to Root Filesystem." "done"
 }
 
 #-----------------------------#
@@ -315,26 +324,26 @@ function extract() {
 #-----------------------------#
 
 # loka_clean(): Cleans the StelaLinux Directories
-function loka_clean() {
-    title
+function tutmonda_clean() {
+    loka_title
 
     # ----- Clean Build Directories & ISO ----- #
-    sprint "Cleaning StelaLinux Build Directories...." "...."
+    loka_print "Cleaning StelaLinux Build Directories...." "...."
     rm -rf $SRC_DIR $WRK_DIR $FIN_DIR $STELA/*.iso
-    sprint "Cleaned StelaLinux Build Directories." "done"
+    loka_print "Cleaned StelaLinux Build Directories." "done"
 
     # ----- Check if cleaning toolchain ----- #
     if [[ $PACKAGE != "--preserve-toolchain" ]]; then
-        sprint "Cleaning StelaLinux Toolchain...." "...."
+        loka_print "Cleaning StelaLinux Toolchain...." "...."
         rm -rf $TSRC_DIR $TWRK_DIR $TFIN_DIR
-        sprint "Cleaned StelaLinux Toolchain." "done"
+        loka_print "Cleaned StelaLinux Toolchain." "done"
     fi
 }
 
 # toolchain(): Build Toolchain
-function loka_toolchain() {
-    title
-    prepare -t
+function tutmonda_toolchain() {
+    loka_title
+    loka_prepare -t
 
     # ----- Unset Cross Compiler Variables ----- #
     unset CROSS_COMPILE
@@ -361,9 +370,13 @@ function loka_toolchain() {
         # --- Download/Move Files --- #
         for f in "${PKG_SRC[@]}"; do
             if [[ $f == *"http"* ]]; then
-                download -t $f
-                extract -t $f
-            fi     
+                loka_download -t $f
+                loka_extract -t $f
+            else
+                loka_print "Copying file $f...." "...."
+                cp -r $TR_DIR/$PACKAGE/$f $TWRK_DIR     
+                loka_print "Copied file $f." "done"
+            fi
         done  
 
         # --- Set Directory --- #
@@ -378,33 +391,39 @@ function loka_toolchain() {
 
         # --- Build Package --- #
         cd $DIR
-        sprint "Building $PACKAGE...." "...."
+        loka_print "Building $PACKAGE...." "...."
         build_$PACKAGE
-        sprint "Built $PACKAGE." "done"
+        loka_print "Built $PACKAGE." "done"
+
+        # --- Install to RootFS (Linux Kernel Headers + Musl C Library) --- #
+        if [[ $package == "linux" ]] || [[ $package == "musl" ]]; then
+            loka_install "$TWRK_DIR/$PACKAGE.fs"
+        fi
+
     done
 }
 
 # usage(): Shows the usage
-function loka_usage() {
-    sprint "$EXECUTE [OPTION] (PACKAGE) (flag)"
-    sprint "StelaLinux Build Script - Used to build StelaLinux"
-    sprint ""
-    sprint "[OPTION]:"
-    sprint "      toolchain:  Builds the toolchain required to build StelaLinux"
-    sprint "      clean:      Clean the directory (MUST BE USED BEFORE COMMIT)"
-    sprint "      help:       Shows this dialog"
-    sprint ""
-    sprint "(PACKAGE): Specific Package to build"
-    sprint ""
-    sprint "(FLAG): Special Arguments for StelaLinux Build Script"
-    sprint "      -Y:                     (*) Prompts yes to all option dialogs"
-    sprint "      --preserve-toolchain:   (clean) Cleans StelaLinux Build Directories ONLY"
-    sprint "      --skip-toolchain:       (all) Skips building the toolchain"
-    sprint ""
-    sprint "Developed by Alexander Barris (AwlsomeAlex)"
-    sprint "Licensed under the GNU GPLv3"
-    sprint "No penguins were harmed in the making of this distro."
-    sprint ""
+function tutmonda_usage() {
+    loka_print "$EXECUTE [OPTION] (PACKAGE) (flag)"
+    loka_print "StelaLinux Build Script - Used to build StelaLinux"
+    loka_print ""
+    loka_print "[OPTION]:"
+    loka_print "      toolchain:  Builds the toolchain required to build StelaLinux"
+    loka_print "      clean:      Clean the directory (MUST BE USED BEFORE COMMIT)"
+    loka_print "      help:       Shows this dialog"
+    loka_print ""
+    loka_print "(PACKAGE): Specific Package to build"
+    loka_print ""
+    loka_print "(FLAG): Special Arguments for StelaLinux Build Script"
+    loka_print "      -Y:                     (*) Prompts yes to all option dialogs"
+    loka_print "      --preserve-toolchain:   (clean) Cleans StelaLinux Build Directories ONLY"
+    loka_print "      --skip-toolchain:       (all) Skips building the toolchain"
+    loka_print ""
+    loka_print "Developed by Alexander Barris (AwlsomeAlex)"
+    loka_print "Licensed under the GNU GPLv3"
+    loka_print "No penguins were harmed in the making of this distro."
+    loka_print ""
 }
 
 
@@ -414,13 +433,13 @@ function loka_usage() {
 function main() {
     case "$OPTION" in
         toolchain )
-            loka_toolchain
+            tutmonda_toolchain
             ;;
         clean )
-            loka_clean
+            tutmonda_clean
             ;;
         * )
-            loka_usage
+            tutmonda_usage
             ;;
     esac
 }

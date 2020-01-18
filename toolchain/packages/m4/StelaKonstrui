@@ -13,7 +13,7 @@
 # ----- Package Information ----- #
 PKG_NAME=m4
 PKG_VERSION=1.4.18
-PKG_SRC=("http://ftp.gnu.org/m4/m4-$PKG_VERSION.tar.gz")
+PKG_SRC=("https://ftp.gnu.org/gnu/m4/m4-$PKG_VERSION.tar.gz")
 
 # ----- Build Function ----- #
 build_m4() {
