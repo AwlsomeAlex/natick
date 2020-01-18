@@ -29,7 +29,7 @@ INITRAMFS_PKG=()
 IMAGE_PKG=()
 
 # StelaLinux Toolchain Package List
-TOOL_PKG=("file" "m4" "ncurses" "libtool" "autoconf" "automake")
+TOOL_PKG=("file" "m4" "ncurses" "libtool" "autoconf" "automake" "linux")
 
 # StelaLinux Target Architecture (Supported: i686/x86_64)
 #export ARCH=i686
@@ -212,8 +212,9 @@ function loka_prepare() {
         loka_print "Creating Toolchain Directories...." "...."
         mkdir -p $TSRC_DIR $TWRK_DIR $TFIN_DIR/root
         loka_print "Created Toolchain Directories" "done"
-    elif [[ $location == "-p" ]] || [[ $location == "-a" ]]; then
-    # ----- Check for Build Environment ----- #
+    fi
+    if [[ $location == "-p" ]] || [[ $location == "-a" ]]; then
+        # ----- Check for Build Environment ----- #
         if [ -d $WRK_DIR ]; then
             if [[ $FLAG != "-Y" ]]; then
                 loka_print "Build Environment Already Exists." "warn"
@@ -224,15 +225,13 @@ function loka_prepare() {
                 fi
             fi
             loka_print "Removing Build Environment...." "...."
-            rm -rf $WRK_DIR
+            rm -rf $WRK_DIR $FIN_DIR
             loka_print "Removed Build Environment." "done"
         fi
         loka_print "Creating Build Environment...." "...."
         mkdir -p $SRC_DIR $WRK_DIR $FIN_DIR
+        mkdir -p $FIN_DIR/{bin,boot,dev,etc,lib,mnt/root,proc,root,sbin,sys,tmp,usr/{bin,lib,share,include}}
         loka_print "Created Build Environment" "done"
-    else
-        echo -e "${RED}[FAIL] ${ORANGE}loka_prepare: ${NC}Invalid Location: $location"
-        exit
     fi
 }
 
@@ -315,7 +314,8 @@ function loka_install() {
     package_dir=$1
 
     loka_print "Installing $package_dir to Root Filesystem...." "...."
-    cp -r $package_dir/* $FIN_DIR
+    #rsync --info=progress2 -r $package_dir/. $FIN_DIR/
+    cp -a $package_dir/. $FIN_DIR/
     loka_print "Installed $package_dir to Root Filesystem." "done"
 }
 
@@ -343,7 +343,7 @@ function tutmonda_clean() {
 # toolchain(): Build Toolchain
 function tutmonda_toolchain() {
     loka_title
-    loka_prepare -t
+    loka_prepare -a
 
     # ----- Unset Cross Compiler Variables ----- #
     unset CROSS_COMPILE
@@ -396,7 +396,7 @@ function tutmonda_toolchain() {
         loka_print "Built $PACKAGE." "done"
 
         # --- Install to RootFS (Linux Kernel Headers + Musl C Library) --- #
-        if [[ $package == "linux" ]] || [[ $package == "musl" ]]; then
+        if [[ $PACKAGE == "linux" ]] || [[ $PACKAGE == "musl" ]]; then
             loka_install "$TWRK_DIR/$PACKAGE.fs"
         fi
 
@@ -433,13 +433,13 @@ function tutmonda_usage() {
 function main() {
     case "$OPTION" in
         toolchain )
-            tutmonda_toolchain
+            time tutmonda_toolchain
             ;;
         clean )
-            tutmonda_clean
+            time tutmonda_clean
             ;;
         * )
-            tutmonda_usage
+            time tutmonda_usage
             ;;
     esac
 }

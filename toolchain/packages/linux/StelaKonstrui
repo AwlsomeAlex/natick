@@ -1,50 +1,58 @@
-#########################################
-#---------------------------------------#
-# StelaKonstrui Script - m4 (Toolchain) #
-#---------------------------------------#
-#########################################
+###########################################################
+#---------------------------------------------------------#
+# StelaKonstrui Script - Linux Kernel Headers (Toolchain) #
+#---------------------------------------------------------#
+###########################################################
 #
-# Description:  GNU Implementation of traditional UNIX macro processor
-# URL:          https://gnu.org/software/m4
+# Description:  Headers for building modules for Linux Kernel
+# URL:          https://kernel.org/
 # Maintainer:   AwlsomeAlex
 # Section:      toolchain (Stage 1)
 #
 
 # ----- Package Information ----- #
-PKG_NAME=m4
-PKG_VERSION=1.4.18
-PKG_SRC=("http://ftp.gnu.org/m4/m4-$PKG_VERSION.tar.gz")
+PKG_NAME=linux
+PKG_VERSION=5.4.13
+PKG_SRC=("https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-$PKG_VERSION.tar.xz")
 
 # ----- Build Function ----- #
-build_m4() {
+build_linux() {
     
     #-----------------------------#
     # ----- Local Variables ----- #
     #-----------------------------#
 
+    # Determine Architecture
+    case $ARCH in
+        x86_64)
+            export XARCH="x86_64"
+            ;;
+        i686|i586)
+            export XARCH="i386"
+            ;;
+        *)
+            loka_print "Unsupported Architecture: $ARCH" "fail"
+            exit
+    esac
+
     #---------------------------#
     # ----- Configuration ----- #
     #---------------------------#
     
-    # Patch for GLIBC Systems
-    sed -i 's/IO_ftrylockfile/IO_EOF_SEEN/' lib/*.c
-	echo "#define _IO_IN_BACKUP 0x100" >> lib/stdio-impl.h
+    # Make RootFS Directory (Only Linux Headers and MUSL do this....)
+    mkdir -p "$TWRK_DIR"/linux.fs/usr/include
 
-    # Configure Package
-    ./configure \
-        --prefix="$TFIN_DIR"
+    # Generate Configuration Files
+    make $MAKEFLAGS ARCH=$XARCH mrproper
         
     #-----------------------#
     # ----- Compiling ----- #
     #-----------------------#
 
-    # Compile Package
-    make $MAKEFLAGS
-
     #---------------------#
     # ----- Install ----- #
     #---------------------#
     
-    # Install Package to Toolchain Directory
-    make $MAKEFLAGS install
+    # Install Package
+    make $MAKEFLAGS ARCH=$XARCH INSTALL_HDR_PATH="$TWRK_DIR"/linux.fs/usr headers_install
 }
