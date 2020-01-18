@@ -8,6 +8,7 @@ set -e
 #############################################
 #
 # Copyright (c) 2020 Alexander Barris <awlsomealex at outlook dot com>
+# All Rights Reserved
 #
 # Toolchain Contributed by protonesso (Ataraxia)
 #
