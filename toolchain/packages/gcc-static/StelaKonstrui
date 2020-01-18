@@ -1,0 +1,125 @@
+#################################################
+#-----------------------------------------------#
+# StelaKonstrui Script - gcc-static (Toolchain) #
+#-----------------------------------------------#
+#################################################
+#
+# Description:  The GNU Compiler Collection - C Frontend (Static, Stage 1 Compiler)
+# URL:          https://gcc.gnu.org/
+# Maintainer:   AwlsomeAlex
+# Section:      toolchain (Stage 1)
+#
+
+# ----- Package Information ----- #
+PKG_NAME=gcc-static
+PKG_VERSION=9.2.0
+PKG_SRC=("http://ftp.gnu.org/gnu/gcc/gcc-$PKG_VERSION/gcc-$PKG_VERSION.tar.xz")
+
+# ----- Build Function ----- #
+build_gcc-static() {
+    
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
+
+    # Set GCC Flags
+    case $ARCH in
+        x86_64)
+            export GCCOPTS="--with-arch=x86-64 --with-tune=generic"
+            ;;
+        i686)
+            export GCCOPTS="--with-arch=i686 --with-tune=generic"
+            ;;
+        i586)
+            export GCCOPTS="--with-arch=i586 --with-tune=generic"
+            ;;
+        *)
+            loka_print "Unsupported Architecture: $ARCH" "fail"
+            exit
+    esac 
+
+    # Set Hash Style
+    HASHCONFIG="--with-linker-hash-style=gnu"
+    
+    # Set Build Flags
+    export CFLAGS_FOR_BUILD=" "
+	export FFLAGS_FOR_BUILD=" "
+	export CXXFLAGS_FOR_BUILD=" "
+	export LDFLAGS_FOR_BUILD=" "
+	export CFLAGS_FOR_TARGET=" "
+	export FFLAGS_FOR_TARGET=" "
+	export CXXFLAGS_FOR_TARGET=" "
+	export LDFLAGS_FOR_TARGET=" "
+
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+    
+    # Patch Makefile
+    sed -i 's@\./fixinc\.sh@-c true@' gcc/Makefile.in
+
+    # Musl C Library Patches
+	patch -Np1 -i $TR_DIR/gcc/0001-Use-musl-s-libssp_nonshared.a.patch
+	patch -Np1 -i $TR_DIR/gcc/0002-POSIX-memalign.patch
+	patch -Np1 -i $TR_DIR/gcc/0003-Define-musl-ldso-for-s390.patch
+	patch -Np1 -i $TR_DIR/gcc/0004-microblaze-pr65649.patch
+	patch -Np1 -i $TR_DIR/gcc/0005-define-128-long-double-for-some-musl-targets.patch
+	patch -Np1 -i $TR_DIR/gcc/0006-add-support-for-m68k-musl.patch
+	patch -Np1 -i $TR_DIR/gcc/0007-add-support-for-static-pie.patch
+	patch -Np1 -i $TR_DIR/gcc/0008-cpu-indicator.patch
+	patch -Np1 -i $TR_DIR/gcc/0009-fix-tls-model.patch
+	patch -Np1 -i $TR_DIR/gcc/0010-libgcc-always-build-gcceh.a.patch
+	patch -Np1 -i $TR_DIR/gcc/0011-fix-support-for-Ada.patch
+	patch -Np1 -i $TR_DIR/gcc/0003-gcc-poison-system-directories.patch
+	patch -Np1 -i $TR_DIR/gcc/security.patch
+	patch -Np1 -i $TR_DIR/gcc/gcc-pure64.patch
+	patch -Np1 -i $TR_DIR/gcc/gcc-pure64-mips.patch
+	patch -Np1 -i $TR_DIR/gcc/gcc-pure64-riscv.patch
+
+    # Create and cd into build directory
+    mkdir build
+    cd build
+
+    # Configure Package
+    ../configure \
+		--prefix="$TFIN_DIR" \
+		--target=$XTARGET $ARCHCONFIG $HASHCONFIG \
+		--with-bugurl="https://github.com/awlsomealex/stelalinux/issues" \
+		--with-sysroot="$FIN_DIR" \
+		--with-lib-path="$FIN_DIR/usr/lib" \
+		--with-pic \
+		--with-system-zlib \
+		--enable-64-bit-bfd \
+		--enable-deterministic-archives \
+		--enable-gold \
+		--enable-ld=default \
+		--enable-lto \
+		--enable-plugins \
+		--enable-relro \
+		--enable-threads \
+		--disable-compressed-debug-sections \
+		--disable-multilib \
+		--disable-nls \
+		--disable-werror
+	
+    # Configure Host
+    make MAKEINFO="true" $MAKEFLAGS configure-host
+ 
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
+
+    # Compile Package
+    make MAKEINFO="true" $MAKEFLAGS
+
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
+    
+    # Install Package to Toolchain Directory
+    make MAKEINFO="true" $MAKEFLAGS install
+
+    # Symlink ld
+    rm -rf "$TFIN_DIR"/bin/$XTARGET-ld
+    ln -sf $XTARGET-ld.bfd "$TFIN_DIR"/bin/$XTARGET-ld
+}

@@ -30,7 +30,7 @@ INITRAMFS_PKG=()
 IMAGE_PKG=()
 
 # StelaLinux Toolchain Package List
-TOOL_PKG=("file" "m4" "ncurses" "libtool" "autoconf" "automake" "linux")
+TOOL_PKG=("file" "m4" "ncurses" "libtool" "autoconf" "automake" "linux" "binutils" "gcc-extras" "gcc-static")
 
 # StelaLinux Target Architecture (Supported: i686/x86_64)
 #export ARCH=i686
@@ -198,7 +198,7 @@ function loka_prepare() {
     if [[ $location == "-t" ]] || [[ $location == "-a" ]]; then
         # ----- Check for Toolchain Directories ----- #
         if [ -d $TWRK_DIR ]; then
-            if [[ $FLAG != "-Y" ]]; then
+            if [[ $PACKAGE != "-Y" ]]; then
                 loka_print "Toolchain Already Exists." "warn"
                 read -p "Do you want to overwrite? (Y/n) " OPT
                 if [ $OPT != 'Y' ]; then
@@ -217,7 +217,7 @@ function loka_prepare() {
     if [[ $location == "-p" ]] || [[ $location == "-a" ]]; then
         # ----- Check for Build Environment ----- #
         if [ -d $WRK_DIR ]; then
-            if [[ $FLAG != "-Y" ]]; then
+            if [[ $PACKAGE != "-Y" ]]; then
                 loka_print "Build Environment Already Exists." "warn"
                 read -p "Do you want to overwrite? (Y/n) " OPT
                 if [ $OPT != 'Y' ]; then
@@ -390,6 +390,11 @@ function tutmonda_toolchain() {
             export DIR=$TWRK_DIR/$PACKAGE-*
         fi
 
+        # --- Skip gcc-extras --- #
+        if [[ $PACKAGE == "gcc-extras" ]]; then
+            continue
+        fi
+    
         # --- Build Package --- #
         cd $DIR
         loka_print "Building $PACKAGE...." "...."

@@ -1,0 +1,83 @@
+###############################################
+#---------------------------------------------#
+# StelaKonstrui Script - binutils (Toolchain) #
+#---------------------------------------------#
+###############################################
+#
+# Description:  A set of programs to assemble and manipulate binary and object files
+# URL:          https://www.gnu.org/software/binutils
+# Maintainer:   AwlsomeAlex
+# Section:      toolchain (Stage 1)
+#
+
+# ----- Package Information ----- #
+PKG_NAME=binutils
+PKG_VERSION=2.33.1
+PKG_SRC=("http://ftp.gnu.org/gnu/binutils/binutils-$PKG_VERSION.tar.xz")
+
+# ----- Build Function ----- #
+build_binutils() {
+    
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
+
+    # Set Hash Style
+    HASHCONFIG="--enable-default-hash-style=gnu"
+
+    # Set Target (x86_64)
+    if [[ $ARCH == "x86_64" ]]; then
+        ARCHCONFIG="--enable-target=x86_64-pep"    
+    fi
+    
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+    
+    # Create and cd into build directory
+    mkdir build
+    cd build
+
+    # Configure Package
+    ../configure \
+		--prefix="$TFIN_DIR" \
+		--target=$XTARGET $ARCHCONFIG $HASHCONFIG \
+		--with-bugurl="https://github.com/awlsomealex/stelalinux/issues" \
+		--with-sysroot="$FIN_DIR" \
+		--with-lib-path="$FIN_DIR/usr/lib" \
+		--with-pic \
+		--with-system-zlib \
+		--enable-64-bit-bfd \
+		--enable-deterministic-archives \
+		--enable-gold \
+		--enable-ld=default \
+		--enable-lto \
+		--enable-plugins \
+		--enable-relro \
+		--enable-threads \
+		--disable-compressed-debug-sections \
+		--disable-multilib \
+		--disable-nls \
+		--disable-werror
+	
+    # Configure Host
+    make MAKEINFO="true" $MAKEFLAGS configure-host
+ 
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
+
+    # Compile Package
+    make MAKEINFO="true" $MAKEFLAGS
+
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
+    
+    # Install Package to Toolchain Directory
+    make MAKEINFO="true" $MAKEFLAGS install
+
+    # Symlink ld
+    rm -rf "$TFIN_DIR"/bin/$XTARGET-ld
+    ln -sf $XTARGET-ld.bfd "$TFIN_DIR"/bin/$XTARGET-ld
+}
