@@ -407,6 +407,12 @@ function tutmonda_toolchain() {
         fi
 
     done
+
+    # ----- Preserve RootFS ----- #
+    loka_print "Preserving RootFS...." "...."
+    mkdir $TWRK_DIR/fs
+    cp -a $FIN_DIR/. $TWRK_DIR/fs/
+    loka_print "RootFS Preserved." "done"
 }
 
 # usage(): Shows the usage
