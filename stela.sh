@@ -292,13 +292,13 @@ function loka_extract() {
         fi
     elif [[ $location == "-p" ]]; then
         if [[ $archive_file == *".bz2"* ]]; then
-            pv $SRC_DIR/$archive_file | tar -xjf - -C $WRK_DIR/
+            pv $SRC_DIR/$archive_file | tar -xjf - -C $work_dir/
         elif [[ $archive_file == *".xz"* ]]; then
-            pv $SRC_DIR/$archive_file | tar -xJf - -C $WRK_DIR/
+            pv $SRC_DIR/$archive_file | tar -xJf - -C $work_dir/
         elif [[ $archive_file == *".gz"* ]]; then
-            pv $SRC_DIR/$archive_file | tar -xzf - -C $WRK_DIR/
+            pv $SRC_DIR/$archive_file | tar -xzf - -C $work_dir/
         elif [[ $archive_file == *".zip"* ]]; then
-            unzip -o $SRC_DIR/$archive_file -d $WRK_DIR/ | pv -l >/dev/null
+            unzip -o $SRC_DIR/$archive_file -d $work_dir/ | pv -l >/dev/null
         else
             loka_print "Unknown File Format." "fail"
             exit
@@ -415,6 +415,89 @@ function tutmonda_toolchain() {
     loka_print "RootFS Preserved." "done"
 }
 
+# build(): Build a StelaLinux Package
+function tutmonda_build() {
+    loka_title
+
+    # ----- Local Variables ----- #
+    local repo_dir="$RDIR/$PACKAGE"
+    local work_dir="$WRK_DIR/$PACKAGE"
+    local fs="$work_dir/$PACKAGE.fs"
+
+    # ----- Locate and Check Package ----- #
+    if [ -z $PACKAGE ]; then
+        loka_print "No Package Defined." "fail"
+        exit
+    fi
+    loka_prepare -p
+    if [ ! -d $repo_dir ]; then
+        loka_print "Package $PACKAGE Not Found in Repo." "fail"
+        exit
+    fi
+
+    # ----- Source Build Script ----- #
+    source $repo_dir/StelaKonstrui
+
+    if [[ ! $FLAG == "--preserve" ]]; then
+        # --- Check Dependencies --- #
+        for d in "${PKG_DEPS[@]}"; do
+            if [[ ! -d $WRK_DIR/$d/$d.fs ]]; then
+                loka_print "Dependency $d unmet." "fail"
+                echo "Please build with $EXECUTE build $d"
+                exit
+            fi
+        done
+        
+        # --- Prepare Work Directory --- #
+        if [ -d $work_dir ]; then
+            if [[ $FLAG == "-Y" ]]; then
+                loka_print "Removing $PACKAGE Directory...." "...."
+                rm -rf $work_dir
+                loka_print "Removed $PACKAGE Directory." "done"
+            else
+                loka_print "This Package's Work Directory already exists." "warn"
+                read -p "Do you want to overwrite? (Y/n) " OPT
+                if [ $OPT == 'Y' ]; then
+                    loka_print "Removing $PACKAGE Directory...." "...."
+                    rm -rf $work_dir
+                    loka_print "Removed $PACKAGE Directory." "done"
+                else
+                    loka_print "Nothing." "done"
+                    exit
+                fi
+            fi
+        fi
+        
+        # --- Download/Extract Files --- #
+        for f in "${PKG_SRC[@]}"; do
+            if [[ $f == *"http"* ]]; then
+                loka_download -p $f
+                loka_extract -p $f
+            else
+                loka_print "Copying file $f...." "...."
+                cp -a $repo_dir/$f $work_dir
+                loka_print "Copied file $f" "done"
+            fi
+        done
+    fi        
+      
+    # ----- Export Work Directory ----- #
+    if [[ $PACKAGE == "nova" ]]; then
+        export DIR=$work_dir/*-$PACKAGE
+    else
+        export DIR=$work_dir/$PACKAGE-*
+    fi
+
+    # ----- Build Package ----- #
+    cd $DIR
+    loka_print "Building $PACKAGE...." "...."
+    build_$PACKAGE
+    loka_print "Built $PACKAGE." "done"
+
+    # ----- Install Package ----- #
+    loka_install "$work_dir/$PACKAGE.fs"
+}
+
 # usage(): Shows the usage
 function tutmonda_usage() {
     loka_print "$EXECUTE [OPTION] (PACKAGE) (flag)"
@@ -422,6 +505,7 @@ function tutmonda_usage() {
     loka_print ""
     loka_print "[OPTION]:"
     loka_print "      toolchain:  Builds the toolchain required to build StelaLinux"
+    loka_print "      build:      Builds a package for StelaLinux"
     loka_print "      clean:      Clean the directory (MUST BE USED BEFORE COMMIT)"
     loka_print "      help:       Shows this dialog"
     loka_print ""
@@ -446,6 +530,9 @@ function main() {
     case "$OPTION" in
         toolchain )
             time tutmonda_toolchain
+            ;;
+        build )
+            time tutmonda_build
             ;;
         clean )
             time tutmonda_clean
