@@ -30,7 +30,7 @@ INITRAMFS_PKG=()
 IMAGE_PKG=()
 
 # StelaLinux Toolchain Package List
-TOOL_PKG=("file" "m4" "ncurses" "libtool" "autoconf" "automake" "linux" "binutils" "gcc-extras" "gcc-static" "musl" "gcc")
+TOOL_PKG=("file" "m4" "ncurses" "libtool" "autoconf" "automake" "linux" "binutils" "gcc-extras" "gcc-static" "musl" "gcc" "pkgconf")
 
 # StelaLinux Target Architecture (Supported: i686/x86_64)
 #export ARCH=i686
@@ -39,10 +39,10 @@ export ARCH=x86_64
 # ----- Directory Infomation ----- #
 
 # StelaLinux Project Root Directory
-STELA="$(pwd)"
+export STELA="$(pwd)"
 
 # StelaLinux Package Repository Location
-RDIR="$STELA/packages"
+export RDIR="$STELA/packages"
 
 
 #############################################################
@@ -61,12 +61,12 @@ RDIR="$STELA/packages"
 # ----- Directory Information ----- #
 
 # StelaLinux Source, Work, and System Root Directories
-SRC_DIR="$STELA/source"
-WRK_DIR="$STELA/work"
-FIN_DIR="$STELA/final"
+export SRC_DIR="$STELA/source"
+export WRK_DIR="$STELA/work"
+export FIN_DIR="$STELA/final"
 
 # InitramFS Directory
-INITRAMFS_DIR="$WRK_DIR/initramfs"
+export INITRAMFS_DIR="$WRK_DIR/initramfs"
 
 # ----- Color Codes ----- #
 NC='\033[0m'        # No Color
@@ -445,7 +445,7 @@ function main() {
             time tutmonda_clean
             ;;
         * )
-            time tutmonda_usage
+            tutmonda_usage
             ;;
     esac
 }

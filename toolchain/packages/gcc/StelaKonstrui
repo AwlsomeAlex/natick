@@ -94,7 +94,7 @@ build_gcc() {
 	../configure \
 		--prefix="$TFIN_DIR" \
 		--libdir="$TFIN_DIR/lib" \
-		--libexecdir="$TFIN/lib" \
+		--libexecdir="$TFIN_DIR/lib" \
 		--build=$XHOST \
 		--host=$XHOST \
 		--target=$XTARGET $GCCOPTS $HASHCONFIG \
@@ -139,7 +139,7 @@ build_gcc() {
     #---------------------#
     
     # Install Package to Toolchain Directory
-    make $MAKEFILES install
+    make -j1 install
 
     # Symlink gcc
     ln -sf $XTARGET-gcc "$TFIN_DIR"/bin/$XTARGET-cc
