@@ -429,7 +429,7 @@ function tutmonda_build() {
         loka_print "No Package Defined." "fail"
         exit
     fi
-    loka_prepare -p
+    #loka_prepare -p
     if [ ! -d $repo_dir ]; then
         loka_print "Package $PACKAGE Not Found in Repo." "fail"
         exit
@@ -467,6 +467,7 @@ function tutmonda_build() {
                 fi
             fi
         fi
+        mkdir -p $fs
         
         # --- Download/Extract Files --- #
         for f in "${PKG_SRC[@]}"; do

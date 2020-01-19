@@ -26,33 +26,49 @@ build_busybox() {
     # ----- Local Variables ----- #
     #-----------------------------#
     
+    case $ARCH in
+        x86_64)
+            export xarch="x86_64"
+            ;;
+        i686)
+            export xarch="i686"
+            ;;
+        i586)
+            export xarch="i586"
+    esac
+
     #---------------------------#
     # ----- Configuration ----- #
     #---------------------------#
    
     # Prepare BusyBox Configuration
     make mrproper
-    make ARCH=$KARCH CROSS_COMPILE=${CROSS_COMPILE} defconfig $MAKEFLAGS
+    make ARCH=$xarch CROSS_COMPILE=${CROSS_COMPILE} defconfig $MAKEFLAGS
 
     # Turn off inetd
     sed -i "s/.*CONFIG_INETD.*/CONFIG_INETD=n/" .config
+
+    # Turn on static linking'
+    sed -i "s|.*CONFIG_STATIC.*|CONFIG_STATIC=y|" .config
 
     #-----------------------#
     # ----- Compiling ----- #
     #-----------------------#
 
     # Compile BusyBox
-    make ARCH=$KARCH CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS" busybox $MAKEFLAGS
+    make ARCH=$xarch CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS" busybox $MAKEFLAGS
     
     #---------------------#
     # ----- Install ----- #
     #---------------------#
 
     # Install to FS
-    make ARCH=$KARCH CROSS_COMPILE=${CROSS_COMPILE} CONFIG_PREFIX="$FS" install $MAKEFLAGS  
+    make ARCH=$xarch CROSS_COMPILE=${CROSS_COMPILE} CONFIG_PREFIX="$FS" install $MAKEFLAGS  
 
     # Remove linuxrc
-    rm $FS/linuxrc
+    echo $fs
+    read
+    rm $fs/linuxrc
 
     # Copy stela.sh to $FS
     cp -r ../stela.sh $FS/bin/stela
