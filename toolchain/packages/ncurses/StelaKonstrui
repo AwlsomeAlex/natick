@@ -3,6 +3,9 @@
 # StelaKonstrui Script - ncurses (Toolchain) #
 #--------------------------------------------#
 ##############################################
+# Copyright (c) 2020 Alexander Barris <awlsomealex at outlook dot com>
+# All Rights Reserved
+# Licensed under the GNU GPLv3, which can be found at https://www.gnu.org/licenses/gpl-3.0.en.html
 #
 # Description:  System V Release 4.0 curses emulation library
 # URL:          https://invisible-island.net/ncurses/ncurses.html

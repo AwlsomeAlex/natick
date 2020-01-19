@@ -1,0 +1,63 @@
+##################################
+#--------------------------------#
+# StelaKonstrui Script - BusyBox #
+#--------------------------------#
+##################################
+# Copyright (c) 2020 Alexander Barris <awlsomealex at outlook dot com>
+# All Rights Reserved
+# Licensed under the GNU GPLv3, which can be found at https://www.gnu.org/licenses/gpl-3.0.en.html
+#
+# Description:  Tiny version of many common UNIX utilities
+# URL:          https://www.busybox.net
+# Maintainer:   AwlsomeAlex
+# Section:      kerno
+#
+
+# ----- Package Information ----- #
+PKG_NAME=busybox
+PKG_VERSION=1.31.1
+PKG_SRC=("https://www.busybox.net/downloads/busybox-$PKG_VERSION.tar.bz2" "stela.sh")
+PKG_DEPS=()
+
+# ----- Build Function ----- #
+build_busybox() {
+    
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
+    
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+   
+    # Prepare BusyBox Configuration
+    make mrproper
+    make ARCH=$KARCH CROSS_COMPILE=${CROSS_COMPILE} defconfig $MAKEFLAGS
+
+    # Turn off inetd
+    sed -i "s/.*CONFIG_INETD.*/CONFIG_INETD=n/" .config
+
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
+
+    # Compile BusyBox
+    make ARCH=$KARCH CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS" busybox $MAKEFLAGS
+    
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
+
+    # Install to FS
+    make ARCH=$KARCH CROSS_COMPILE=${CROSS_COMPILE} CONFIG_PREFIX="$FS" install $MAKEFLAGS  
+
+    # Remove linuxrc
+    rm $FS/linuxrc
+
+    # Copy stela.sh to $FS
+    cp -r ../stela.sh $FS/bin/stela
+
+    # Populate stela build information
+    sed -i "s/BUILD_NAME=NULL/BUILD_NAME='$BUILD_NAME'/" $FS/bin/stela
+    sed -i "s/BUILD_NUMBER=NULL/BUILD_NUMBER='$BUILD_NUMBER'/" $FS/bin/stela
+}
