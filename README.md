@@ -11,18 +11,18 @@ StelaLinux (formally StarLinux, AwlsomeLinux, and AwlBuntu) has been my project 
 
 ## Building StelaLinux:
 #### Dependencies (Debian-based Distributions)
-Tested on Ubuntu 19.10
+Tested on Ubuntu 19.10 MATE
 
 `sudo apt install build-essential m4 bison flex textinfo bc pv flex rsync unzip libssl-dev libelf-dev`
 
 #### Dependencies (Fedora-based Distributions)
-Tested on Fedora 31
+Tested on Fedora 31 Workstation and Server Edition
 
 **Software Package Groups:**
 `sudo dnf groupinstall "Development Tools" "C Development Tools and Libraries"`
 
 **Individual Packages:**
-`sudo dnf install texinfo pv libisoburn bsdtar glibc-static xorriso xz-devel openssl-devel`
+`sudo dnf install texinfo pv libisoburn bsdtar glibc-static xorriso xz-devel zlib-devel openssl-devel`
 
 #### Dependencies (Arch-based Distributions)
 `TBA`
