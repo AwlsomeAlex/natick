@@ -14,7 +14,10 @@ StelaLinux (formally StarLinux, AwlsomeLinux, and AwlBuntu) has been my project 
 `sudo apt install build-essential m4 bison flex textinfo bc pv flex rsync unzip libssl-dev libelf-dev`
 
 #### Dependencies (Fedora-based Distributions)
+**Software Package Groups:**
 `sudo dnf groupinstall "Development Tools" "C Development Tools and Libraries"`
+
+**Individual Packages:**
 `sudo dnf install texinfo pv`
 
 #### Dependencies (Arch-based Distributions)
