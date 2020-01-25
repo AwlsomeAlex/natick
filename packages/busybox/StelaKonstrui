@@ -56,6 +56,7 @@ build_busybox() {
     #-----------------------#
 
     # Compile BusyBox
+    make ARCH=$xarch CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS" $MAKEFLAGS
     make ARCH=$xarch CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS" busybox $MAKEFLAGS
     
     #---------------------#
@@ -63,17 +64,15 @@ build_busybox() {
     #---------------------#
 
     # Install to FS
-    make ARCH=$xarch CROSS_COMPILE=${CROSS_COMPILE} CONFIG_PREFIX="$FS" install $MAKEFLAGS  
+    make CONFIG_PREFIX="$fs" install $MAKEFLAGS  
 
     # Remove linuxrc
-    echo $fs
-    read
     rm $fs/linuxrc
 
     # Copy stela.sh to $FS
-    cp -r ../stela.sh $FS/bin/stela
+    cp -r ../stela.sh $fs/bin/stela
 
     # Populate stela build information
-    sed -i "s/BUILD_NAME=NULL/BUILD_NAME='$BUILD_NAME'/" $FS/bin/stela
-    sed -i "s/BUILD_NUMBER=NULL/BUILD_NUMBER='$BUILD_NUMBER'/" $FS/bin/stela
+    sed -i "s/BUILD_NAME=NULL/BUILD_NAME='$BUILD_NAME'/" $fs/bin/stela
+    sed -i "s/BUILD_NUMBER=NULL/BUILD_NUMBER='$BUILD_NUMBER'/" $fs/bin/stela
 }
