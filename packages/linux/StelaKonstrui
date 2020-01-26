@@ -26,10 +26,16 @@ build_linux() {
     # ----- Local Variables ----- #
     #-----------------------------#
     
-    # Kernel Compile Architecture
+    # Kernel Configuration Architecture
     case $ARCH in
-        x86_64|i686|i586)
+        x86_64)
             export xarch="x86"
+            export defconfig="x86_64_defconfig"
+            ;;
+        i686|i586)
+            export xarch="x86"
+            export defconfig="i386_defconfig"
+            ;;
     esac
 
     # Image File Location
@@ -40,8 +46,8 @@ build_linux() {
     #---------------------------#
    
     # Generate Linux Kernel Config
-    make mrproper
-    make ARCH=$xarch CROSS_COMPILE=${CROSS_COMPILE} defconfig $MAKEFLAGS
+    make ARCH=$xarch mrproper
+    make ARCH=$xarch CROSS_COMPILE=${CROSS_COMPILE} $defconfig $MAKEFLAGS
 
     # Set Configuration Variables
     sed -i "s/.*CONFIG_DEFAULT_HOSTNAME.*/CONFIG_DEFAULT_HOSTNAME=\"stelalinux\"/" .config  # Changes Hostname
