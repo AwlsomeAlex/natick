@@ -70,7 +70,7 @@ build_busybox() {
     rm $fs/linuxrc
 
     # Copy stela.sh to $FS
-    cp -r ../stela.sh $fs/bin/stela
+    cp -r ../stela.sh $fs/usr/bin/stela
 
     # Populate stela build information
     sed -i "s/BUILD_NAME=NULL/BUILD_NAME='$BUILD_NAME'/" $fs/bin/stela

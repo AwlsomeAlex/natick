@@ -231,7 +231,12 @@ function loka_prepare() {
         fi
         loka_print "Creating Build Environment...." "...."
         mkdir -p $SRC_DIR $WRK_DIR $FIN_DIR
-        mkdir -p $FIN_DIR/{bin,boot,dev,etc,lib,mnt/root,proc,root,sbin,sys,tmp,usr/{bin,lib,share,include}}
+        mkdir -p $FIN_DIR/{boot,dev,etc,mnt/root,proc,root,sys,tmp,usr/{bin,sbin,lib,share,include}}
+        cd $FIN_DIR
+        # Create Symlinks
+        ln -s usr/lib lib
+        ln -s usr/bin bin
+        ln -s usr/sbin sbin
         loka_print "Created Build Environment" "done"
     fi
 }
@@ -524,7 +529,11 @@ function tutmonda_initramfs() {
 
     # ----- Create InitramFS Hierarchy ----- #
     loka_print "Creating InitramFS Filesystem...." "...."
-    mkdir -p $INITRAMFS_DIR/fs/{bin,boot,dev,etc,lib,mnt/root,proc,root,sbin,sys,tmp,usr/{bin,lib,share,include},run}
+    mkdir -p $INITRAMFS_DIR/fs/{boot,dev,etc,mnt/root,proc,root,sys,tmp,usr/{bin,lib,sbin,share,include},run}
+    # Create symlinks
+    ln -s usr/bin bin
+    ln -s usr/sbin sbin
+    ln -s usr/lib lib
     loka_print "Created InitramFS Filesystem." "done"
 
     # ----- Copy Package FS to InitramFS ----- #
@@ -543,11 +552,9 @@ function tutmonda_initramfs() {
     loka_print "Stripping InitramFS...." "...."
     set +e
     $XTARGET-strip -g \
-        $INITRAMFS_DIR/fs/bin/* \
-        $INITRAMFS_DIR/fs/sbin/* \
-        $INITRAMFS_DIR/fs/lib/* \
         $INITRAMFS_DIR/fs/usr/bin/* \
         $INITRAMFS_DIR/fs/usr/lib/* \
+        $INITRAMFS_DIR/fs/usr/sbin/* \
         2>/dev/null
     set -e
     loka_print "Stripped InitramFS." "done"
