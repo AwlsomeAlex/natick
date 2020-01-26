@@ -15,7 +15,7 @@
 
 # ----- Package Information ----- #
 PKG_NAME=linux
-PKG_VERSION=5.4.13
+PKG_VERSION=5.4.14
 PKG_SRC=("https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-$PKG_VERSION.tar.xz")
 
 # ----- Build Function ----- #

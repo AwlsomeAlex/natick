@@ -73,6 +73,6 @@ build_busybox() {
     cp -r ../stela.sh $fs/usr/bin/stela
 
     # Populate stela build information
-    sed -i "s/BUILD_NAME=NULL/BUILD_NAME='$BUILD_NAME'/" $fs/bin/stela
-    sed -i "s/BUILD_NUMBER=NULL/BUILD_NUMBER='$BUILD_NUMBER'/" $fs/bin/stela
+    sed -i "s/BUILD_NAME=NULL/BUILD_NAME='$BUILD_NAME'/" $fs/usr/bin/stela
+    sed -i "s/BUILD_NUMBER=NULL/BUILD_NUMBER='$BUILD_NUMBER'/" $fs/usr/bin/stela
 }
