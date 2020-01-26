@@ -51,23 +51,26 @@ build_busybox() {
     # Turn on static linking'
     sed -i "s|.*CONFIG_STATIC.*|CONFIG_STATIC=y|" .config
 
+    # Create Directories
+    mkdir -p $fs/usr/bin/
+
     #-----------------------#
     # ----- Compiling ----- #
     #-----------------------#
 
     # Compile BusyBox
     make ARCH=$xarch CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS" $MAKEFLAGS
-    make ARCH=$xarch CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS" busybox $MAKEFLAGS
+    make ARCH=$xarch CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS" busybox.links $MAKEFLAGS
     
     #---------------------#
     # ----- Install ----- #
     #---------------------#
 
     # Install to FS
-    make CONFIG_PREFIX="$fs" install $MAKEFLAGS  
+    cp busybox $fs/usr/bin/busybox
 
-    # Remove linuxrc
-    rm $fs/linuxrc
+    # Create Symlinks (Thanks protonesso)
+    for applet in `cat busybox.links|sed 's|^.*/||'`; do ln -sf busybox $fs/usr/bin/$applet || true; done
 
     # Copy stela.sh to $FS
     cp -r ../stela.sh $fs/usr/bin/stela
