@@ -531,9 +531,12 @@ function tutmonda_initramfs() {
     loka_print "Creating InitramFS Filesystem...." "...."
     mkdir -p $INITRAMFS_DIR/fs/{boot,dev,etc,mnt/root,proc,root,sys,tmp,usr/{bin,lib,sbin,share,include},run}
     # Create symlinks
+    curr=$(pwd)
+    cd $INITRAMFS_DIR/fs
     ln -s usr/bin bin
     ln -s usr/sbin sbin
     ln -s usr/lib lib
+    cd $curr
     loka_print "Created InitramFS Filesystem." "done"
 
     # ----- Copy Package FS to InitramFS ----- #
