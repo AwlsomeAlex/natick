@@ -1,0 +1,50 @@
+################################################
+#----------------------------------------------#
+# StelaKonstrui Script - Xiongnu (Nova Branch) #
+#----------------------------------------------#
+################################################
+# Copyright (c) 2020 Alexander Barris <awlsomealex at outlook dot com>
+# All Rights Reserved
+# Licensed under the GNU GPLv3, which can be found at https://www.gnu.org/licenses/gpl-3.0.en.html
+#
+# Description:  Xiongnu Init Scripts
+# URL:          https://www.github.com/AwlsomeAlex/Xiongnu/tree/nova
+# Maintainer:   AwlsomeAlex
+# Section:      kerno
+#
+
+# ----- Package Information ----- #
+PKG_NAME=nova
+PKG_VERSION=GIT
+PKG_SRC=("https://www.github.com/AwlsomeAlex/Xiongnu/archive/nova.zip" "inittab" "fstab" "passwd" "bashrc")
+PKG_DEPS=()
+
+# ----- Build Function ----- #
+build_nova() {
+    
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
+
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+   
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
+
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
+    cd src
+    
+    # Copy Xiongnu to fs
+    cp -r * $fs
+
+    # Copy StelaLinux Files to fs
+    cp ../../fstab $fs/etc
+    cp ../../passwd $fs/etc
+    cp ../../inittab $fs/etc
+    cp -r ../../bashrc $fs/etc
+}

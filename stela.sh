@@ -24,10 +24,10 @@ export BUILD_NAME="Git Build"
 export BUILD_NUMBER="git"
 
 # InitramFS Package List
-INITRAMFS_PKG=()
+INITRAMFS_PKG=("linux" "nova" "busybox")
 
 # StelaLinux Package List
-IMAGE_PKG=()
+IMAGE_PKG=("busybox" "linux" "nova" "syslinux")
 
 # StelaLinux Toolchain Package List
 TOOL_PKG=("file" "m4" "ncurses" "libtool" "autoconf" "automake" "linux" "binutils" "gcc-extras" "gcc-static" "musl" "gcc" "pkgconf")
@@ -247,7 +247,7 @@ function loka_download() {
     # Download File
     if [[ $location == "-t" ]]; then
         if [[ -f $TSRC_DIR/$archive_file ]]; then
-            loka_print "$archive_file already loka_downloaded. Continuing...." "done"
+            loka_print "$archive_file already downloaded. Continuing...." "done"
         else
             loka_print "Downloading $archive_file...." "...."
             wget -q --show-progress -P $TSRC_DIR $url
@@ -255,7 +255,7 @@ function loka_download() {
         fi
     elif [[ $location == "-p" ]]; then
         if [[ -f $SRC_DIR/$archive_file ]]; then
-            loka_print "$archive_file already loka_downloaded. Continuing...." "done"
+            loka_print "$archive_file already downloaded. Continuing...." "done"
         else
             loka_print "Downloading $archive_file...." "...."
             wget -q --show-progress -P $SRC_DIR $url
@@ -315,7 +315,6 @@ function loka_install() {
     package_dir=$1
 
     loka_print "Installing $package_dir to Root Filesystem...." "...."
-    #rsync --info=progress2 -r $package_dir/. $FIN_DIR/
     cp -a $package_dir/. $FIN_DIR/
     loka_print "Installed $package_dir to Root Filesystem." "done"
 }
@@ -499,14 +498,156 @@ function tutmonda_build() {
     loka_install "$work_dir/$PACKAGE.fs"
 }
 
+# initramfs(): Generates a initramfs
+function tutmonda_initramfs() {
+    loka_title
+
+    # ----- Check if initramfs already exists ----- #
+    if [[ -d $INITRAMFS_DIR ]]; then
+        if [[ $PACKAGE == "-Y" ]]; then
+            loka_print "Removing InitramFS...." "...."
+            rm -rf $INITRAMFS_DIR
+            loka_print "Removed InitramFS." "done"
+        else
+            loka_print "InitramFS Already Exists." "warn"
+            read -p "Do you want to overwrite? (Y/n) " OPT
+            if [ $OPT == 'Y' ]; then
+                loka_print "Removing InitramFS...." "...."
+                rm -rf $INITRAMFS_DIR
+                loka_print "Removed InitramFS." "done"
+            else
+                loka_print "Nothing" "done"
+                exit
+            fi
+        fi
+    fi
+
+    # ----- Create InitramFS Hierarchy ----- #
+    loka_print "Creating InitramFS Filesystem...." "...."
+    mkdir -p $INITRAMFS_DIR/fs/{bin,boot,dev,etc,lib,mnt/root,proc,root,sbin,sys,tmp,usr/{bin,lib,share,include},run}
+    loka_print "Created InitramFS Filesystem." "done"
+
+    # ----- Copy Package FS to InitramFS ----- #
+    for i in "${INITRAMFS_PKG[@]}"; do
+        if [[ ! -d $WRK_DIR/$i ]]; then
+            loka_print "Package $i Not Built." "fail"
+            loka_print "Please build with $EXECUTE build $i"
+            exit
+        fi
+        loka_print "Copying $i to InitramFS...." "...."
+        cp -a $WRK_DIR/$i/$i.fs/* $INITRAMFS_DIR/fs
+        loka_print "Copied $i to InitramFS." "done"
+    done
+
+    # ----- Strip InitramFS ----- #
+    loka_print "Stripping InitramFS...." "...."
+    set +e
+    $XTARGET-strip -g \
+        $INITRAMFS_DIR/fs/bin/* \
+        $INITRAMFS_DIR/fs/sbin/* \
+        $INITRAMFS_DIR/fs/lib/* \
+        $INITRAMFS_DIR/fs/usr/bin/* \
+        $INITRAMFS_DIR/fs/usr/lib/* \
+        2>/dev/null
+    set -e
+    loka_print "Stripped InitramFS." "done"
+
+    # ----- Generate InitramFS ----- #
+    loka_print "Generating InitramFS...." "...."
+    cd $INITRAMFS_DIR/fs
+    find . | cpio -R root:root -H newc -o | xz -9 --check=none > ../initramfs.cpio.xz
+    loka_print "Generated InitramFS." "done"
+}
+
+# image(): Generate StelaLinux Live ISO
+function tutmonda_image() {
+    loka_title
+
+    # ----- Check for InitramFS ----- #
+    if [[ ! -d $INITRAMFS_DIR ]]; then
+        loka_print "InitramFS Not Generated." "fail"
+        loka_print "Please generate with $EXECUTE initramfs"
+        exit
+    fi
+
+    # ----- Copy InitramFS to Image ----- #
+    loka_print "Copying InitramFS to Final...." "...."
+    cp $INITRAMFS_DIR/initramfs.cpio.xz $FIN_DIR/boot/initramfs.xz
+    loka_print "Copied InitramFS to Final." "done"
+
+    # ----- Generate Disk Image ----- #
+    loka_print "Generating Disk Image...." "...."
+    cd $FIN_DIR
+    xorriso -as mkisofs \
+        -isohybrid-mbr boot/isolinux/isohdpfx.bin \
+        -c boot/isolinux/boot.cat \
+        -b boot/isolinux/isolinux.bin \
+        -no-emul-boot \
+        -boot-load-size 4 \
+        -boot-info-table \
+        -o $STELA/StelaLinux-$BUILD_NUMBER-$ARCH.iso \
+        .
+    loka_print "Generated Disk Image." "done"
+}
+
+# qemu(): Launch QEMU Emulator with Live CD
+function tutmonda_qemu() {
+    if [ ! -f $STELA/StelaLinux-$BUILD_NUMBER-$ARCH.iso ]; then
+        loka_print "No StelaLinux Image Found." "fail"
+        exit
+    fi
+    loka_print "Starting QEMU...." "...."
+    if [[ $ARCH == "x86_64" ]]; then
+        if [[ $(which qemu-system-x86_64) == "" ]]; then
+            loka_print "QEMU 64-bit Not Installed." "fail"
+            exit
+        fi
+        qemu-system-x86_64 -enable-kvm -m 512M -cdrom $STELA/StelaLinux-$BUILD_NUMBER-$ARCH.iso -boot d
+    elif [[ $ARCH == "i586" ]] || [[ $ARCH == "i686" ]]; then
+        if [[ $(which qemu-system-i386) == "" ]]; then
+            loka_print "QEMU 32-bit Not Installed." "fail"
+            exit
+        fi
+        qemu-system-i386 -enable-kvm -m 512M -cdrom $STELA/StelaLinux-$BUILD_NUMBER-$ARCH.iso -boot d
+    else
+        loka_print "Unknown Architecture: $ARCH" "fail"
+        exit
+    fi
+    loka_print "QEMU Ran Successfully" "done"
+}
+
+# all(): Compile Toolchain, Built Packages, and Image
+function tutmonda_all() {
+    # ----- Build Toolchain ----- #
+    if [[ $PACKAGE != "--skip-toolchain" ]]; then
+        tutmonda_toolchain
+    fi
+
+    # ----- Build All Packages ----- #
+    for p in "${IMAGE_PKG[@]}"; do
+        PACKAGE="$p"
+        tutmonda_build
+    done
+
+    # ----- Generate InitramFS ----- #
+    tutmonda_initramfs
+
+    # ----- Generate Image ----- #
+    tutmonda_image
+}
+
 # usage(): Shows the usage
 function tutmonda_usage() {
     loka_print "$EXECUTE [OPTION] (PACKAGE) (flag)"
     loka_print "StelaLinux Build Script - Used to build StelaLinux"
     loka_print ""
     loka_print "[OPTION]:"
+    loka_print "      all:        Build Toolchain, Defined Packages, and Image for StelaLinux"
     loka_print "      toolchain:  Builds the toolchain required to build StelaLinux"
     loka_print "      build:      Builds a package for StelaLinux"
+    loka_print "      initramfs:  Generate InitramFS"
+    loka_print "      image:      Generate Disk Image"
+    loka_print "      qemu:       Launch Disk Image in QEMU (kvm)"
     loka_print "      clean:      Clean the directory (MUST BE USED BEFORE COMMIT)"
     loka_print "      help:       Shows this dialog"
     loka_print ""
@@ -529,11 +670,23 @@ function tutmonda_usage() {
 #---------------------------#
 function main() {
     case "$OPTION" in
+        all )
+            time tutmonda_all
+            ;;
         toolchain )
             time tutmonda_toolchain
             ;;
         build )
             time tutmonda_build
+            ;;
+        initramfs )
+            time tutmonda_initramfs
+            ;;
+        image )
+            time tutmonda_image
+            ;;
+        qemu )
+            time tutmonda_qemu
             ;;
         clean )
             time tutmonda_clean

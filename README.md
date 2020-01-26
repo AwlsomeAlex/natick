@@ -22,7 +22,7 @@ Tested on Fedora 31 Workstation and Server Edition
 `sudo dnf groupinstall "Development Tools" "C Development Tools and Libraries"`
 
 **Individual Packages:**
-`sudo dnf install texinfo pv libisoburn bsdtar glibc-static xorriso xz-devel zlib-devel openssl-devel`
+`sudo dnf install texinfo pv libisoburn bsdtar glibc-static xorriso xz-devel zlib-devel openssl-devel elfutils-libelf-devel qemu-system-x86`
 
 #### Dependencies (Arch-based Distributions)
 `TBA`
