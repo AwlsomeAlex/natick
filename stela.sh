@@ -238,6 +238,11 @@ function loka_prepare() {
         ln -s usr/bin bin
         ln -s usr/sbin sbin
         loka_print "Created Build Environment" "done"
+        # Copy musl library and Headers (If it exists yet)
+        if [[ -d $TWRK_DIR/musl.fs ]] && [[ ! -f $FIN_DIR/usr/lib/libc.so ]]; then
+            loka_install "$TWRK_DIR/musl.fs"
+            loka_install "$TWRK_DIR/linux.fs"
+        fi
     fi
 }
 
@@ -631,6 +636,9 @@ function tutmonda_all() {
     # ----- Build Toolchain ----- #
     if [[ $PACKAGE != "--skip-toolchain" ]]; then
         tutmonda_toolchain
+    else
+        loka_title
+        loka_prepare -p
     fi
 
     # ----- Build All Packages ----- #

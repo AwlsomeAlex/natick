@@ -1,0 +1,85 @@
+##################################
+#--------------------------------#
+# StelaKonstrui Script - Ncurses #
+#--------------------------------#
+##################################
+# Copyright (c) 2020 Alexander Barris <awlsomealex at outlook dot com>
+# All Rights Reserved
+# Licensed under the GNU GPLv3, which can be found at https://www.gnu.org/licenses/gpl-3.0.en.html
+#
+# Description:  Ncurses (new curses) software emulation
+# URL:          https://gnu.org/software/ncurses
+# Maintainer:   AwlsomeAlex
+# Section:      kerno
+#
+
+# ----- Package Information ----- #
+PKG_NAME=ncurses
+PKG_VERSION=6.1
+PKG_SRC=("https://invisible-mirror.net/archives/ncurses/ncurses-$PKG_VERSION.tar.gz")
+PKG_DEPS=()
+
+# ----- Build Function ----- #
+build_ncurses() {
+    
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
+
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+   
+    # Remove Static Library (LFS)
+    #
+    # Source: http://www.linuxfromscratch.org/lfs/view/development/chapter06/ncurses.html
+    #
+    #sed -i '/LIBTOOL_INSTALL/d' c++/Makefile.in
+
+    # Configure Ncurses (Ataraxia)
+    ./configure $BUILDFLAGS \
+		--prefix=/usr \
+		--mandir=/usr/share/man \
+		--with-default-terminfo-dir=/usr/share/terminfo \
+		--with-pkg-config-libdir=/usr/lib/pkgconfig \
+		--with-terminfo-dirs="/etc/terminfo:/usr/share/terminfo" \
+		--with-normal \
+		--with-shared \
+		--without-ada \
+		--without-debug \
+		--without-tests \
+		--enable-overwrite \
+		--enable-pc-files \
+		--enable-widec \
+		--disable-rpath-hack \
+		--disable-stripping
+
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
+
+    # Make ncurses
+    make $MAKEFLAGS
+
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
+    
+    # Install to FS
+    make $MAKEFLAGS install DESTDIR=$fs
+
+    # Symlink wide character libraries (MLL)
+    #
+    # Source: https://github.com/ivandavidov/minimal/blob/master/src/minimal_overlay/bundles/ncurses/02_build.sh#L54
+    #
+    #ln -sf libncursesw.so.6 $fs/usr/lib/libncurses.so.6
+    #ln -sf libncursesw.so.6 $fs/usr/lib/libncurses.so
+    
+    #ln -sf libncursesw.so.6 $fs/usr/lib/libtinfow.so.6
+    #ln -sf libncursesw.so.6 $fs/usr/lib/libtinfow.so
+    #ln -sf libncursesw.so.6 $fs/usr/lib/libtinfo.so.6
+    #ln -sf libncursesw.so.6 $fs/usr/lib/libtinfo.so
+
+    # Symlink ncurses config
+    #ln -sf ncursesw6-config $fs/usr/bin/ncurses6-config
+}
