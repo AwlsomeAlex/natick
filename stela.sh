@@ -33,8 +33,8 @@ IMAGE_PKG=("busybox" "linux" "nova" "syslinux")
 TOOL_PKG=("file" "m4" "ncurses" "libtool" "autoconf" "automake" "linux" "binutils" "gcc-extras" "gcc-static" "musl" "gcc" "pkgconf")
 
 # StelaLinux Target Architecture (Supported: i686/x86_64)
-export ARCH=i686
-#export ARCH=x86_64
+#export ARCH=i686
+export ARCH=x86_64
 
 # ----- Directory Infomation ----- #
 
