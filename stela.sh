@@ -33,8 +33,8 @@ IMAGE_PKG=("busybox" "linux" "nova" "syslinux")
 TOOL_PKG=("file" "m4" "ncurses" "libtool" "autoconf" "automake" "linux" "binutils" "gcc-extras" "gcc-static" "musl" "gcc" "pkgconf")
 
 # StelaLinux Target Architecture (Supported: i686/x86_64)
-#export ARCH=i686
-export ARCH=x86_64
+export ARCH=i686
+#export ARCH=x86_64
 
 # ----- Directory Infomation ----- #
 
@@ -634,6 +634,22 @@ function tutmonda_all() {
     fi
 
     # ----- Build All Packages ----- #
+    # Reset Cross Compiler Variables
+    CROSS_COMPILE="$XTARGET-"
+    CC="$XTARGET-gcc"
+    CXX="$XTARGET-g++"
+    AR="$XTARGET-ar"
+    AS="$XTARGET-as"
+    RANLIB="$XTARGET-ranlib"
+    LD="$XTARGET-ld"
+    STRIP="$XTARGET-strip"
+    BUILDFLAGS="--build=$XHOST --host=$XTARGET"
+    TOOLFLAGS="--build=$XHOST --host=$XTARGET --target=$XTARGET"
+    PERLFLAGS="--target=$XTARGET"
+    PKG_CONFIG_PATH="$FIN_DIR/usr/lib/pkgconfig:$FIN_DIR/usr/share/pkgconfig"
+    PKG_CONFIG_SYSROOT="$FIN_DIR"
+
+    # Build Defined Packages
     for p in "${IMAGE_PKG[@]}"; do
         PACKAGE="$p"
         tutmonda_build
