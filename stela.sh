@@ -24,10 +24,10 @@ export BUILD_NAME="Git Build"
 export BUILD_NUMBER="git"
 
 # InitramFS Package List
-INITRAMFS_PKG=("linux" "nova" "busybox")
+INITRAMFS_PKG=("linux" "nova" "busybox" "musl-tools")
 
 # StelaLinux Package List
-IMAGE_PKG=("busybox" "linux" "nova" "syslinux")
+IMAGE_PKG=("busybox" "linux" "nova" "syslinux" "musl-tools")
 
 # StelaLinux Toolchain Package List
 TOOL_PKG=("file" "m4" "ncurses" "libtool" "autoconf" "automake" "linux" "binutils" "gcc-extras" "gcc-static" "musl" "gcc" "pkgconf")
@@ -494,6 +494,8 @@ function tutmonda_build() {
     # ----- Export Work Directory ----- #
     if [[ $PACKAGE == "nova" ]]; then
         export DIR=$work_dir/*-$PACKAGE
+    elif [[ $PACKAGE == "musl-tools" ]]; then
+        export DIR=$work_dir
     else
         export DIR=$work_dir/$PACKAGE-*
     fi

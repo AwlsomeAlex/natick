@@ -34,7 +34,7 @@ build_ncurses() {
     #
     # Source: http://www.linuxfromscratch.org/lfs/view/development/chapter06/ncurses.html
     #
-    #sed -i '/LIBTOOL_INSTALL/d' c++/Makefile.in
+    sed -i '/LIBTOOL_INSTALL/d' c++/Makefile.in
 
     # Configure Ncurses (Ataraxia)
     ./configure $BUILDFLAGS \
@@ -43,10 +43,10 @@ build_ncurses() {
 		--with-default-terminfo-dir=/usr/share/terminfo \
 		--with-pkg-config-libdir=/usr/lib/pkgconfig \
 		--with-terminfo-dirs="/etc/terminfo:/usr/share/terminfo" \
-		--with-normal \
 		--with-shared \
 		--without-ada \
 		--without-debug \
+        --without-normal \
 		--without-tests \
 		--enable-overwrite \
 		--enable-pc-files \
@@ -73,7 +73,7 @@ build_ncurses() {
     # Source: https://github.com/ivandavidov/minimal/blob/master/src/minimal_overlay/bundles/ncurses/02_build.sh#L54
     #
     #ln -sf libncursesw.so.6 $fs/usr/lib/libncurses.so.6
-    #ln -sf libncursesw.so.6 $fs/usr/lib/libncurses.so
+    #ln -sf libncurses.so.6 $fs/usr/lib/libncurses.so
     
     #ln -sf libncursesw.so.6 $fs/usr/lib/libtinfow.so.6
     #ln -sf libncursesw.so.6 $fs/usr/lib/libtinfow.so
@@ -82,4 +82,14 @@ build_ncurses() {
 
     # Symlink ncurses config
     #ln -sf ncursesw6-config $fs/usr/bin/ncurses6-config
+    
+    for lib in ncurses form panel menu ; do
+        rm -vf $fs/usr/lib/lib${lib}.so
+        echo "INPUT(-l${lib}w)" > $fs/usr/lib/lib${lib}.so
+        ln -sfv ${lib}w.pc $fs/usr/lib/pkgconfig/${lib}.pc
+    done
+
+    rm -vf $fs/usr/lib/libcursesw.so
+    echo "INPUT(-lncursesw)" > $fs/usr/lib/libcursesw.so
+    ln -sfv libncurses.so $fs/usr/lib/libcurses.so
 }

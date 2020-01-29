@@ -1,0 +1,48 @@
+#####################################
+#-----------------------------------#
+# StelaKonstrui Script - Musl Tools #
+#-----------------------------------#
+#####################################
+# Copyright (c) 2020 Alexander Barris <awlsomealex at outlook dot com>
+# All Rights Reserved
+# Licensed under the GNU GPLv3, which can be found at https://www.gnu.org/licenses/gpl-3.0.en.html
+#
+# Description:  Extra tools for Musl
+# URL:          https://www.github.com/AwlsomeAlex/stelalinux
+# Maintainer:   AwlsomeAlex
+# Section:      kerno
+#
+
+# ----- Package Information ----- #
+PKG_NAME=musl-tools
+PKG_VERSION=GIT
+PKG_SRC=("getconf.c" "getent.c" "iconv.c")
+PKG_DEPS=()
+
+# ----- Build Function ----- #
+build_musl-tools() {
+    
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
+
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+   
+    # Create Directory
+    mkdir -p $fs/usr/bin/
+    
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
+
+    # Compile and Statically Link against libc
+    ${CROSS_COMPILE}cc $CFLAGS -static getconf.c -o "$fs"/usr/bin/getconf
+    ${CROSS_COMPILE}cc $CFLAGS -static getent.c -o "$fs"/usr/bin/getent
+    ${CROSS_COMPILE}cc $CFLAGS -static iconv.c -o "$fs"/usr/bin/iconv
+
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
+}
