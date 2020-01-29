@@ -650,19 +650,19 @@ function tutmonda_all() {
 
     # ----- Build All Packages ----- #
     # Reset Cross Compiler Variables
-    CROSS_COMPILE="$XTARGET-"
-    CC="$XTARGET-gcc"
-    CXX="$XTARGET-g++"
-    AR="$XTARGET-ar"
-    AS="$XTARGET-as"
-    RANLIB="$XTARGET-ranlib"
-    LD="$XTARGET-ld"
-    STRIP="$XTARGET-strip"
-    BUILDFLAGS="--build=$XHOST --host=$XTARGET"
-    TOOLFLAGS="--build=$XHOST --host=$XTARGET --target=$XTARGET"
-    PERLFLAGS="--target=$XTARGET"
-    PKG_CONFIG_PATH="$FIN_DIR/usr/lib/pkgconfig:$FIN_DIR/usr/share/pkgconfig"
-    PKG_CONFIG_SYSROOT="$FIN_DIR"
+    export CROSS_COMPILE="$XTARGET-"
+    export CC="$XTARGET-gcc"
+    export CXX="$XTARGET-g++"
+    export AR="$XTARGET-ar"
+    export AS="$XTARGET-as"
+    export RANLIB="$XTARGET-ranlib"
+    export LD="$XTARGET-ld"
+    export STRIP="$XTARGET-strip"
+    export BUILDFLAGS="--build=$XHOST --host=$XTARGET"
+    export TOOLFLAGS="--build=$XHOST --host=$XTARGET --target=$XTARGET"
+    export PERLFLAGS="--target=$XTARGET"
+    export PKG_CONFIG_PATH="$FIN_DIR/usr/lib/pkgconfig:$FIN_DIR/usr/share/pkgconfig"
+    export PKG_CONFIG_SYSROOT="$FIN_DIR"
 
     # Build Defined Packages
     for p in "${IMAGE_PKG[@]}"; do
