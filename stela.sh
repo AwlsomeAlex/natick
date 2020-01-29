@@ -558,6 +558,11 @@ function tutmonda_initramfs() {
         loka_print "Copied $i to InitramFS." "done"
     done
 
+    # ----- Copy musl library ----- #
+    loka_print "Copying musl to InitramFS...." "...."
+    cp -a $TWRK_DIR/musl.fs/* $INITRAMFS_DIR/fs
+    loka_print "Copied musl to InitramFS." "done"
+
     # ----- Strip InitramFS ----- #
     loka_print "Stripping InitramFS...." "...."
     set +e
@@ -619,7 +624,7 @@ function tutmonda_qemu() {
             loka_print "QEMU 64-bit Not Installed." "fail"
             exit
         fi
-        qemu-system-x86_64 -enable-kvm -m 512M -cdrom $STELA/StelaLinux-$BUILD_NUMBER-$ARCH.iso -boot d
+        qemu-system-x86_64 -enable-kvm -m 512M -cdrom $STELA/StelaLinux-$BUILD_NUMBER-$ARCH.iso -serial stdio -boot d
     elif [[ $ARCH == "i586" ]] || [[ $ARCH == "i686" ]]; then
         if [[ $(which qemu-system-i386) == "" ]]; then
             loka_print "QEMU 32-bit Not Installed." "fail"
