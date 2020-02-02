@@ -9,6 +9,7 @@
 #
 # Description:  System V Release 4.0 curses emulation library
 # URL:          https://invisible-island.net/ncurses/ncurses.html
+# License:      MIT License
 # Maintainer:   AwlsomeAlex
 # Section:      toolchain (Stage 1)
 
@@ -38,8 +39,8 @@ build_ncurses() {
     #-----------------------#
 
     # Compile Package
-    make $MAKEFLAGS -C include
-    make $MAKEFLAGS -C progs tic
+    make -C include
+    make -C progs tic
 
     #---------------------#
     # ----- Install ----- #

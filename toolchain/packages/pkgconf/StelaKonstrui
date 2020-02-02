@@ -9,6 +9,7 @@
 #
 # Description:  Package compiler and linker metadata toolkit
 # URL:          https://github.com/pkgconf/pkgconf
+# License:      custom license
 # Maintainer:   AwlsomeAlex
 # Section:      toolchain (Stage 2)
 #

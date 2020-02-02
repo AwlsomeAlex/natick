@@ -1,0 +1,57 @@
+########################################
+#--------------------------------------#
+# StelaKonstrui Script - Linux Headers #
+#--------------------------------------#
+########################################
+# Copyright (c) 2020 Alexander Barris <awlsomealex at outlook dot com>
+# All Rights Reserved
+# Licensed under the GNU GPLv3, which can be found at https://www.gnu.org/licenses/gpl-3.0.en.html
+#
+# Description:  Headers and scripts for building modules for the Linux Kernel
+# URL:          https://kernel.org
+# License:      GNU GPLv2
+# Maintainer:   AwlsomeAlex
+# Section:      kerno
+#
+
+# ----- Package Information ----- #
+PKG_NAME=linux-headers
+PKG_VERSION=5.4.17
+PKG_SRC=("https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-$PKG_VERSION.tar.xz")
+PKG_DEPS=()
+
+# ----- Build Function ----- #
+build_linux-headers() {
+    
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
+    
+    # Kernel Architecture
+    case $ARCH in
+        x86_64)
+            export XKARCH="x86_64"
+            ;;
+        i686|i586)
+            export XKARCH="i386"
+            ;;
+    esac
+
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+   
+    # Generate Linux Kernel Config
+    make mrproper
+
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
+
+    # Compile Linux Kernel Headers
+    make ARCH=$XKARCH INSTALL_HDR_PATH="$fs"/usr headers_install
+ 
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
+}

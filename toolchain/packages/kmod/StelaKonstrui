@@ -1,26 +1,26 @@
-###############################################
-#---------------------------------------------#
-# StelaKonstrui Script - automake (Toolchain) #
-#---------------------------------------------#
-###############################################
+###########################################
+#-----------------------------------------#
+# StelaKonstrui Script - kmod (Toolchain) #
+#-----------------------------------------#
+###########################################
 # Copyright (c) 2020 Alexander Barris <awlsomealex at outlook dot com>
 # All Rights Reserved
 # Licensed under the GNU GPLv3, which can be found at https://www.gnu.org/licenses/gpl-3.0.en.html
 #
-# Description:  A GNU tool for automatically creating Makefiles
-# URL:          https://www.gnu.org/software/automake
+# Description:  Linux Kernel module management tools and library
+# URL:          https://git.kernel.org/?p=utils/kernel/kmod/kmod.git;a=summary
 # License:      GNU GPLv2
 # Maintainer:   AwlsomeAlex
 # Section:      toolchain (Stage 1)
 #
 
 # ----- Package Information ----- #
-PKG_NAME=automake
-PKG_VERSION=1.16.1
-PKG_SRC=("http://ftp.gnu.org/gnu/$PKG_NAME/$PKG_NAME-$PKG_VERSION.tar.xz")
+PKG_NAME=kmod
+PKG_VERSION=26
+PKG_SRC=("https://www.kernel.org/pub/linux/utils/kernel/kmod/kmod-$PKG_VERSION.tar.xz")
 
 # ----- Build Function ----- #
-build_automake() {
+build_kmod() {
     
     #-----------------------------#
     # ----- Local Variables ----- #
@@ -33,8 +33,10 @@ build_automake() {
     # Configure Package
     ./configure \
         --prefix="$TFIN_DIR" \
-        --disable-nls
-        
+        --with-xz \
+        --with-zlib \
+        --disable-manpages
+ 
     #-----------------------#
     # ----- Compiling ----- #
     #-----------------------#
@@ -48,4 +50,9 @@ build_automake() {
     
     # Install Package to Toolchain Directory
     make install
+
+    # Create symlinks (Ataraxia)
+    for tool in {ins,ls,rm,dep}mod mod{probe,info}; do
+		ln -sf kmod "$TFIN_DIR"/bin/$tool
+	done
 }

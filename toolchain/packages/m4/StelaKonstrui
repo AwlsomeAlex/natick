@@ -9,6 +9,7 @@
 #
 # Description:  GNU Implementation of traditional UNIX macro processor
 # URL:          https://gnu.org/software/m4
+# License:      GNU GPLv3
 # Maintainer:   AwlsomeAlex
 # Section:      toolchain (Stage 1)
 #
@@ -42,12 +43,12 @@ build_m4() {
     #-----------------------#
 
     # Compile Package
-    make $MAKEFLAGS
+    make
 
     #---------------------#
     # ----- Install ----- #
     #---------------------#
     
     # Install Package to Toolchain Directory
-    make $MAKEFLAGS install
+    make install
 }

@@ -7,8 +7,9 @@
 # All Rights Reserved
 # Licensed under the GNU GPLv3, which can be found at https://www.gnu.org/licenses/gpl-3.0.en.html
 #
-# Description:  The Open Source implementation of UNIX file(1)
+# Description:  File type identification utility
 # URL:          https://darwinsys.com/file
+# License:      custom license 
 # Maintainer:   AwlsomeAlex
 # Section:      toolchain (Stage 1)
 #
@@ -42,12 +43,12 @@ build_file() {
     #-----------------------#
 
     # Compile Package
-    make $MAKEFLAGS
+    make
 
     #---------------------#
     # ----- Install ----- #
     #---------------------#
     
     # Install Package to Toolchain Directory
-    make $MAKEFLAGS install
+    make install
 }

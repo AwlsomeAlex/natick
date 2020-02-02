@@ -30,7 +30,7 @@ INITRAMFS_PKG=("linux" "nova" "busybox" "musl-tools")
 IMAGE_PKG=("busybox" "linux" "nova" "syslinux" "musl-tools")
 
 # StelaLinux Toolchain Package List
-TOOL_PKG=("file" "m4" "ncurses" "libtool" "autoconf" "automake" "linux" "binutils" "gcc-extras" "gcc-static" "musl" "gcc" "pkgconf")
+TOOL_PKG=("file" "gettext-tiny" "m4" "bison" "flex" "bc" "ncurses" "kmod" "gperf" "libtool" "autoconf" "automake" "linux-headers" "binutils" "gcc-extras" "gcc-static" "musl" "gcc" "cracklib" "pkgconf")
 
 # StelaLinux Target Architecture (Supported: i686/x86_64)
 #export ARCH=i686
@@ -238,11 +238,6 @@ function loka_prepare() {
         ln -s usr/bin bin
         ln -s usr/sbin sbin
         loka_print "Created Build Environment" "done"
-        # Copy musl library and Headers (If it exists yet)
-        if [[ -d $TWRK_DIR/musl.fs ]] && [[ ! -f $FIN_DIR/usr/lib/libc.so ]]; then
-            loka_install "$TWRK_DIR/musl.fs"
-            loka_install "$TWRK_DIR/linux.fs"
-        fi
     fi
 }
 
@@ -358,6 +353,28 @@ function tutmonda_toolchain() {
     # ----- Build Packages ----- #
     for t in "${TOOL_PKG[@]}"; do
         
+        if [[ $t == "linux-headers" ]] then;
+            tutmonda_build $t
+            continue
+        elif [[ $t == "musl" ]]; then
+            # ----- Reset Cross Compiler Flags ----- #
+            export CROSS_COMPILE="$XTARGET-"
+            export CC="$XTARGET-gcc"
+            export CXX="$XTARGET-g++"
+            export AR="$XTARGET-ar"
+            export AS="$XTARGET-as"
+            export RANLIB="$XTARGET-ranlib"
+            export LD="$XTARGET-ld"
+            export STRIP="$XTARGET-strip"
+            export BUILDFLAGS="--build=$XHOST --host=$XTARGET"
+            export TOOLFLAGS="--build=$XHOST --host=$XTARGET --target=$XTARGET"
+            export PERLFLAGS="--target=$XTARGET"
+            export PKG_CONFIG_PATH="$FIN_DIR/usr/lib/pkgconfig:$FIN_DIR/usr/share/pkgconfig"
+            export PKG_CONFIG_SYSROOT="$FIN_DIR"
+            tutmonda_build $t
+            continue
+        fi
+
         # --- Set Variables --- #
         PACKAGE="$t"
         source "$TR_DIR/$PACKAGE/StelaKonstrui"
@@ -371,9 +388,6 @@ function tutmonda_toolchain() {
         unset RANLIB
         unset LD
         unset STRIP
-        unset BUILDFLAGS
-        unset TOOLFLAGS
-        unset PERLFLAGS
         unset PKG_CONFIG_PATH
         unset PKG_CONFIG_SYSROOT_DIR
         
@@ -409,19 +423,7 @@ function tutmonda_toolchain() {
         loka_print "Building $PACKAGE...." "...."
         build_$PACKAGE
         loka_print "Built $PACKAGE." "done"
-
-        # --- Install to RootFS (Linux Kernel Headers + Musl C Library) --- #
-        if [[ $PACKAGE == "linux" ]] || [[ $PACKAGE == "musl" ]]; then
-            loka_install "$TWRK_DIR/$PACKAGE.fs"
-        fi
-
     done
-
-    # ----- Preserve RootFS ----- #
-    loka_print "Preserving RootFS...." "...."
-    mkdir $TWRK_DIR/fs
-    cp -a $FIN_DIR/. $TWRK_DIR/fs/
-    loka_print "RootFS Preserved." "done"
 }
 
 # build(): Build a StelaLinux Package
@@ -558,11 +560,6 @@ function tutmonda_initramfs() {
         loka_print "Copied $i to InitramFS." "done"
     done
 
-    # ----- Copy musl library ----- #
-    loka_print "Copying musl to InitramFS...." "...."
-    cp -a $TWRK_DIR/musl.fs/* $INITRAMFS_DIR/fs
-    loka_print "Copied musl to InitramFS." "done"
-
     # ----- Strip InitramFS ----- #
     loka_print "Stripping InitramFS...." "...."
     set +e
@@ -630,7 +627,7 @@ function tutmonda_qemu() {
             loka_print "QEMU 32-bit Not Installed." "fail"
             exit
         fi
-        qemu-system-i386 -enable-kvm -m 512M -cdrom $STELA/StelaLinux-$BUILD_NUMBER-$ARCH.iso -boot d
+        qemu-system-i386 -enable-kvm -m 512M -cdrom $STELA/StelaLinux-$BUILD_NUMBER-$ARCH.iso -serial stdio -boot d
     else
         loka_print "Unknown Architecture: $ARCH" "fail"
         exit

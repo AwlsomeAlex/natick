@@ -1,26 +1,26 @@
-###############################################
-#---------------------------------------------#
-# StelaKonstrui Script - automake (Toolchain) #
-#---------------------------------------------#
-###############################################
+###########################################
+#-----------------------------------------#
+# StelaKonstrui Script - flex (Toolchain) #
+#-----------------------------------------#
+###########################################
 # Copyright (c) 2020 Alexander Barris <awlsomealex at outlook dot com>
 # All Rights Reserved
 # Licensed under the GNU GPLv3, which can be found at https://www.gnu.org/licenses/gpl-3.0.en.html
 #
-# Description:  A GNU tool for automatically creating Makefiles
-# URL:          https://www.gnu.org/software/automake
-# License:      GNU GPLv2
+# Description:  A tool for generating text-scanning programs
+# URL:          https://github.com/westes/flex
+# License:      custom license
 # Maintainer:   AwlsomeAlex
 # Section:      toolchain (Stage 1)
 #
 
 # ----- Package Information ----- #
-PKG_NAME=automake
-PKG_VERSION=1.16.1
-PKG_SRC=("http://ftp.gnu.org/gnu/$PKG_NAME/$PKG_NAME-$PKG_VERSION.tar.xz")
+PKG_NAME=flex
+PKG_VERSION=2.6.4
+PKG_SRC=("https://github.com/westes/flex/releases/download/v$PKG_VERSION/flex-$PKG_VERSION.tar.gz")
 
 # ----- Build Function ----- #
-build_automake() {
+build_flex() {
     
     #-----------------------------#
     # ----- Local Variables ----- #
@@ -30,11 +30,13 @@ build_automake() {
     # ----- Configuration ----- #
     #---------------------------#
     
+    # Patch for glibc systems
+    sed -i "/math.h/a #include <malloc.h>" src/flexdef.h
+
     # Configure Package
     ./configure \
-        --prefix="$TFIN_DIR" \
-        --disable-nls
-        
+        --prefix="$TFIN_DIR"
+ 
     #-----------------------#
     # ----- Compiling ----- #
     #-----------------------#
@@ -48,4 +50,7 @@ build_automake() {
     
     # Install Package to Toolchain Directory
     make install
+
+    # Symlink flex
+    ln -sf flex "$TFIN_DIR"/bin/lex
 }

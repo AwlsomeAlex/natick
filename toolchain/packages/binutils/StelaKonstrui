@@ -9,6 +9,7 @@
 #
 # Description:  A set of programs to assemble and manipulate binary and object files
 # URL:          https://www.gnu.org/software/binutils
+# License:      GNU GPLv2, GNU GPLv3, etc
 # Maintainer:   AwlsomeAlex
 # Section:      toolchain (Stage 1)
 #
@@ -26,12 +27,15 @@ build_binutils() {
     #-----------------------------#
 
     # Set Hash Style
-    HASHCONFIG="--enable-default-hash-style=gnu"
+    hashconfig="--enable-default-hash-style=gnu"
 
     # Set Target (x86_64)
     if [[ $ARCH == "x86_64" ]]; then
-        ARCHCONFIG="--enable-target=x86_64-pep"    
+        archconfig="--enable-targets=x86_64-pep"    
     fi
+
+    echo "$XTARGET $hashconfig $archconfig"
+    read
     
     #---------------------------#
     # ----- Configuration ----- #
@@ -44,7 +48,7 @@ build_binutils() {
     # Configure Package
     ../configure \
 		--prefix="$TFIN_DIR" \
-		--target=$XTARGET $ARCHCONFIG $HASHCONFIG \
+		--target=$XTARGET $archconfig $hashconfig \
 		--with-bugurl="https://github.com/awlsomealex/stelalinux/issues" \
 		--with-sysroot="$FIN_DIR" \
 		--with-lib-path="$FIN_DIR/usr/lib" \
@@ -64,21 +68,21 @@ build_binutils() {
 		--disable-werror
 	
     # Configure Host
-    make MAKEINFO="true" $MAKEFLAGS configure-host
+    make MAKEINFO="true" configure-host
  
     #-----------------------#
     # ----- Compiling ----- #
     #-----------------------#
 
     # Compile Package
-    make MAKEINFO="true" $MAKEFLAGS
+    make MAKEINFO="true"
 
     #---------------------#
     # ----- Install ----- #
     #---------------------#
     
     # Install Package to Toolchain Directory
-    make MAKEINFO="true" $MAKEFLAGS install
+    make MAKEINFO="true" install
 
     # Symlink ld
     rm -rf "$TFIN_DIR"/bin/$XTARGET-ld

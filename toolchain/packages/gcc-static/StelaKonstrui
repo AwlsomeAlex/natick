@@ -9,6 +9,7 @@
 #
 # Description:  The GNU Compiler Collection - C Frontend (Static, Stage 1 Compiler)
 # URL:          https://gcc.gnu.org/
+# License:      GNU GPLv2, GNU LGPLv21, GCC Runtime Library Exception, GNU GPLv3, GNU LGPLv3
 # Maintainer:   AwlsomeAlex
 # Section:      toolchain (Stage 1)
 #
@@ -42,7 +43,7 @@ build_gcc-static() {
     esac 
 
     # Set Hash Style
-    HASHCONFIG="--with-linker-hash-style=gnu"
+    hashconfig="--with-linker-hash-style=gnu"
     
     # Set Build Flags
     export CFLAGS_FOR_BUILD=" "
@@ -98,7 +99,7 @@ build_gcc-static() {
 		--libexecdir="$TFIN_DIR/lib" \
 		--build=$XHOST \
 		--host=$XHOST \
-		--target=$XTARGET $GCCOPTS $HASHCONFIG \
+		--target=$XTARGET $GCCOPTS $hashconfig \
 		--with-pkgversion="StelaLinux $BUILD_NUMBER for $ARCH" \
 		--with-bugurl="https://github.com/awlsomealex/stelalinux/issues" \
 		--with-sysroot="$FIN_DIR" \
@@ -139,14 +140,14 @@ build_gcc-static() {
     #-----------------------#
 
     # Compile Package
-    make $MAKEFLAGS all-gcc all-target-libgcc
+    make all-gcc all-target-libgcc
     
     #---------------------#
     # ----- Install ----- #
     #---------------------#
     
     # Install Package to Toolchain Directory
-    make $MAKEFLAGS install-gcc install-target-libgcc
+    make -j1 install-gcc install-target-libgcc
 
     # Symlink gcc
     ln -sf $XTARGET-gcc "$TFIN_DIR"/bin/$XTARGET-cc

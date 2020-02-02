@@ -1,0 +1,74 @@
+########################################
+#--------------------------------------#
+# StelaKonstrui Script - Linux Headers #
+#--------------------------------------#
+########################################
+# Copyright (c) 2020 Alexander Barris <awlsomealex at outlook dot com>
+# All Rights Reserved
+# Licensed under the GNU GPLv3, which can be found at https://www.gnu.org/licenses/gpl-3.0.en.html
+#
+# Description:  Lightweight implementation of C standard library
+# URL:          https://www.musl-libc.org/
+# License:      MIT License
+# Maintainer:   AwlsomeAlex
+# Section:      kerno
+#
+
+# ----- Package Information ----- #
+PKG_NAME=musl
+PKG_VERSION=1.1.24
+PKG_SRC=("http://www.musl-libc.org/releases/musl-$PKG_VERSION.tar.gz")
+PKG_DEPS=()
+
+# ----- Build Function ----- #
+build_musl() {
+    
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
+    
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+   
+    # Test Package
+    ${CROSS_COMPILE}cc $CFLAGS -c "$RDIR"/musl/__stack_chk_fail_local.c -o __stack_chk_fail_local.o
+	${CROSS_COMPILE}ar r libssp_nonshared.a __stack_chk_fail_local.o
+
+    # Configure musl
+    ./configure $TOOLFLAGS \
+        --prefix=/usr \
+        --libdir=/usr/lib \
+        --syslibdir=/usr/lib \
+        --enable-optimize=size
+
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
+
+    # Compile musl
+    make DESTDIR="$fs"
+ 
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
+    
+    # Install musl to FS
+    make DESTDIR="$fs" install
+
+    # Copy libssp
+    cp libssp_nonshared.a "$fs"/usr/lib
+    
+    # Symlink ldd
+    mkdir -p "$fs"/usr/bin
+    ln -sf ../lib/libc.so "$fs"/usr/bin/ldd
+
+    # Create dummy ldconfig
+    cat > "$PKG"/usr/bin/ldconfig << "EOF"
+#!/bin/sh
+echo "adjusting libs..."
+true
+EOF
+
+	chmod +x "$PKG"/usr/bin/ldconfig
+}

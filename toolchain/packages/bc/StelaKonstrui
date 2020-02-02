@@ -1,26 +1,26 @@
-###############################################
-#---------------------------------------------#
-# StelaKonstrui Script - automake (Toolchain) #
-#---------------------------------------------#
-###############################################
+#########################################
+#---------------------------------------#
+# StelaKonstrui Script - bc (Toolchain) #
+#---------------------------------------#
+#########################################
 # Copyright (c) 2020 Alexander Barris <awlsomealex at outlook dot com>
 # All Rights Reserved
 # Licensed under the GNU GPLv3, which can be found at https://www.gnu.org/licenses/gpl-3.0.en.html
 #
-# Description:  A GNU tool for automatically creating Makefiles
-# URL:          https://www.gnu.org/software/automake
-# License:      GNU GPLv2
+# Description:  Abritary precision calculator language
+# URL:          https://gnu.org/software/bc
+# License:      GNU GPLv3
 # Maintainer:   AwlsomeAlex
 # Section:      toolchain (Stage 1)
 #
 
 # ----- Package Information ----- #
-PKG_NAME=automake
-PKG_VERSION=1.16.1
-PKG_SRC=("http://ftp.gnu.org/gnu/$PKG_NAME/$PKG_NAME-$PKG_VERSION.tar.xz")
+PKG_NAME=bc
+PKG_VERSION=2.5.3
+PKG_SRC=("https://github.com/gavinhoward/bc/archive/$PKG_VERSION.tar.gz")
 
 # ----- Build Function ----- #
-build_automake() {
+build_bc() {
     
     #-----------------------------#
     # ----- Local Variables ----- #
@@ -31,21 +31,20 @@ build_automake() {
     #---------------------------#
     
     # Configure Package
-    ./configure \
-        --prefix="$TFIN_DIR" \
-        --disable-nls
-        
+    PREFIX='' ./configure.sh \
+        --disable-nls    
+ 
     #-----------------------#
     # ----- Compiling ----- #
     #-----------------------#
 
     # Compile Package
-    make
+    make PREFIX=''
 
     #---------------------#
     # ----- Install ----- #
     #---------------------#
     
     # Install Package to Toolchain Directory
-    make install
+    make PREFIX='' DESTDIR="$TFIN_DIR" install
 }
