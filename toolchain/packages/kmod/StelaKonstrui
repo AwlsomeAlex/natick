@@ -32,11 +32,11 @@ build_kmod() {
     
     # Configure Package
     ./configure \
-        --prefix="$TFIN_DIR" \
-        --with-xz \
-        --with-zlib \
-        --disable-manpages
- 
+		--prefix="$TFIN_DIR" \
+		--with-xz \
+		--with-zlib \
+		--disable-manpages 
+    
     #-----------------------#
     # ----- Compiling ----- #
     #-----------------------#
@@ -49,7 +49,9 @@ build_kmod() {
     #---------------------#
     
     # Install Package to Toolchain Directory
+    set +e
     make install
+    set -e
 
     # Create symlinks (Ataraxia)
     for tool in {ins,ls,rm,dep}mod mod{probe,info}; do

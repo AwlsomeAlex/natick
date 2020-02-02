@@ -353,6 +353,7 @@ function tutmonda_toolchain() {
     # ----- Build Packages ----- #
     for t in "${TOOL_PKG[@]}"; do
         
+        PACKAGE="$t"
         if [[ $t == "linux-headers" ]]; then
             tutmonda_build $t
             continue
@@ -376,7 +377,6 @@ function tutmonda_toolchain() {
         fi
 
         # --- Set Variables --- #
-        PACKAGE="$t"
         source "$TR_DIR/$PACKAGE/StelaKonstrui"
 
         # ----- Unset Cross Compiler Variables ----- #
@@ -498,6 +498,8 @@ function tutmonda_build() {
         export DIR=$work_dir/*-$PACKAGE
     elif [[ $PACKAGE == "musl-tools" ]]; then
         export DIR=$work_dir
+    elif [[ $PACKAGE == "linux-headers" ]]; then
+        export DIR=$work_dir/linux-*
     else
         export DIR=$work_dir/$PACKAGE-*
     fi
