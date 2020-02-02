@@ -24,10 +24,10 @@ export BUILD_NAME="Git Build"
 export BUILD_NUMBER="git"
 
 # InitramFS Package List
-INITRAMFS_PKG=("linux" "nova" "busybox" "musl" "musl-tools" "ncurses")
+INITRAMFS_PKG=("linux" "nova" "busybox" "musl" "musl-tools")
 
 # StelaLinux Package List
-IMAGE_PKG=("busybox" "linux" "nova" "syslinux" "musl-tools")
+IMAGE_PKG=("busybox" "linux" "nova" "syslinux" "musl-tools" "musl")
 
 # StelaLinux Toolchain Package List
 TOOL_PKG=("file" "gettext-tiny" "m4" "bison" "flex" "bc" "ncurses" "gperf" "libtool" "autoconf" "automake" "linux-headers" "binutils" "gcc-extras" "gcc-static" "musl" "gcc" "cracklib" "pkgconf")
