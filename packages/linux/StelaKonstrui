@@ -16,7 +16,7 @@
 
 # ----- Package Information ----- #
 PKG_NAME=linux
-PKG_VERSION=5.4.14
+PKG_VERSION=5.4.17
 PKG_SRC=("https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-$PKG_VERSION.tar.xz")
 PKG_DEPS=()
 
@@ -41,7 +41,7 @@ build_linux() {
     export SUBKARCH="x86"
 
     # Image File Location
-    image_file="arch/$XKARCH/boot/bzImage"
+    image_file="arch/$SUBKARCH/boot/bzImage"
 
     #---------------------------#
     # ----- Configuration ----- #
@@ -79,7 +79,7 @@ build_linux() {
 
     # Make mrproper
     unset LDFLAGS
-    make mrproper
+    #make mrproper
     
     #-----------------------#
     # ----- Compiling ----- #

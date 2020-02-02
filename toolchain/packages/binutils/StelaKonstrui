@@ -34,9 +34,6 @@ build_binutils() {
         archconfig="--enable-targets=x86_64-pep"    
     fi
 
-    echo "$XTARGET $hashconfig $archconfig"
-    read
-    
     #---------------------------#
     # ----- Configuration ----- #
     #---------------------------#

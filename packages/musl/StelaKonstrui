@@ -64,11 +64,11 @@ build_musl() {
     ln -sf ../lib/libc.so "$fs"/usr/bin/ldd
 
     # Create dummy ldconfig
-    cat > "$PKG"/usr/bin/ldconfig << "EOF"
+    cat > "$fs"/usr/bin/ldconfig << "EOF"
 #!/bin/sh
 echo "adjusting libs..."
 true
 EOF
 
-	chmod +x "$PKG"/usr/bin/ldconfig
+	chmod +x "$fs"/usr/bin/ldconfig
 }

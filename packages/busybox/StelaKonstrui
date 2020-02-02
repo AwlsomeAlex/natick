@@ -67,7 +67,7 @@ build_busybox() {
     install -D busybox "$fs"/usr/bin/busybox
 
     # Change File Permissions
-    chmod 0755 "fs"/usr/bin/busybox
+    chmod 0755 "$fs"/usr/bin/busybox
 
     # Create Symlinks (Thanks protonesso)
     for applet in `cat busybox.links|sed 's|^.*/||'`; do ln -sf busybox $fs/usr/bin/$applet || true; done

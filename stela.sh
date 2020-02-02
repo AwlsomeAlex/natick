@@ -30,7 +30,7 @@ INITRAMFS_PKG=("linux" "nova" "busybox" "musl-tools")
 IMAGE_PKG=("busybox" "linux" "nova" "syslinux" "musl-tools")
 
 # StelaLinux Toolchain Package List
-TOOL_PKG=("file" "gettext-tiny" "m4" "bison" "flex" "bc" "ncurses" "kmod" "gperf" "libtool" "autoconf" "automake" "linux-headers" "binutils" "gcc-extras" "gcc-static" "musl" "gcc" "cracklib" "pkgconf")
+TOOL_PKG=("file" "gettext-tiny" "m4" "bison" "flex" "bc" "ncurses" "gperf" "libtool" "autoconf" "automake" "linux-headers" "binutils" "gcc-extras" "gcc-static" "musl" "gcc" "cracklib" "pkgconf")
 
 # StelaLinux Target Architecture (Supported: i686/x86_64)
 #export ARCH=i686
@@ -499,7 +499,7 @@ function tutmonda_build() {
     elif [[ $PACKAGE == "musl-tools" ]]; then
         export DIR=$work_dir
     elif [[ $PACKAGE == "linux-headers" ]]; then
-        export DIR=$work_dir/linux-*
+        export DIR=$work_dir/linux-$PKG_VERSION
     else
         export DIR=$work_dir/$PACKAGE-*
     fi
