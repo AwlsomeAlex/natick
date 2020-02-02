@@ -353,7 +353,7 @@ function tutmonda_toolchain() {
     # ----- Build Packages ----- #
     for t in "${TOOL_PKG[@]}"; do
         
-        if [[ $t == "linux-headers" ]] then;
+        if [[ $t == "linux-headers" ]]; then
             tutmonda_build $t
             continue
         elif [[ $t == "musl" ]]; then
