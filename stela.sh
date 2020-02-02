@@ -24,7 +24,7 @@ export BUILD_NAME="Git Build"
 export BUILD_NUMBER="git"
 
 # InitramFS Package List
-INITRAMFS_PKG=("linux" "nova" "busybox" "musl-tools")
+INITRAMFS_PKG=("linux" "nova" "busybox" "musl" "musl-tools" "ncurses")
 
 # StelaLinux Package List
 IMAGE_PKG=("busybox" "linux" "nova" "syslinux" "musl-tools")
@@ -106,7 +106,7 @@ export XTARGET="${ARCH}-linux-musl"
 export XHOST="$(echo ${MACHTYPE} | sed -e 's/-[^-]*/-cross/')"
 
 # ----- Compiler Flags ----- #
-export CFLAGS="-Os -s -fomit-frame-pointer -pipe"
+export CFLAGS="-g0 -Os -s -fexcess-precision=fast -fomit-frame-pointer -Wl,--as-needed -pipe"
 export CXXFLAGS="$CFLAGS"
 export LC_ALL="POSIX"
 NUM_JOBS="$(expr $(nproc) + 1)"

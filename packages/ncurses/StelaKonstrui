@@ -26,6 +26,13 @@ build_ncurses() {
     # ----- Local Variables ----- #
     #-----------------------------#
 
+    # Set HostCC
+    if [ -n "$HOSTCC" ]; then
+        BUILDFLAGS="$BUILDFLAGS --with-build-cc=$HOSTCC"
+    else
+        BUILDFLAGS="$BUILDFLAGS"
+    fi
+
     #---------------------------#
     # ----- Configuration ----- #
     #---------------------------#
@@ -34,7 +41,7 @@ build_ncurses() {
     #
     # Source: http://www.linuxfromscratch.org/lfs/view/development/chapter06/ncurses.html
     #
-    sed -i '/LIBTOOL_INSTALL/d' c++/Makefile.in
+    #sed -i '/LIBTOOL_INSTALL/d' c++/Makefile.in
 
     # Configure Ncurses (Ataraxia)
     ./configure $BUILDFLAGS \
@@ -43,10 +50,10 @@ build_ncurses() {
 		--with-default-terminfo-dir=/usr/share/terminfo \
 		--with-pkg-config-libdir=/usr/lib/pkgconfig \
 		--with-terminfo-dirs="/etc/terminfo:/usr/share/terminfo" \
-		--with-shared \
+		--with-normal \
+        --with-shared \
 		--without-ada \
 		--without-debug \
-        --without-normal \
 		--without-tests \
 		--enable-overwrite \
 		--enable-pc-files \
@@ -59,14 +66,14 @@ build_ncurses() {
     #-----------------------#
 
     # Make ncurses
-    make $MAKEFLAGS
+    make
 
     #---------------------#
     # ----- Install ----- #
     #---------------------#
     
     # Install to FS
-    make $MAKEFLAGS install DESTDIR=$fs
+    make -j1 DESTDIR="$fs" install
 
     # Symlink wide character libraries (MLL)
     #
@@ -83,13 +90,26 @@ build_ncurses() {
     # Symlink ncurses config
     #ln -sf ncursesw6-config $fs/usr/bin/ncurses6-config
     
-    for lib in ncurses form panel menu ; do
-        rm -vf $fs/usr/lib/lib${lib}.so
-        echo "INPUT(-l${lib}w)" > $fs/usr/lib/lib${lib}.so
-        ln -sfv ${lib}w.pc $fs/usr/lib/pkgconfig/${lib}.pc
-    done
+    # Symlink Libraries together (Ataraxia)
+    #
+    # Source: https://github.com/ataraxialinux/ataraxia/blob/master/packages/ncurses/KagamiBuild#L38
+    #
 
-    rm -vf $fs/usr/lib/libcursesw.so
-    echo "INPUT(-lncursesw)" > $fs/usr/lib/libcursesw.so
-    ln -sfv libncurses.so $fs/usr/lib/libcurses.so
+    for lib in ncurses form panel menu; do
+		echo "INPUT(-l${lib}w)" > "$fs"/usr/lib/lib${lib}.so
+		echo "INPUT(-l${lib}w)" > "$fs"/usr/lib/lib${lib}.a
+		ln -sf ${lib}w.pc "$fs"/usr/lib/pkgconfig/${lib}.pc
+	done
+
+	for lib in tic tinfo; do
+		echo "INPUT(libncursesw.so.${version:0:1})" > "$fs"/usr/lib/lib${lib}.so
+		ln -sf libncursesw.so.${version:0:1} "$fs"/usr/lib/lib${lib}.so.${version:0:1}
+	done
+
+	echo 'INPUT(-lncursesw)' > "$fs"/usr/lib/libcursesw.so
+	ln -sf libncurses.so "$fs"/usr/lib/libcurses.so
+
+	ln -sf ncursesw6-config "$fs"/usr/bin/ncurses6-config
+
+    rm -rf "$fs"/usr/bin
 }
