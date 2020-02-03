@@ -1,0 +1,67 @@
+#!/bin/busybox sh
+#######################
+#---------------------#
+#   Xiongnu - Init    #
+#---------------------#
+#######################
+# System Init Scripts #
+#######################
+# Copyright (C) 2019 Alexander Barris - All Rights Reserved
+# GNU GPLv3
+# vGIT
+
+dmesg -n 1 # Supress Kernel Messages
+
+#-------------------------#
+# ----- Color Codes ----- #
+#-------------------------#
+RED='\033[0;31m'
+BLUE='\033[1;34m'
+GREEN='\033[1;32m'
+ORANGE='\033[0;33m'
+NC='\033[0m'
+
+#-----------------------#
+# ----- Functions ----- #
+#-----------------------#
+
+# rescueShell(reason): Drops user into Emergency Shell
+function rescueShell() {
+    REASON=$1
+    echo -e "${RED}[FAIL] ${NC}System could not be initialized! REASON: $REASON"
+    echo "Dropping to an Emergency Shell...."
+    xiongnu_welcome
+    exec sh -
+}
+
+# moveMount(mountPoint): Moves mounted directory from InitramFS to realFS
+function moveMount() {
+    NAME=$1
+    mount --move /$NAME /mnt/root/$NAME || rescueShell "Could not move directory $NAME to real Filesystem!"
+}
+
+#-----------------------#
+# ----- Init Area ----- #
+#-----------------------#
+build=$(stela -b)
+echo -e "${ORANGE}========== Xiongnu vGIT - StelaLinux $build ==========${NC}"
+echo -e "${BLUE}[....] ${NC}Mounting System Directories...."
+mount -t devtmpfs none /dev || rescueShell "Failed to mount /dev!"
+mount -t proc none /proc || rescueShell "Failed to mount /proc!"
+mount -t sysfs none /sys || rescueShell "Failed to mount /sys!"
+mount -t tmpfs none /tmp || rescueShell "Failed to mount /tmp!"
+echo -e "${GREEN}[DONE] ${NC}Mounted Directories."
+echo -e "${BLUE}[....] ${NC}Populating Dynamic Device Directory (/dev)...."
+echo /sbin/mdev > /proc/sys/kernel/hotplug
+echo -e "${GREEN}[DONE] ${NC}Populated Dynamic Device Directory (/dev)."
+echo -e "${BLUE}[....] ${NC}Mounting File Systems...."
+mount -a || rescueShell "Failed to mount Filesystem!"
+echo -e "${GREEN}[DONE] ${NC}Mounted File System."
+echo -e "${BLUE}[....] ${NC}Moving Filesystems...."
+moveMount dev
+moveMount sys
+moveMount proc
+moveMount tmp
+echo -e "${GREEN}[DONE] ${NC}Moved Filesystems."
+echo -e "${BLUE}[....] ${NC}Switching to Root Filesystem...."
+exec switch_root /mnt/root /sbin/init || rescueShell "Failed to switch_root to Root Filesystem!"
