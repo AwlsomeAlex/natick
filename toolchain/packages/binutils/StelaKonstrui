@@ -30,7 +30,7 @@ build_binutils() {
     hashconfig="--enable-default-hash-style=gnu"
 
     # Set Target (x86_64)
-    if [[ $ARCH == "x86_64" ]]; then
+    if [[ $BARCH == "x86_64" ]]; then
         archconfig="--enable-targets=x86_64-pep"    
     fi
 

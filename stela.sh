@@ -27,14 +27,14 @@ export BUILD_NUMBER="git"
 INITRAMFS_PKG=("linux" "nova" "busybox" "musl" "musl-tools")
 
 # StelaLinux Package List
-IMAGE_PKG=("busybox" "linux" "nova" "syslinux" "musl-tools" "musl")
+IMAGE_PKG=("busybox" "linux" "nova" "syslinux" "musl-tools" "ncurses" "vim" "util-linux")
 
 # StelaLinux Toolchain Package List
 TOOL_PKG=("file" "gettext-tiny" "m4" "bison" "flex" "bc" "ncurses" "gperf" "libtool" "autoconf" "automake" "linux-headers" "binutils" "gcc-extras" "gcc-static" "musl" "gcc" "cracklib" "pkgconf")
 
 # StelaLinux Target Architecture (Supported: i686/x86_64)
-#export ARCH=i686
-export ARCH=x86_64
+export BARCH=i686
+#export ARCH=x86_64
 
 # ----- Directory Infomation ----- #
 
@@ -102,7 +102,7 @@ export HOSTCXX="g++"
 export ORIGMAKE="$(which make)"
 
 # ----- Architectures ----- #
-export XTARGET="${ARCH}-linux-musl"
+export XTARGET="${BARCH}-linux-musl"
 export XHOST="$(echo ${MACHTYPE} | sed -e 's/-[^-]*/-cross/')"
 
 # ----- Compiler Flags ----- #
@@ -320,7 +320,7 @@ function loka_install() {
     package_dir=$1
 
     loka_print "Installing $package_dir to Root Filesystem...." "...."
-    cp -a $package_dir/. $FIN_DIR/
+    cp -r --remove-destination $package_dir/. $FIN_DIR/
     loka_print "Installed $package_dir to Root Filesystem." "done"
 }
 
@@ -487,7 +487,7 @@ function tutmonda_build() {
                 loka_extract -p $f
             else
                 loka_print "Copying file $f...." "...."
-                cp -a $repo_dir/$f $work_dir
+                cp -r --remove-destination $repo_dir/$f $work_dir
                 loka_print "Copied file $f" "done"
             fi
         done
@@ -558,7 +558,7 @@ function tutmonda_initramfs() {
             exit
         fi
         loka_print "Copying $i to InitramFS...." "...."
-        cp -a $WRK_DIR/$i/$i.fs/* $INITRAMFS_DIR/fs
+        cp -r --remove-destination $WRK_DIR/$i/$i.fs/* $INITRAMFS_DIR/fs
         loka_print "Copied $i to InitramFS." "done"
     done
 
@@ -606,32 +606,32 @@ function tutmonda_image() {
         -no-emul-boot \
         -boot-load-size 4 \
         -boot-info-table \
-        -o $STELA/StelaLinux-$BUILD_NUMBER-$ARCH.iso \
+        -o $STELA/StelaLinux-$BUILD_NUMBER-$BARCH.iso \
         .
     loka_print "Generated Disk Image." "done"
 }
 
 # qemu(): Launch QEMU Emulator with Live CD
 function tutmonda_qemu() {
-    if [ ! -f $STELA/StelaLinux-$BUILD_NUMBER-$ARCH.iso ]; then
+    if [ ! -f $STELA/StelaLinux-$BUILD_NUMBER-$BARCH.iso ]; then
         loka_print "No StelaLinux Image Found." "fail"
         exit
     fi
     loka_print "Starting QEMU...." "...."
-    if [[ $ARCH == "x86_64" ]]; then
+    if [[ $BARCH == "x86_64" ]]; then
         if [[ $(which qemu-system-x86_64) == "" ]]; then
             loka_print "QEMU 64-bit Not Installed." "fail"
             exit
         fi
-        qemu-system-x86_64 -enable-kvm -m 512M -cdrom $STELA/StelaLinux-$BUILD_NUMBER-$ARCH.iso -serial stdio -boot d
-    elif [[ $ARCH == "i586" ]] || [[ $ARCH == "i686" ]]; then
+        qemu-system-x86_64 -enable-kvm -m 512M -cdrom $STELA/StelaLinux-$BUILD_NUMBER-$BARCH.iso -serial stdio -boot d
+    elif [[ $BARCH == "i586" ]] || [[ $BARCH == "i686" ]]; then
         if [[ $(which qemu-system-i386) == "" ]]; then
             loka_print "QEMU 32-bit Not Installed." "fail"
             exit
         fi
-        qemu-system-i386 -enable-kvm -m 512M -cdrom $STELA/StelaLinux-$BUILD_NUMBER-$ARCH.iso -serial stdio -boot d
+        qemu-system-i386 -enable-kvm -m 512M -cdrom $STELA/StelaLinux-$BUILD_NUMBER-$BARCH.iso -serial stdio -boot d
     else
-        loka_print "Unknown Architecture: $ARCH" "fail"
+        loka_print "Unknown Architecture: $BARCH" "fail"
         exit
     fi
     loka_print "QEMU Ran Successfully" "done"

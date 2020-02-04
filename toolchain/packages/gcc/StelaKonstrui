@@ -27,7 +27,7 @@ build_gcc() {
     #-----------------------------#
 
     # Set GCC Flags
-    case $ARCH in
+    case $BARCH in
         x86_64)
             export GCCOPTS="--with-arch=x86-64 --with-tune=generic"
             ;;
@@ -38,7 +38,7 @@ build_gcc() {
             export GCCOPTS="--with-arch=i586 --with-tune=generic"
             ;;
         *)
-            loka_print "Unsupported Architecture: $ARCH" "fail"
+            loka_print "Unsupported Architecture: $BARCH" "fail"
             exit
     esac 
 
@@ -102,7 +102,7 @@ build_gcc() {
 		--build=$XHOST \
 		--host=$XHOST \
 		--target=$XTARGET $GCCOPTS $hashconfig \
-		--with-pkgversion="StelaLinux $BUILD_NUMBER for $ARCH" \
+		--with-pkgversion="StelaLinux $BUILD_NUMBER for $BARCH" \
 		--with-bugurl="https://github.com/awlsomealex/stelalinux/issues" \
 		--with-sysroot="$FIN_DIR" \
 		--with-local-prefix="$FIN_DIR" \

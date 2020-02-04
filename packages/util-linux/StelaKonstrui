@@ -1,0 +1,83 @@
+#####################################
+#-----------------------------------#
+# StelaKonstrui Script - util-linux #
+#-----------------------------------#
+#####################################
+# Copyright (c) 2020 Alexander Barris <awlsomealex at outlook dot com>
+# All Rights Reserved
+# Licensed under the GNU GPLv3, which can be found at https://www.gnu.org/licenses/gpl-3.0.en.html
+#
+# Description:  Miscellaneous system utilities for Linux
+# URL:          https://github.com/karelzak/util-linux
+# License:      GNU GPLv2
+# Maintainer:   AwlsomeAlex
+# Section:      kerno
+#
+
+# ----- Package Information ----- #
+PKG_NAME=util-linux
+PKG_VERSION=2.35.1
+PKG_RELEASE=2.35
+PKG_SRC=("https://www.kernel.org/pub/linux/utils/util-linux/v$PKG_RELEASE/util-linux-$PKG_VERSION.tar.xz")
+PKG_DEPS=()
+
+# ----- Build Function ----- #
+build_util-linux() {
+    
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
+
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+
+    # Make directories
+    mkdir -p "$fs"/usr/{bin,lib}
+       
+    # Configure util-linux
+    ADJTIME_PATH=/var/lib/hwclock/adjtime \
+	./configure $BUILDFLAGS \
+		--prefix=$fs/usr \
+		--libdir=$fs/usr/lib \
+		--bindir=$fs/usr/bin \
+		--sbindir=$fs/usr/bin \
+		--localstatedir=/var \
+		--disable-chfn-chsh  \
+		--enable-fs-paths-default=/usr/bin \
+		--enable-usrdir-path \
+        --disable-login      \
+        --disable-nologin    \
+        --disable-su         \
+        --disable-setpriv    \
+        --disable-runuser    \
+        --disable-pylibmount \
+        --disable-static     \
+        --disable-makeinstall-chown \
+        --without-python     \
+        --without-systemd    \
+        --without-systemdsystemunitdir
+
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
+
+    # Compile util-linux
+    make
+
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
+
+    # Install to fs
+    make install
+
+    cd "$fs"
+
+    # Make hwclock directory
+    mkdir -p var/lib/hwclock
+
+    # Copy sbin to bin
+    mv usr/sbin/* usr/bin
+    rm -rf usr/sbin
+}
