@@ -33,8 +33,8 @@ IMAGE_PKG=("busybox" "linux" "nova" "syslinux" "musl-tools" "ncurses" "vim" "uti
 TOOL_PKG=("file" "gettext-tiny" "m4" "bison" "flex" "bc" "ncurses" "gperf" "libtool" "autoconf" "automake" "linux-headers" "binutils" "gcc-extras" "gcc-static" "musl" "gcc" "cracklib" "pkgconf")
 
 # StelaLinux Target Architecture (Supported: i686/x86_64)
-export BARCH=i686
-#export ARCH=x86_64
+#export BARCH=i686
+export BARCH=x86_64
 
 # ----- Directory Infomation ----- #
 
