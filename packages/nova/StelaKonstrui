@@ -16,7 +16,7 @@
 # ----- Package Information ----- #
 PKG_NAME=nova
 PKG_VERSION=GIT
-PKG_SRC=("https://www.github.com/AwlsomeAlex/Xiongnu/archive/nova.zip" "inittab" "fstab" "passwd" "bashrc")
+PKG_SRC=("https://www.github.com/AwlsomeAlex/Xiongnu/archive/nova.zip" "inittab" "fstab" "passwd" "bashrc" "init")
 PKG_DEPS=()
 
 # ----- Build Function ----- #
@@ -47,4 +47,5 @@ build_nova() {
     cp ../../passwd $fs/etc
     cp ../../inittab $fs/etc
     cp -r ../../bashrc $fs/etc
+    cp -r ../../init $fs
 }

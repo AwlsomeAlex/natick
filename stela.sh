@@ -24,10 +24,7 @@ export BUILD_NAME="Git Build"
 export BUILD_NUMBER="git"
 
 # InitramFS Package List
-INITRAMFS_PKG=("linux" "nova" "busybox" "musl" "musl-tools")
-
-# StelaLinux Package List
-IMAGE_PKG=("busybox" "linux" "nova" "syslinux" "musl-tools" "ncurses" "vim" "util-linux")
+INITRAMFS_PKG=("linux" "nova" "busybox" "musl" "musl-tools" "syslinux" "ncurses" "util-linux" "vim")
 
 # StelaLinux Toolchain Package List
 TOOL_PKG=("file" "gettext-tiny" "m4" "bison" "flex" "bc" "ncurses" "gperf" "libtool" "autoconf" "automake" "linux-headers" "binutils" "gcc-extras" "gcc-static" "musl" "gcc" "cracklib" "pkgconf")
@@ -64,6 +61,9 @@ export RDIR="$STELA/packages"
 export SRC_DIR="$STELA/source"
 export WRK_DIR="$STELA/work"
 export FIN_DIR="$STELA/final"
+
+# Image Root Filesystem
+export IMAGE_DIR="$WRK_DIR/image"
 
 # InitramFS Directory
 export INITRAMFS_DIR="$WRK_DIR/initramfs"
@@ -232,6 +232,7 @@ function loka_prepare() {
         loka_print "Creating Build Environment...." "...."
         mkdir -p $SRC_DIR $WRK_DIR $FIN_DIR
         mkdir -p $FIN_DIR/{boot,dev,etc,mnt/root,proc,root,sys,tmp,usr/{bin,sbin,lib,share,include}}
+        mkdir -p $IMAGE_DIR/{boot,stela}
         cd $FIN_DIR
         # Create Symlinks
         ln -s usr/lib lib
@@ -571,6 +572,7 @@ function tutmonda_initramfs() {
         $INITRAMFS_DIR/fs/usr/sbin/* \
         2>/dev/null
     set -e
+    rm $INITRAMFS_DIR/fs/boot/kernel.xz
     loka_print "Stripped InitramFS." "done"
 
     # ----- Generate InitramFS ----- #
@@ -592,13 +594,24 @@ function tutmonda_image() {
     fi
 
     # ----- Copy InitramFS to Image ----- #
-    loka_print "Copying InitramFS to Final...." "...."
-    cp $INITRAMFS_DIR/initramfs.cpio.xz $FIN_DIR/boot/initramfs.xz
-    loka_print "Copied InitramFS to Final." "done"
+    loka_print "Copying InitramFS to Image...." "...."
+    cp $INITRAMFS_DIR/initramfs.cpio.xz $IMAGE_DIR/stela/initramfs.xz
+    loka_print "Copied InitramFS to Image." "done"
+    
+    # ----- Copy Linux Kernel to Image ----- #
+    loka_print "Copying Kernel to Image...." "...."
+    cp $FIN_DIR/boot/kernel.xz $IMAGE_DIR/stela/kernel.xz
+    loka_print "Copied Kernel to Image." "done"
+
+    # ----- Copy Boot Files to Image ----- #
+    loka_print "Copying Boot Files to Image...." "...."
+    cp -r $FIN_DIR/boot/* $IMAGE_DIR/boot/
+    rm $IMAGE_DIR/boot/kernel.xz
+    loka_print "Copied Boot Files to Image." "done"
 
     # ----- Generate Disk Image ----- #
     loka_print "Generating Disk Image...." "...."
-    cd $FIN_DIR
+    cd $IMAGE_DIR
     xorriso -as mkisofs \
         -isohybrid-mbr boot/isolinux/isohdpfx.bin \
         -c boot/isolinux/boot.cat \
@@ -664,8 +677,12 @@ function tutmonda_all() {
     export PKG_CONFIG_SYSROOT="$FIN_DIR"
 
     # Build Defined Packages
-    for p in "${IMAGE_PKG[@]}"; do
+    for p in "${INITRAMFS_PKG[@]}"; do
         PACKAGE="$p"
+        # Skip musl and linux-headers
+        if [[ $PACKAGE == "musl" ]] || [[ $PACKAGE == "linux-headers" ]]; then
+            continue
+        fi
         tutmonda_build
     done
 

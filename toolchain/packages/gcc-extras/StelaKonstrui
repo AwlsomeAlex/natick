@@ -16,4 +16,4 @@
 # ----- Package Information ----- #
 PKG_NAME=gcc-extras
 PKG_VERSION=1.0
-PKG_SRC=("http://ftp.gnu.org/gnu/gmp/gmp-6.1.2.tar.xz" "http://www.mpfr.org/mpfr-4.0.2/mpfr-4.0.2.tar.xz" "http://ftp.gnu.org/gnu/mpc/mpc-1.1.0.tar.gz" "http://isl.gforge.inria.fr/isl-0.21.tar.xz")
+PKG_SRC=("http://ftp.gnu.org/gnu/gmp/gmp-6.1.2.tar.xz" "https://ftp.gnu.org/gnu/mpfr/mpfr-4.0.2.tar.xz" "http://ftp.gnu.org/gnu/mpc/mpc-1.1.0.tar.gz" "http://isl.gforge.inria.fr/isl-0.21.tar.xz")
