@@ -3,9 +3,13 @@
 # StelaKonstrui Script - binutils (Toolchain) #
 #---------------------------------------------#
 ###############################################
+# Copyright (c) 2020 Alexander Barris <awlsomealex at outlook dot com>
+# All Rights Reserved
+# Licensed under the GNU GPLv3, which can be found at https://www.gnu.org/licenses/gpl-3.0.en.html
 #
 # Description:  A set of programs to assemble and manipulate binary and object files
 # URL:          https://www.gnu.org/software/binutils
+# License:      GNU GPLv2, GNU GPLv3, etc
 # Maintainer:   AwlsomeAlex
 # Section:      toolchain (Stage 1)
 #
@@ -13,8 +17,7 @@
 # ----- Package Information ----- #
 PKG_NAME=binutils
 PKG_VERSION=2.33.1
-PKG_SRC=("http://ftp.gnu.org/gnu/$PKG_NAME/$PKG_NAME-$PKG_VERSION.tar.xz")
-PKG_DEPS=()
+PKG_SRC=("http://ftp.gnu.org/gnu/binutils/binutils-$PKG_VERSION.tar.xz")
 
 # ----- Build Function ----- #
 build_binutils() {
@@ -23,50 +26,62 @@ build_binutils() {
     # ----- Local Variables ----- #
     #-----------------------------#
 
+    # Set Hash Style
+    hashconfig="--enable-default-hash-style=gnu"
+
+    # Set Target (x86_64)
+    if [[ $BARCH == "x86_64" ]]; then
+        archconfig="--enable-targets=x86_64-pep"    
+    fi
+
     #---------------------------#
     # ----- Configuration ----- #
     #---------------------------#
     
-    # Create Build Directory
+    # Create and cd into build directory
     mkdir build
-
-    # Configure binutils
     cd build
-    ../configure --prefix=$TFIN_DIR \
-        --target=$XTARGET $BINUTILS_OPT \
-        --with-sysroot=$TROOT_DIR \
-        --with-lib-path=$TROOT_DIR/usr/lib \
-        --with-pic \
-        --with-system-zlib \
-        --enable-64-bit-bfd \
-        --enable-deterministic-archives \
-        --enable-gold=yes \
-        --enable-plugins \
-        --enable-threads \
-        --disable-multilib \
-        --disable-nls \
-        --disable-werror
 
+    # Configure Package
+    ../configure \
+		--prefix="$TFIN_DIR" \
+		--target=$XTARGET $archconfig $hashconfig \
+		--with-bugurl="https://github.com/awlsomealex/stelalinux/issues" \
+		--with-sysroot="$FIN_DIR" \
+		--with-lib-path="$FIN_DIR/usr/lib" \
+		--with-pic \
+		--with-system-zlib \
+		--enable-64-bit-bfd \
+		--enable-deterministic-archives \
+		--enable-gold \
+		--enable-ld=default \
+		--enable-lto \
+		--enable-plugins \
+		--enable-relro \
+		--enable-threads \
+		--disable-compressed-debug-sections \
+		--disable-multilib \
+		--disable-nls \
+		--disable-werror
+	
+    # Configure Host
+    make MAKEINFO="true" configure-host
+ 
     #-----------------------#
     # ----- Compiling ----- #
     #-----------------------#
 
-    # Compile binutils
-    make $MAKEFLAGS MAKEINFO="true" configure-host
-    make $MAKEFLAGS MAKEINFO="true"
+    # Compile Package
+    make MAKEINFO="true"
 
     #---------------------#
     # ----- Install ----- #
     #---------------------#
     
-    # Install binutils to Toolchain Directory
-    make $MAKEFLAGS MAKEINFO="true" install
+    # Install Package to Toolchain Directory
+    make MAKEINFO="true" install
 
-    # Fix Link
-    rm -rf $TFIN_DIR/bin/$XTARGET-ld
-    ln -sf $XTARGET-ld.bfd $TFIN_DIR/bin/$XTARGET-ld
-
-    echo "+=============================+"
-    echo "| Toolchain binutils Compiled |"
-    echo "+=============================+"
+    # Symlink ld
+    rm -rf "$TFIN_DIR"/bin/$XTARGET-ld
+    ln -sf $XTARGET-ld.bfd "$TFIN_DIR"/bin/$XTARGET-ld
 }

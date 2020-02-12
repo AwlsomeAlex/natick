@@ -5,6 +5,9 @@
 #------------------------------#
 # Created by AwlsomeAlex GPLv3 #
 ################################
+# Copyright (c) 2020 Alexander Barris <awlsomealex at outlook dot com>
+# All Rights Reserved
+# Licensed under the GNU GPLv3, which can be found at https://www.gnu.org/licenses/gpl-3.0.en.html
 
 #----------------------------------#
 # ----- Build-Time Variables ----- #

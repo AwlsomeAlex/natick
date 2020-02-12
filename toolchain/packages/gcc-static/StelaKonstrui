@@ -3,9 +3,13 @@
 # StelaKonstrui Script - gcc-static (Toolchain) #
 #-----------------------------------------------#
 #################################################
+# Copyright (c) 2020 Alexander Barris <awlsomealex at outlook dot com>
+# All Rights Reserved
+# Licensed under the GNU GPLv3, which can be found at https://www.gnu.org/licenses/gpl-3.0.en.html
 #
 # Description:  The GNU Compiler Collection - C Frontend (Static, Stage 1 Compiler)
 # URL:          https://gcc.gnu.org/
+# License:      GNU GPLv2, GNU LGPLv21, GCC Runtime Library Exception, GNU GPLv3, GNU LGPLv3
 # Maintainer:   AwlsomeAlex
 # Section:      toolchain (Stage 1)
 #
@@ -14,7 +18,6 @@
 PKG_NAME=gcc-static
 PKG_VERSION=9.2.0
 PKG_SRC=("http://ftp.gnu.org/gnu/gcc/gcc-$PKG_VERSION/gcc-$PKG_VERSION.tar.xz")
-PKG_DEPS=()
 
 # ----- Build Function ----- #
 build_gcc-static() {
@@ -23,74 +26,129 @@ build_gcc-static() {
     # ----- Local Variables ----- #
     #-----------------------------#
 
+    # Set GCC Flags
+    case $BARCH in
+        x86_64)
+            export GCCOPTS="--with-arch=x86-64 --with-tune=generic"
+            ;;
+        i686)
+            export GCCOPTS="--with-arch=i686 --with-tune=generic"
+            ;;
+        i586)
+            export GCCOPTS="--with-arch=i586 --with-tune=generic"
+            ;;
+        *)
+            loka_print "Unsupported Architecture: $BARCH" "fail"
+            exit
+    esac 
+
+    # Set Hash Style
+    hashconfig="--with-linker-hash-style=gnu"
+    
+    # Set Build Flags
+    export CFLAGS_FOR_BUILD=" "
+	export FFLAGS_FOR_BUILD=" "
+	export CXXFLAGS_FOR_BUILD=" "
+	export LDFLAGS_FOR_BUILD=" "
+	export CFLAGS_FOR_TARGET=" "
+	export FFLAGS_FOR_TARGET=" "
+	export CXXFLAGS_FOR_TARGET=" "
+	export LDFLAGS_FOR_TARGET=" "
+
     #---------------------------#
     # ----- Configuration ----- #
     #---------------------------#
+    
+    # Patch Makefile
+    sed -i 's@\./fixinc\.sh@-c true@' gcc/Makefile.in
 
-    # Prepare Build Directory
-    mkdir build
+    # Musl C Library Patches
+	patch -Np1 -i $TR_DIR/gcc/0001-Use-musl-s-libssp_nonshared.a.patch
+	patch -Np1 -i $TR_DIR/gcc/0002-POSIX-memalign.patch
+	patch -Np1 -i $TR_DIR/gcc/0003-Define-musl-ldso-for-s390.patch
+	patch -Np1 -i $TR_DIR/gcc/0004-microblaze-pr65649.patch
+	patch -Np1 -i $TR_DIR/gcc/0005-define-128-long-double-for-some-musl-targets.patch
+	patch -Np1 -i $TR_DIR/gcc/0006-add-support-for-m68k-musl.patch
+	patch -Np1 -i $TR_DIR/gcc/0007-add-support-for-static-pie.patch
+	patch -Np1 -i $TR_DIR/gcc/0008-cpu-indicator.patch
+	patch -Np1 -i $TR_DIR/gcc/0009-fix-tls-model.patch
+	patch -Np1 -i $TR_DIR/gcc/0010-libgcc-always-build-gcceh.a.patch
+	patch -Np1 -i $TR_DIR/gcc/0011-fix-support-for-Ada.patch
+	patch -Np1 -i $TR_DIR/gcc/0003-gcc-poison-system-directories.patch
+	patch -Np1 -i $TR_DIR/gcc/security.patch
+	patch -Np1 -i $TR_DIR/gcc/gcc-pure64.patch
+	patch -Np1 -i $TR_DIR/gcc/gcc-pure64-mips.patch
+	patch -Np1 -i $TR_DIR/gcc/gcc-pure64-riscv.patch
+
+    # Copy gcc-extras to build directory
     cp -a $TWRK_DIR/gmp-6.1.2 gmp
     cp -a $TWRK_DIR/mpfr-4.0.2 mpfr
     cp -a $TWRK_DIR/mpc-1.1.0 mpc
-    cp -a $TWRK_DIR/isl-0.21 isl    
-
-    # Apply Static Patches
-    sed -i 's@\./fixinc\.sh@-c true@' gcc/Makefile.in
-    wget -q --show-progress https://raw.githubusercontent.com/minitena/sde/master/toolchain/gcc/pure.patch
-    patch -Np1 -i pure.patch
-
-    # Configure gcc-static
+    cp -a $TWRK_DIR/isl-0.21 isl
+    
+    # Create and cd into build directory
+    mkdir build
     cd build
+
+    # Configure Package
+    
     AR=ar \
-    ../configure \
-        --prefix=$TFIN_DIR \
-        --libdir=$TFIN_DIR/lib \
-        --libexecdir=$TFIN_DIR/lib \
-        --build=$XHOST \
-        --host=$XHOST \
-        --target=$XTARGET $GCC_OPTS \
-        --with-sysroot=$TROOT_DIR \
-        --with-local-prefix=$TROOT_DIR \
-        --with-native-system-header-dir=$TROOT_DIR/usr/include \
-        --with-isl \
-        --with-system-zlib \
-        --with-newlib \
-        --with-glibc-version=2.30 \
-        --without-headers \
-        --enable-checking=release \
-        --enable-default-pie \
-        --enable-default-ssp \
-        --enable-languages=c \
-        --enable-linker-build-id \
-        --enable-lto \
-        --disable-decimal-float \
-        --disable-libatomic \
-        --disable-libgomp \
-        --disable-libitm \
-        --disable-libquadmath \
-        --disable-libssp \
-        --disable-libstdcxx \
-        --disable-libvtv \
-        --disable-multilib \
-        --disable-nls \
-        --disable-shared \
-        --disable-threads
+	../configure \
+		--prefix="$TFIN_DIR" \
+		--libdir="$TFIN_DIR/lib" \
+		--libexecdir="$TFIN_DIR/lib" \
+		--build=$XHOST \
+		--host=$XHOST \
+		--target=$XTARGET $GCCOPTS $hashconfig \
+		--with-pkgversion="StelaLinux $BUILD_NUMBER for $BARCH" \
+		--with-bugurl="https://github.com/awlsomealex/stelalinux/issues" \
+		--with-sysroot="$FIN_DIR" \
+		--with-local-prefix="$FIN_DIR" \
+		--with-native-system-header-dir="$FIN_DIR/usr/include" \
+		--with-isl \
+		--with-system-zlib \
+		--with-newlib \
+		--without-headers \
+		--enable-checking=release \
+		--enable-clocale=generic \
+		--enable-default-pie \
+		--enable-default-ssp \
+		--enable-languages=c \
+		--enable-linker-build-id \
+		--enable-lto \
+		--disable-decimal-float \
+		--disable-gnu-indirect-function \
+		--disable-libatomic \
+		--disable-libcilkrts \
+		--disable-libgomp \
+		--disable-libitm \
+		--disable-libmudflap \
+		--disable-libquadmath \
+		--disable-libsanitizer \
+		--disable-libssp \
+		--disable-libstdcxx \
+		--disable-libvtv \
+		--disable-multilib \
+		--disable-nls \
+		--disable-shared \
+		--disable-symvers \
+		--disable-threads \
+		--disable-werror
 
     #-----------------------#
     # ----- Compiling ----- #
     #-----------------------#
 
-    # Compile gcc-static
-    make $MAKEFLAGS all-gcc all-target-libgcc
-
+    # Compile Package
+    make all-gcc all-target-libgcc
+    
     #---------------------#
     # ----- Install ----- #
     #---------------------#
     
-    # Install gcc-static to Toolchain Directory
+    # Install Package to Toolchain Directory
     make -j1 install-gcc install-target-libgcc
 
-    echo "+===============================+"
-    echo "| Toolchain gcc-static Compiled |"
-    echo "+===============================+"
+    # Symlink gcc
+    ln -sf $XTARGET-gcc "$TFIN_DIR"/bin/$XTARGET-cc
 }

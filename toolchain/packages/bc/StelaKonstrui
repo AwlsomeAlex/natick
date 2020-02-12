@@ -1,0 +1,50 @@
+#########################################
+#---------------------------------------#
+# StelaKonstrui Script - bc (Toolchain) #
+#---------------------------------------#
+#########################################
+# Copyright (c) 2020 Alexander Barris <awlsomealex at outlook dot com>
+# All Rights Reserved
+# Licensed under the GNU GPLv3, which can be found at https://www.gnu.org/licenses/gpl-3.0.en.html
+#
+# Description:  Abritary precision calculator language
+# URL:          https://gnu.org/software/bc
+# License:      GNU GPLv3
+# Maintainer:   AwlsomeAlex
+# Section:      toolchain (Stage 1)
+#
+
+# ----- Package Information ----- #
+PKG_NAME=bc
+PKG_VERSION=2.5.3
+PKG_SRC=("https://github.com/gavinhoward/bc/archive/$PKG_VERSION.tar.gz")
+
+# ----- Build Function ----- #
+build_bc() {
+    
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
+
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+    
+    # Configure Package
+    PREFIX='' ./configure.sh \
+        --disable-nls    
+ 
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
+
+    # Compile Package
+    make PREFIX=''
+
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
+    
+    # Install Package to Toolchain Directory
+    make PREFIX='' DESTDIR="$TFIN_DIR" install
+}

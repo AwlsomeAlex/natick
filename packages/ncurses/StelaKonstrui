@@ -1,11 +1,15 @@
-##########################################
-#----------------------------------------#
-# StelaKonstrui Script - ncurses library #
-#----------------------------------------#
-##########################################
+##################################
+#--------------------------------#
+# StelaKonstrui Script - Ncurses #
+#--------------------------------#
+##################################
+# Copyright (c) 2020 Alexander Barris <awlsomealex at outlook dot com>
+# All Rights Reserved
+# Licensed under the GNU GPLv3, which can be found at https://www.gnu.org/licenses/gpl-3.0.en.html
 #
-# Description:  Ncurses (new curses) software emulation
-# URL:          https://gnu.org/software/ncurses
+# Description:  System V Release 4.0 curses emulation library
+# URL:          https://invisible-island.net/ncurses/ncurses.html
+# License:      MIT License
 # Maintainer:   AwlsomeAlex
 # Section:      kerno
 #
@@ -22,71 +26,72 @@ build_ncurses() {
     #-----------------------------#
     # ----- Local Variables ----- #
     #-----------------------------#
-    
+
+    # Set HostCC
+    if [ -n "$HOSTCC" ]; then
+        BUILDFLAGS="$BUILDFLAGS --with-build-cc=$HOSTCC"
+    else
+        BUILDFLAGS="$BUILDFLAGS"
+    fi
+
     #---------------------------#
     # ----- Configuration ----- #
     #---------------------------#
-  
+   
     # Remove Static Library (LFS)
     #
     # Source: http://www.linuxfromscratch.org/lfs/view/development/chapter06/ncurses.html
     #
-    sed -i '/LIBTOOL_INSTALL/d' c++/Makefile.in
+    #sed -i '/LIBTOOL_INSTALL/d' c++/Makefile.in
 
-   # Configure Ncurses (LFS)
-    #
-    # 
-    #
-    CFLAGS="$CFLAGS" ./configure \
-       --build=$XHOST \
-       --host=$XTARGET \
-       --prefix=/usr \
-	 --with-default-terminfo-dir=/usr/share/terminfo \
-	 --with-pkg-config-libdir=/usr/lib/pkgconfig \
-	 --with-terminfo-dirs="/etc/terminfo:/usr/share/terminfo" \
-	 --with-shared \
-	 --without-ada \
-	 --without-debug \
-	 --without-normal \
-	 --without-tests \
-	 --enable-overwrite \
-	 --enable-pc-files \
-	 --enable-widec \
-	 --disable-rpath-hack \
-	 --disable-stripping
+    # Configure Ncurses (Ataraxia)
+    ./configure $BUILDFLAGS \
+		--prefix=/usr \
+		--mandir=/usr/share/man \
+		--with-default-terminfo-dir=/usr/share/terminfo \
+		--with-pkg-config-libdir=/usr/lib/pkgconfig \
+		--with-terminfo-dirs="/etc/terminfo:/usr/share/terminfo" \
+		--with-normal \
+        --with-shared \
+		--without-ada \
+		--without-debug \
+		--without-tests \
+		--enable-overwrite \
+		--enable-pc-files \
+		--enable-widec \
+		--disable-rpath-hack \
+		--disable-stripping
 
     #-----------------------#
     # ----- Compiling ----- #
     #-----------------------#
 
     # Make ncurses
-    make $MAKEFLAGS
- 
+    make
+
     #---------------------#
     # ----- Install ----- #
     #---------------------#
-
+    
     # Install to FS
-    make $MAKEFLAGS install DESTDIR=$FS
+    make -j1 DESTDIR="$fs" install
 
-    # Symlink wide character libraries (MLL)
+    # Symlink Libraries together (Ataraxia)
     #
-    # Source: https://github.com/ivandavidov/minimal/blob/master/src/minimal_overlay/bundles/ncurses/02_build.sh#L54
+    # Source: https://github.com/ataraxialinux/ataraxia/blob/master/packages/ncurses/KagamiBuild#L38
     #
-    cd $FS/usr/lib
-    ln -s libncursesw.so.6 libncurses.so.6
-    ln -s libncurses.so.6 libncurses.so
-    ln -s libncursesw.so libtinfow.so.6
-    ln -s libtinfow.so.6 libtinfo.so.6
-    ln -s libtinfo.so.6 libtinfo.so
+    for lib in ncurses form panel menu; do
+		echo "INPUT(-l${lib}w)" > "$fs"/usr/lib/lib${lib}.so
+		echo "INPUT(-l${lib}w)" > "$fs"/usr/lib/lib${lib}.a
+		ln -sf ${lib}w.pc "$fs"/usr/lib/pkgconfig/${lib}.pc
+	done
+	for lib in tic tinfo; do
+		echo "INPUT(libncursesw.so.${version:0:1})" > "$fs"/usr/lib/lib${lib}.so
+		ln -sf libncursesw.so.${version:0:1} "$fs"/usr/lib/lib${lib}.so.${version:0:1}
+	done
+	echo 'INPUT(-lncursesw)' > "$fs"/usr/lib/libcursesw.so
+	ln -sf libncurses.so "$fs"/usr/lib/libcurses.so
+	ln -sf ncursesw6-config "$fs"/usr/bin/ncurses6-config
 
-    # Strip ncurses binaries
-    set +e
-    strip -g $FS/usr/bin/*    
-    set -e
-
-    echo ""
-    echo "+==================+"
-    echo "| Ncurses Compiled |"
-    echo "+==================+"
+    rm -rf "$fs"/usr/bin
 }

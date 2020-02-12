@@ -1,12 +1,12 @@
 ::sysinit:/etc/init.d/rcS
 ::once:echo "Welcome to StelaLinux $(stela -b)"
-::once:echo "Running Linux Kernel $(uname -r), BusyBox and glibc!"
-tty1::respawn:/sbin/getty 38400 tty1
-tty2::respawn:/sbin/getty 38400 tty2
-tty3::respawn:/sbin/getty 38400 tty3
-tty4::respawn:/sbin/getty 38400 tty4
-tty5::respawn:/sbin/getty 38400 tty5
-tty6::respawn:/sbin/getty 38400 tty6
+::once:echo "Running Linux Kernel $(uname -r), BusyBox and musl!"
+tty1::respawn:/usr/bin/getty 38400 tty1
+tty2::respawn:/usr/bin/getty 38400 tty2
+tty3::respawn:/usr/bin/getty 38400 tty3
+tty4::respawn:/usr/bin/getty 38400 tty4
+tty5::respawn:/usr/bin/getty 38400 tty5
+tty6::respawn:/usr/bin/getty 38400 tty6
 ::once:sleep 2
 ::ctrlaltdel:/sbin/reboot
 ::shutdown:echo -e ""

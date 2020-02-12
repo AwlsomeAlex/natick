@@ -3,9 +3,13 @@
 # StelaKonstrui Script - libtool (Toolchain) #
 #--------------------------------------------#
 ##############################################
+# Copyright (c) 2020 Alexander Barris <awlsomealex at outlook dot com>
+# All Rights Reserved
+# Licensed under the GNU GPLv3, which can be found at https://www.gnu.org/licenses/gpl-3.0.en.html
 #
 # Description:  A generic library support script
 # URL:          https://www.gnu.org/software/libtool
+# License:      GNU GPL
 # Maintainer:   AwlsomeAlex
 # Section:      toolchain (Stage 1)
 #
@@ -13,8 +17,7 @@
 # ----- Package Information ----- #
 PKG_NAME=libtool
 PKG_VERSION=2.4.6
-PKG_SRC=("http://ftp.gnu.org/gnu/$PKG_NAME/$PKG_NAME-$PKG_VERSION.tar.xz")
-PKG_DEPS=()
+PKG_SRC=("http://ftp.gnu.org/gnu/libtool/libtool-$PKG_VERSION.tar.xz")
 
 # ----- Build Function ----- #
 build_libtool() {
@@ -27,25 +30,22 @@ build_libtool() {
     # ----- Configuration ----- #
     #---------------------------#
     
-    # Configure libtool
-    ./configure --prefix=$TFIN_DIR \
+    # Configure Package
+    ./configure \
+        --prefix="$TFIN_DIR" \
         --disable-static
-
+        
     #-----------------------#
     # ----- Compiling ----- #
     #-----------------------#
 
-    # Compile libtool
-    make $MAKEFLAGS
+    # Compile Package
+    make
 
     #---------------------#
     # ----- Install ----- #
     #---------------------#
     
-    # Install libtool to Toolchain Directory
-    make $MAKEFLAGS install
-
-    echo "+============================+"
-    echo "| Toolchain libtool Compiled |"
-    echo "+============================+"
+    # Install Package to Toolchain Directory
+    make install
 }

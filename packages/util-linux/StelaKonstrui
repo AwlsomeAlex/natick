@@ -1,20 +1,25 @@
 #####################################
 #-----------------------------------#
-# StelaKonstrui Script - Util-Linux #
+# StelaKonstrui Script - util-linux #
 #-----------------------------------#
 #####################################
+# Copyright (c) 2020 Alexander Barris <awlsomealex at outlook dot com>
+# All Rights Reserved
+# Licensed under the GNU GPLv3, which can be found at https://www.gnu.org/licenses/gpl-3.0.en.html
 #
-# Description:  Random collection of Linux Utilities
+# Description:  Miscellaneous system utilities for Linux
 # URL:          https://github.com/karelzak/util-linux
+# License:      GNU GPLv2
 # Maintainer:   AwlsomeAlex
 # Section:      kerno
 #
 
 # ----- Package Information ----- #
 PKG_NAME=util-linux
-PKG_VERSION=2.34
-PKG_SRC=("fix-static.patch" "https://kernel.org/pub/linux/utils/util-linux/v$PKG_VERSION/util-linux-$PKG_VERSION.tar.xz")
-PKG_DEPS=("zlib" "ncurses")
+PKG_VERSION=2.35.1
+PKG_RELEASE=2.35
+PKG_SRC=("https://www.kernel.org/pub/linux/utils/util-linux/v$PKG_RELEASE/util-linux-$PKG_VERSION.tar.xz")
+PKG_DEPS=()
 
 # ----- Build Function ----- #
 build_util-linux() {
@@ -22,27 +27,25 @@ build_util-linux() {
     #-----------------------------#
     # ----- Local Variables ----- #
     #-----------------------------#
-    
+
     #---------------------------#
     # ----- Configuration ----- #
     #---------------------------#
-    # Create directories
-    mkdir -p $FS/usr/share/doc/util-linux
-    mkdir -p $FS/usr/bin
 
-    # Apply Patches
-    cp ../fix-static.patch .
-    patch -p1 < fix-static.patch
-
+    # Make directories
+    mkdir -p "$fs"/usr/{bin,lib}
+       
     # Configure util-linux
-    LDFLAGS="-L$WRK_DIR/ncurses/ncurses.fs/usr/lib -L$WRK_DIR/zlib/zlib.fs/usr/include" \
-    CPPFLAGS="-I$WRK_DIR/ncurses/ncurses.fs/usr/include -I$WRK_DIR/zlib/zlib.fs/usr/include" \
-    CFLAGS="$CFLAGS" ./configure \
-        --build=$XHOST \
-        --host=$XTARGET \
-        --prefix=/usr \
-        --docdir=/usr/share/doc/util-linux \
-        --disable-chfn-chsh  \
+    ADJTIME_PATH=/var/lib/hwclock/adjtime \
+	./configure $BUILDFLAGS \
+		--prefix=$fs/usr \
+		--libdir=$fs/usr/lib \
+		--bindir=$fs/usr/bin \
+		--sbindir=$fs/usr/bin \
+		--localstatedir=/var \
+		--disable-chfn-chsh  \
+		--enable-fs-paths-default=/usr/bin \
+		--enable-usrdir-path \
         --disable-login      \
         --disable-nologin    \
         --disable-su         \
@@ -60,17 +63,21 @@ build_util-linux() {
     #-----------------------#
 
     # Compile util-linux
-    make $MAKEFLAGS
+    make
 
     #---------------------#
     # ----- Install ----- #
     #---------------------#
 
-    # Install util-linux
-    make $MAKEFLAGS DESTDIR=$FS install
+    # Install to fs
+    make install
 
-    echo ""
-    echo "+=====================+"
-    echo "| Util-linux Compiled |"
-    echo "+=====================+"
+    cd "$fs"
+
+    # Make hwclock directory
+    mkdir -p var/lib/hwclock
+
+    # Copy sbin to bin
+    mv usr/sbin/* usr/bin
+    rm -rf usr/sbin
 }

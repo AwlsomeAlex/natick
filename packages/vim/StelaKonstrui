@@ -1,8 +1,11 @@
 ##########################################
 #----------------------------------------#
-# StelaKonstrui Script - Vim Text Editor #
+# StelaKonstrui Script - VIM Text Editor #
 #----------------------------------------#
 ##########################################
+# Copyright (c) 2020 Alexander Barris <awlsomealex at outlook dot com>
+# All Rights Reserved
+# Licensed under the GNU GPLv3, which can be found at https://www.gnu.org/licenses/gpl-3.0.en.html
 #
 # Description:  Vim - The ubiquitous text editor
 # URL:          https://www.vim.org/
@@ -12,7 +15,7 @@
 
 # ----- Package Information ----- #
 PKG_NAME=vim
-PKG_VERSION=8.2.0105
+PKG_VERSION=8.2.0246
 PKG_SRC=("https://github.com/vim/vim/archive/v$PKG_VERSION.tar.gz" "vimrc")
 PKG_DEPS=()
 
@@ -22,99 +25,51 @@ build_vim() {
     #-----------------------------#
     # ----- Local Variables ----- #
     #-----------------------------#
-    
-    # VIM Compile Variables (MLL)
-    #
-    # Source: https://github.com/ivandavidov/minimal/blob/master/src/minimal_overlay/bundles/vim/02_build.sh#L34
-    #
-    export CONF_OPT_GUI='--enable-gui=no'
-    export CONF_OPT_PERL='--enable-perlinterp'
-    export CONF_OPT_PYTHON='--enable-pythoninterp'
-    export CONF_OPT_TCL='--enable-tclinterp'
-    export CONF_OPT_RUBY='--enable-rubyinterp'
-    export CONF_OPT_LUA='--enable-luainterp'
-    export CONF_OPT_X='--without-x'
-    export CONF_OPT_CSCOPE='--enable-cscope'
-    export CONF_OPT_MULTIBYTE='--enable-multibyte'
-    export CONF_OPT_FEAT='--with-features=huge'
-    
 
-    #---------------------------#
-    # ----- Configuration ----- #
-    #---------------------------#
-
-    # Set default vimrc location (LFS)
-    #
-    # Source: http://www.linuxfromscratch.org/lfs/view/development/chapter06/vim.html
-    #
-    echo '#define SYS_VIMRC_FILE "/etc/vimrc"' >> src/feature.h
-
-    #CFLAGS="$CFLAGS" ./configure \
-    #    --prefix=/usr
-    #    --enable-gui=no \
-    #    --with-compiledby='StelaLinux' \
-    #    --without-x \
-    #    --with-tlib=ncurses \
-    #    --disable-xsmp \
-    #    --disable-gpm \
-    #    --disable-selinux
-
-    export vim_cv_terminfo=yes
+    # Cross Compiler Flag
+    export vim_cv_toupper_broken=no
+    export vim_cv_terminfo=yes    
     export vim_cv_tgetent=zero
     export vim_cv_tty_group=world
     export vim_cv_tty_mode=0620
     export vim_cv_getcwd_broken=no
     export vim_cv_stat_ignores_slash=yes
     export vim_cv_memmove_handles_overlap=yes
-    export ac_cv_sizeof_int=4
-    export ac_cv_small_wchar_t=no
-    export vim_cv_toupper_broken=no
 
-    CPPFLAGS="-I$WRK_DIR/ncurses/ncurses.fs/usr/include" \
-    LDFLAGS="-L$WRK_DIR/ncurses/ncurses.fs/usr/lib" \
-    CFLAGS="$CFLAGS" ./configure \
-        --build=$XHOST \
-        --host=$XTARGET \
-        --prefix=/usr \
-        --localstatedir=/var/lib/vim \
-        --with-compiledby='StelaLinux' \
-        --with-features=huge \
-        --with-tlib=ncursesw \
-        --without-x \
-        --enable-multibyte \
-        --disable-nls \
-        --disable-gui
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+   
+    # Configure vim
+    ./configure $BUILDFLAGS \
+		--prefix=/usr \
+		--localstatedir=/var/lib/vim \
+		--with-compiledby='StelaLinux' \
+		--with-features=huge \
+		--with-tlib=ncursesw \
+		--without-x \
+		--enable-multibyte \
+		--disable-nls \
+		--disable-gui
 
     #-----------------------#
     # ----- Compiling ----- #
     #-----------------------#
 
-    # Compile VIM
-    make $MAKEFLAGS
+    # Compile vim
+    make
 
     #---------------------#
     # ----- Install ----- #
     #---------------------#
-
-    # Install VIM to fs
-    make $MAKEFLAGS install DESTDIR=$FS
+    
+    # Install Vim to fs
+    make DESTDIR="$fs" install
 
     # Copy vimrc to /etc
-    mkdir $FS/etc
-    cp ../vimrc $FS/etc/vimrc
+    mkdir $fs/etc
+    cp ../vimrc $fs/etc/vimrc
 
-    # Symlink 'vim' to 'vi'
-    ln -sv vim $FS/usr/bin/vi
-    mkdir $FS/bin
-    ln -sv vim $FS/bin/vi
-
-    # Strip VIM
-    set +e
-    $XTARGET-strip -g $FS/usr/bin/*
-    set -e
-
-    echo ""
-    echo "+==============+"
-    echo "| VIM Compiled |"
-    echo "+==============+"
+    # Symlink vim to /usr/bin/vi
+    ln -sf vim $fs/usr/bin/vi
 }

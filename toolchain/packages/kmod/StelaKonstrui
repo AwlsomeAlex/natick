@@ -1,0 +1,60 @@
+###########################################
+#-----------------------------------------#
+# StelaKonstrui Script - kmod (Toolchain) #
+#-----------------------------------------#
+###########################################
+# Copyright (c) 2020 Alexander Barris <awlsomealex at outlook dot com>
+# All Rights Reserved
+# Licensed under the GNU GPLv3, which can be found at https://www.gnu.org/licenses/gpl-3.0.en.html
+#
+# Description:  Linux Kernel module management tools and library
+# URL:          https://git.kernel.org/?p=utils/kernel/kmod/kmod.git;a=summary
+# License:      GNU GPLv2
+# Maintainer:   AwlsomeAlex
+# Section:      toolchain (Stage 1)
+#
+
+# ----- Package Information ----- #
+PKG_NAME=kmod
+PKG_VERSION=26
+PKG_SRC=("https://www.kernel.org/pub/linux/utils/kernel/kmod/kmod-$PKG_VERSION.tar.xz")
+
+# ----- Build Function ----- #
+build_kmod() {
+    
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
+
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+    
+    # Configure Package
+    ./configure \
+		--prefix="$TFIN_DIR" \
+		--with-xz \
+		--with-zlib \
+		--disable-manpages 
+    
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
+
+    # Compile Package
+    set +e
+    make
+    set -e
+
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
+    
+    # Install Package to Toolchain Directory
+    make install
+
+    # Create symlinks (Ataraxia)
+    for tool in {ins,ls,rm,dep}mod mod{probe,info}; do
+		ln -sf kmod "$TFIN_DIR"/bin/$tool
+	done
+}

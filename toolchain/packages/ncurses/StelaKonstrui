@@ -3,18 +3,20 @@
 # StelaKonstrui Script - ncurses (Toolchain) #
 #--------------------------------------------#
 ##############################################
+# Copyright (c) 2020 Alexander Barris <awlsomealex at outlook dot com>
+# All Rights Reserved
+# Licensed under the GNU GPLv3, which can be found at https://www.gnu.org/licenses/gpl-3.0.en.html
 #
 # Description:  System V Release 4.0 curses emulation library
 # URL:          https://invisible-island.net/ncurses/ncurses.html
+# License:      MIT License
 # Maintainer:   AwlsomeAlex
 # Section:      toolchain (Stage 1)
-#
 
 # ----- Package Information ----- #
 PKG_NAME=ncurses
 PKG_VERSION=6.1
-PKG_SRC=("https://ftp.gnu.org/pub/gnu/$PKG_NAME/$PKG_NAME-$PKG_VERSION.tar.gz")
-PKG_DEPS=()
+PKG_SRC=("http://ftp.gnu.org/pub/gnu/ncurses/ncurses-$PKG_VERSION.tar.gz")
 
 # ----- Build Function ----- #
 build_ncurses() {
@@ -27,28 +29,23 @@ build_ncurses() {
     # ----- Configuration ----- #
     #---------------------------#
     
-    # Configure ncurses
-    ./configure  --prefix=$TFIN_DIR \
+    # Configure Package
+    ./configure \
+        --prefix="$TFIN_DIR" \
         --without-debug
-
+        
     #-----------------------#
     # ----- Compiling ----- #
     #-----------------------#
 
-    # Make ncurses libraries
-    make $MAKEFLAGS -C include
-
-    # Make ncurses executables
-    make $MAKEFLAGS -C progs tic
+    # Compile Package
+    make -C include
+    make -C progs tic
 
     #---------------------#
     # ----- Install ----- #
     #---------------------#
     
-    # Install ncurses executables to Toolchain Directory
+    # Install Package to Toolchain Directory
     cp progs/tic "$TFIN_DIR"/bin
-
-    echo "+============================+"
-    echo "| Toolchain ncurses Compiled |"
-    echo "+============================+"
 }

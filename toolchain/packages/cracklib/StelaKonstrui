@@ -1,0 +1,52 @@
+###############################################
+#---------------------------------------------#
+# StelaKonstrui Script - cracklib (Toolchain) #
+#---------------------------------------------#
+###############################################
+# Copyright (c) 2020 Alexander Barris <awlsomealex at outlook dot com>
+# All Rights Reserved
+# Licensed under the GNU GPLv3, which can be found at https://www.gnu.org/licenses/gpl-3.0.en.html
+#
+# Description:  Password Checking Library
+# URL:          https://github.com/cracklib/cracklib
+# License:      GNU GPLv21
+# Maintainer:   AwlsomeAlex
+# Section:      toolchain (Stage 1)
+#
+
+# ----- Package Information ----- #
+PKG_NAME=cracklib
+PKG_VERSION=2.9.7
+PKG_SRC=("https://github.com/cracklib/cracklib/releases/download/v$PKG_VERSION/cracklib-$PKG_VERSION.tar.gz")
+
+# ----- Build Function ----- #
+build_cracklib() {
+    
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
+
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+    
+    # Configure Package
+    ./configure \
+        --prefix="$TFIN_DIR" \
+        --sbindir="$TFIN_DIR"/bin \
+        --without-python
+        
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
+
+    # Compile Package
+    make
+
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
+    
+    # Install Package to Toolchain Directory
+    make install
+}

@@ -1,0 +1,50 @@
+############################################
+#------------------------------------------#
+# StelaKonstrui Script - gperf (Toolchain) #
+#------------------------------------------#
+############################################
+# Copyright (c) 2020 Alexander Barris <awlsomealex at outlook dot com>
+# All Rights Reserved
+# Licensed under the GNU GPLv3, which can be found at https://www.gnu.org/licenses/gpl-3.0.en.html
+#
+# Description:  Perfect hash function generator
+# URL:          https://gnu.org/software/gperf/
+# License:      GNU GPLv3
+# Maintainer:   AwlsomeAlex
+# Section:      toolchain (Stage 1)
+#
+
+# ----- Package Information ----- #
+PKG_NAME=gperf
+PKG_VERSION=3.1
+PKG_SRC=("http://ftp.gnu.org/gnu/gperf/gperf-$PKG_VERSION.tar.gz")
+
+# ----- Build Function ----- #
+build_gperf() {
+    
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
+
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+    
+    # Configure Package
+    ./configure \
+        --prefix="$TFIN_DIR" 
+ 
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
+
+    # Compile Package
+    make
+
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
+    
+    # Install Package to Toolchain Directory
+    make install
+}

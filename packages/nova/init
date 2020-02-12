@@ -51,17 +51,18 @@ mount -t proc none /proc || rescueShell "Failed to mount /proc!"
 mount -t sysfs none /sys || rescueShell "Failed to mount /sys!"
 mount -t tmpfs none /tmp || rescueShell "Failed to mount /tmp!"
 echo -e "${GREEN}[DONE] ${NC}Mounted Directories."
+echo -e "${BLUE}[....] ${NC}Mounting Filesystem as ro"
+mount -o remount,ro / || rescueShell "Failed to mount as ro"
+echo -e "${GREEN}[DONE] ${NC}Mounted Filesystem as ro"
+echo -e "${BLUE}[....] ${NC}Mounting Filesystem as rw"
+mount -o remount,rw / || rescueShell "Failed to mount as rw"
+echo -e "${GREEN}[DONE] ${NC}Mounted Filesystem as rw"
 echo -e "${BLUE}[....] ${NC}Populating Dynamic Device Directory (/dev)...."
 echo /sbin/mdev > /proc/sys/kernel/hotplug
 echo -e "${GREEN}[DONE] ${NC}Populated Dynamic Device Directory (/dev)."
 echo -e "${BLUE}[....] ${NC}Mounting File Systems...."
-mount -a || rescueShell "Failed to mount Filesystem!"
 echo -e "${GREEN}[DONE] ${NC}Mounted File System."
 echo -e "${BLUE}[....] ${NC}Moving Filesystems...."
-moveMount dev
-moveMount sys
-moveMount proc
-moveMount tmp
 echo -e "${GREEN}[DONE] ${NC}Moved Filesystems."
-echo -e "${BLUE}[....] ${NC}Switching to Root Filesystem...."
-exec switch_root /mnt/root /sbin/init || rescueShell "Failed to switch_root to Root Filesystem!"
+echo -e "${BLUE}[....] ${NC}Booting System...."
+exec /bin/init || rescueShell "Failed to start BusyBox init!"

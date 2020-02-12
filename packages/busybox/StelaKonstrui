@@ -3,9 +3,13 @@
 # StelaKonstrui Script - BusyBox #
 #--------------------------------#
 ##################################
+# Copyright (c) 2020 Alexander Barris <awlsomealex at outlook dot com>
+# All Rights Reserved
+# Licensed under the GNU GPLv3, which can be found at https://www.gnu.org/licenses/gpl-3.0.en.html
 #
 # Description:  Tiny version of many common UNIX utilities
 # URL:          https://www.busybox.net
+# License:      Strict GNU GPLv2
 # Maintainer:   AwlsomeAlex
 # Section:      kerno
 #
@@ -13,7 +17,7 @@
 # ----- Package Information ----- #
 PKG_NAME=busybox
 PKG_VERSION=1.31.1
-PKG_SRC=("https://www.busybox.net/downloads/$PKG_NAME-$PKG_VERSION.tar.bz2" "stela.sh")
+PKG_SRC=("https://www.busybox.net/downloads/busybox-$PKG_VERSION.tar.bz2" "stela.sh")
 PKG_DEPS=()
 
 # ----- Build Function ----- #
@@ -22,51 +26,54 @@ build_busybox() {
     #-----------------------------#
     # ----- Local Variables ----- #
     #-----------------------------#
-    export CROSS_COMPILE="$XTARGET-"
-    export CC="$XTARGET-gcc"
-    export CXX="$XTARGET-g++"
-    export AR="$XTARGET-ar"
-    export AS="$XTARGET-as"
-    export LD="$XTARGET-ld"
-    export STRIP="$XTARGET-strip"
     
+    case $BARCH in
+        x86_64)
+            export XKARCH="x86_64"
+            ;;
+        i686|i586)
+            export XKARCH="i386"
+            ;;
+    esac
+
     #---------------------------#
     # ----- Configuration ----- #
     #---------------------------#
    
     # Prepare BusyBox Configuration
-    make distclean $MAKEFLAGS
-    make ARCH=$KARCH CROSS_COMPILE=${CROSS_COMPILE} defconfig $MAKEFLAGS
+    make ARCH=$XKARCH CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS" defconfig
 
-    # Turn off inetd
-    sed -i "s/.*CONFIG_INETD.*/CONFIG_INETD=n/" .config
+    # Turn on static linking'
+    sed -i "s|.*CONFIG_STATIC.*|CONFIG_STATIC=y|" .config
+
+    # Create Directories
+    mkdir -p $fs/usr/bin/
 
     #-----------------------#
     # ----- Compiling ----- #
     #-----------------------#
 
     # Compile BusyBox
-    make ARCH=$KARCH CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS" busybox $MAKEFLAGS
-    
+    make ARCH=$XKARCH CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS"
+    make ARCH=$XKARCH CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS" busybox.links
+   
     #---------------------#
     # ----- Install ----- #
     #---------------------#
 
     # Install to FS
-    make ARCH=$KARCH CROSS_COMPILE=${CROSS_COMPILE} CONFIG_PREFIX="$FS" install $MAKEFLAGS  
+    install -D busybox "$fs"/usr/bin/busybox
 
-    # Remove linuxrc
-    rm $FS/linuxrc
+    # Change File Permissions
+    chmod 0755 "$fs"/usr/bin/busybox
+
+    # Create Symlinks (Thanks protonesso)
+    for applet in `cat busybox.links|sed 's|^.*/||'`; do ln -sf busybox $fs/usr/bin/$applet || true; done
 
     # Copy stela.sh to $FS
-    cp -r ../stela.sh $FS/bin/stela
+    cp -r ../stela.sh $fs/usr/bin/stela
 
     # Populate stela build information
-    sed -i "s/BUILD_NAME=NULL/BUILD_NAME='$BUILD_NAME'/" $FS/bin/stela
-    sed -i "s/BUILD_NUMBER=NULL/BUILD_NUMBER='$BUILD_NUMBER'/" $FS/bin/stela
-    
-    echo ""
-    echo "+===========================+"
-    echo "| BusyBox Userland Compiled |"
-    echo "+===========================+"
+    sed -i "s/BUILD_NAME=NULL/BUILD_NAME='$BUILD_NAME'/" $fs/usr/bin/stela
+    sed -i "s/BUILD_NUMBER=NULL/BUILD_NUMBER='$BUILD_NUMBER'/" $fs/usr/bin/stela
 }

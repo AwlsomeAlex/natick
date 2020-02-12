@@ -1,0 +1,50 @@
+############################################
+#------------------------------------------#
+# StelaKonstrui Script - bison (Toolchain) #
+#------------------------------------------#
+############################################
+# Copyright (c) 2020 Alexander Barris <awlsomealex at outlook dot com>
+# All Rights Reserved
+# Licensed under the GNU GPLv3, which can be found at https://www.gnu.org/licenses/gpl-3.0.en.html
+#
+# Description:  The GNU general-purpose parser generator
+# URL:          https://gnu.org/software/bison/bison.html
+# License:      GNU GPLv3
+# Maintainer:   AwlsomeAlex
+# Section:      toolchain (Stage 1)
+#
+
+# ----- Package Information ----- #
+PKG_NAME=bison
+PKG_VERSION=3.5.1
+PKG_SRC=("https://ftp.gnu.org/gnu/bison/bison-$PKG_VERSION.tar.gz")
+
+# ----- Build Function ----- #
+build_bison() {
+    
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
+
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+    
+    # Configure Package
+    ./configure \
+        --prefix="$TFIN_DIR"
+        
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
+
+    # Compile Package
+    make
+
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
+    
+    # Install Package to Toolchain Directory
+    make install
+}

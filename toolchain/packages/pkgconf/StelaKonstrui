@@ -1,11 +1,15 @@
-###########################################
-#-----------------------------------------#
-# StelaKonstrui Script - file (Toolchain) #
-#-----------------------------------------#
-###########################################
+##############################################
+#--------------------------------------------#
+# StelaKonstrui Script - pkgconf (Toolchain) #
+#--------------------------------------------#
+##############################################
+# Copyright (c) 2020 Alexander Barris <awlsomealex at outlook dot com>
+# All Rights Reserved
+# Licensed under the GNU GPLv3, which can be found at https://www.gnu.org/licenses/gpl-3.0.en.html
 #
 # Description:  Package compiler and linker metadata toolkit
 # URL:          https://github.com/pkgconf/pkgconf
+# License:      custom license
 # Maintainer:   AwlsomeAlex
 # Section:      toolchain (Stage 2)
 #
@@ -13,8 +17,7 @@
 # ----- Package Information ----- #
 PKG_NAME=pkgconf
 PKG_VERSION=1.6.3
-PKG_SRC=("http://distfiles.dereferenced.org/pkgconf/$PKG_NAME-$PKG_VERSION.tar.xz")
-PKG_DEPS=()
+PKG_SRC=("http://distfiles.dereferenced.org/pkgconf/pkgconf-$PKG_VERSION.tar.xz")
 
 # ----- Build Function ----- #
 build_pkgconf() {
@@ -26,40 +29,32 @@ build_pkgconf() {
     #---------------------------#
     # ----- Configuration ----- #
     #---------------------------#
-    
-    # Configure pkgconf (Static)
+
+    # Configure Package
     LDFLAGS="-static" \
     ./configure \
         --prefix="$TFIN_DIR" \
-        --with-sysroot="$TROOT_DIR" \
-        --with-pkg-config-dir="$TROOT_DIR/usr/lib/pkgconfig:$TROOT_DIR/usr/share/pkgconfig" \
-        --with-system-libdir="$TROOT_DIR/usr/lib" \
-        --with-system-includedir="$TROOT_DIR/usr/include"
-
+        --with-sysroot="$FIN_DIR" \
+        --with-pkg-config-dir="$FIN_DIR/usr/lib/pkgconfig:$FIN_DIR/usr/share/pkgconfig" \
+        --with-system-libdir="$FIN_DIR/usr/lib" \
+        --with-system-includedir="$FIN_DIR/usr/include"
+    
     #-----------------------#
     # ----- Compiling ----- #
     #-----------------------#
 
-    # Compile pkgconf
-    make $MAKEFLAGS
+    # Compile Package
+    make
 
     #---------------------#
     # ----- Install ----- #
     #---------------------#
     
-    # Install pkgconf to Toolchain Directory
+    # Install Package to Toolchain Directory
     make $MAKEFLAGS install
 
-    # Correct Linking
-    ln -sf pkgconf $TFIN_DIR/bin/pkg-config
-    ln -sf pkgconf $TFIN_DIR/bin/$XTARGET-pkg-config
-    ln -sf pkgconf $TFIN_DIR/bin/$XTARGET-pkgconf
-
-    # Clean up pkgconf
-    find "$TFIN_DIR" -name "*.pod" -print0 | xargs -0 rm -rf
-    find "$TFIN_DIR" -name ".packlist" -print0 | xargs -0 rm -rf
-
-    echo "+============================+"
-    echo "| Toolchain pkgconf Compiled |"
-    echo "+============================+"
+    # Symlink pkgconfig
+    ln -sf pkgconf "$TFIN_DIR"/bin/pkg-config
+    ln -sf pkgconf "$TFIN_DIR"/bin/$XTARGET-pkg-config
+    ln -sf pkgconf "$TFIN_DIR"/bin/$XTARGET-pkgconf
 }

@@ -3,9 +3,13 @@
 # StelaKonstrui Script - autoconf (Toolchain) #
 #---------------------------------------------#
 ###############################################
+# Copyright (c) 2020 Alexander Barris <awlsomealex at outlook dot com>
+# All Rights Reserved
+# Licensed under the GNU GPLv3, which can be found at https://www.gnu.org/licenses/gpl-3.0.en.html
 #
 # Description:  A GNU tool for automatically configuring source code
 # URL:          https://www.gnu.org/software/autoconf
+# License:      GNU GPLv2, Autoconf Configure Script Exception, GNU GPLv3
 # Maintainer:   AwlsomeAlex
 # Section:      toolchain (Stage 1)
 #
@@ -13,8 +17,7 @@
 # ----- Package Information ----- #
 PKG_NAME=autoconf
 PKG_VERSION=2.69
-PKG_SRC=("http://ftp.gnu.org/gnu/$PKG_NAME/$PKG_NAME-$PKG_VERSION.tar.xz")
-PKG_DEPS=()
+PKG_SRC=("http://ftp.gnu.org/gnu/autoconf/autoconf-$PKG_VERSION.tar.xz")
 
 # ----- Build Function ----- #
 build_autoconf() {
@@ -27,27 +30,29 @@ build_autoconf() {
     # ----- Configuration ----- #
     #---------------------------#
     
-    # Patch autoconf
-    sed '361 s/{/\\{/' -i bin/autoscan.in
+    # Libtool Patch
+    patch -p1 -i $TR_DIR/autoconf/autoconf-2.69-libtool-compatibility.patch
     
-    # Configure autoconf
-    ./configure --prefix=$TFIN_DIR
+    # Perl Patches
+    patch -p1 -i $TR_DIR/autoconf/autoconf-2.69-perl-5.22-autoscan.patch
+    patch -p1 -i $TR_DIR/autoconf/autoconf-2.69-perl-5.28.patch
 
+    # Configure Package
+    ./configure \
+        --prefix="$TFIN_DIR" \
+        --disable-nls
+        
     #-----------------------#
     # ----- Compiling ----- #
     #-----------------------#
 
-    # Compile autoconf
-    make $MAKEFLAGS
+    # Compile Package
+    make
 
     #---------------------#
     # ----- Install ----- #
     #---------------------#
     
-    # Install autoconf to Toolchain Directory
-    make $MAKEFLAGS install
-
-    echo "+=============================+"
-    echo "| Toolchain autoconf Compiled |"
-    echo "+=============================+"
+    # Install Package to Toolchain Directory
+    make install
 }
