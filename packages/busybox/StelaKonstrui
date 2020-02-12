@@ -27,7 +27,6 @@ build_busybox() {
     # ----- Local Variables ----- #
     #-----------------------------#
     
-   
     case $BARCH in
         x86_64)
             export XKARCH="x86_64"
@@ -36,7 +35,6 @@ build_busybox() {
             export XKARCH="i386"
             ;;
     esac
- 
 
     #---------------------------#
     # ----- Configuration ----- #
@@ -58,7 +56,7 @@ build_busybox() {
     # Compile BusyBox
     make ARCH=$XKARCH CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS"
     make ARCH=$XKARCH CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS" busybox.links
-    
+   
     #---------------------#
     # ----- Install ----- #
     #---------------------#

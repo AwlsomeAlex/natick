@@ -44,7 +44,7 @@ build_pkgconf() {
     #-----------------------#
 
     # Compile Package
-    make $MAKEFLAGS
+    make
 
     #---------------------#
     # ----- Install ----- #

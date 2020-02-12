@@ -76,40 +76,21 @@ build_ncurses() {
     # Install to FS
     make -j1 DESTDIR="$fs" install
 
-    # Symlink wide character libraries (MLL)
-    #
-    # Source: https://github.com/ivandavidov/minimal/blob/master/src/minimal_overlay/bundles/ncurses/02_build.sh#L54
-    #
-    #ln -sf libncursesw.so.6 $fs/usr/lib/libncurses.so.6
-    #ln -sf libncurses.so.6 $fs/usr/lib/libncurses.so
-    
-    #ln -sf libncursesw.so.6 $fs/usr/lib/libtinfow.so.6
-    #ln -sf libncursesw.so.6 $fs/usr/lib/libtinfow.so
-    #ln -sf libncursesw.so.6 $fs/usr/lib/libtinfo.so.6
-    #ln -sf libncursesw.so.6 $fs/usr/lib/libtinfo.so
-
-    # Symlink ncurses config
-    #ln -sf ncursesw6-config $fs/usr/bin/ncurses6-config
-    
     # Symlink Libraries together (Ataraxia)
     #
     # Source: https://github.com/ataraxialinux/ataraxia/blob/master/packages/ncurses/KagamiBuild#L38
     #
-
     for lib in ncurses form panel menu; do
 		echo "INPUT(-l${lib}w)" > "$fs"/usr/lib/lib${lib}.so
 		echo "INPUT(-l${lib}w)" > "$fs"/usr/lib/lib${lib}.a
 		ln -sf ${lib}w.pc "$fs"/usr/lib/pkgconfig/${lib}.pc
 	done
-
 	for lib in tic tinfo; do
 		echo "INPUT(libncursesw.so.${version:0:1})" > "$fs"/usr/lib/lib${lib}.so
 		ln -sf libncursesw.so.${version:0:1} "$fs"/usr/lib/lib${lib}.so.${version:0:1}
 	done
-
 	echo 'INPUT(-lncursesw)' > "$fs"/usr/lib/libcursesw.so
 	ln -sf libncurses.so "$fs"/usr/lib/libcurses.so
-
 	ln -sf ncursesw6-config "$fs"/usr/bin/ncurses6-config
 
     rm -rf "$fs"/usr/bin

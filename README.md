@@ -41,5 +41,3 @@ Tested on Fedora 31 Workstation and Server Edition<br>
 ### Special Thanks:
 * [Ivandavidov](https://github.com/ivandavidov) ([MLL](https://github.com/ivandavidov/minimal))
 * [Linux From Scratch Project](http://www.linuxfromscratch.org/)
-
-
