@@ -109,7 +109,7 @@ export XHOST="$(echo ${MACHTYPE} | sed -e 's/-[^-]*/-cross/')"
 export CFLAGS="-g0 -Os -s -fexcess-precision=fast -fomit-frame-pointer -Wl,--as-needed -pipe"
 export CXXFLAGS="$CFLAGS"
 export LC_ALL="POSIX"
-NUM_JOBS="$(expr $(nproc) + 1)"
+export NUM_JOBS="$(expr $(nproc) + 1)"
 export MAKEFLAGS="-j$NUM_JOBS"
 
 # ----- Build Flags ----- #

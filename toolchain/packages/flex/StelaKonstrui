@@ -42,14 +42,14 @@ build_flex() {
     #-----------------------#
 
     # Compile Package
-    make
+    make $MAKEFLAGS
 
     #---------------------#
     # ----- Install ----- #
     #---------------------#
     
     # Install Package to Toolchain Directory
-    make install
+    make install $MAKEFLAGS
 
     # Symlink flex
     ln -sf flex "$TFIN_DIR"/bin/lex

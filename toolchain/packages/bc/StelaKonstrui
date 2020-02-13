@@ -39,12 +39,12 @@ build_bc() {
     #-----------------------#
 
     # Compile Package
-    make PREFIX=''
+    make PREFIX='' $MAKEFLAGS
 
     #---------------------#
     # ----- Install ----- #
     #---------------------#
     
     # Install Package to Toolchain Directory
-    make PREFIX='' DESTDIR="$TFIN_DIR" install
+    make PREFIX='' DESTDIR="$TFIN_DIR" install $MAKEFLAGS
 }

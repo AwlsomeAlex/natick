@@ -44,14 +44,14 @@ build_pkgconf() {
     #-----------------------#
 
     # Compile Package
-    make
+    make $MAKEFLAGS
 
     #---------------------#
     # ----- Install ----- #
     #---------------------#
     
     # Install Package to Toolchain Directory
-    make $MAKEFLAGS install
+    make install $MAKEFLAGS
 
     # Symlink pkgconfig
     ln -sf pkgconf "$TFIN_DIR"/bin/pkg-config

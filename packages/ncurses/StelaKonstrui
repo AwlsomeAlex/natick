@@ -67,14 +67,14 @@ build_ncurses() {
     #-----------------------#
 
     # Make ncurses
-    make
+    make $MAKEFLAGS
 
     #---------------------#
     # ----- Install ----- #
     #---------------------#
     
     # Install to FS
-    make -j1 DESTDIR="$fs" install
+    make -j1 DESTDIR="$fs" install $MAKEFLAGS
 
     # Symlink Libraries together (Ataraxia)
     #

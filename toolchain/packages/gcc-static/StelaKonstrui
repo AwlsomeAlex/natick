@@ -140,7 +140,7 @@ build_gcc-static() {
     #-----------------------#
 
     # Compile Package
-    make all-gcc all-target-libgcc
+    make all-gcc all-target-libgcc $MAKEFLAGS
     
     #---------------------#
     # ----- Install ----- #

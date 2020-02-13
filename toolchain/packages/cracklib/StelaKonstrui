@@ -41,12 +41,12 @@ build_cracklib() {
     #-----------------------#
 
     # Compile Package
-    make
+    make $MAKEFLAGS
 
     #---------------------#
     # ----- Install ----- #
     #---------------------#
     
     # Install Package to Toolchain Directory
-    make install
+    make install $MAKEFLAGS
 }

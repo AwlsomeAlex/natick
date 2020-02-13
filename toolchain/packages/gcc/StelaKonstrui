@@ -136,14 +136,14 @@ build_gcc() {
     #-----------------------#
     
     # Compile Package
-    make AS_FOR_TARGET="$XTARGET-as" LD_FOR_TARGET="$XTARGET-ld"
+    make AS_FOR_TARGET="$XTARGET-as" LD_FOR_TARGET="$XTARGET-ld" $MAKEFLAGS
     
     #---------------------#
     # ----- Install ----- #
     #---------------------#
     
     # Install Package to Toolchain Directory
-    make -j1 install
+    make -j1 install 
 
     # Symlink gcc
     ln -sf $XTARGET-gcc "$TFIN_DIR"/bin/$XTARGET-cc

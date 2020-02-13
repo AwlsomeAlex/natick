@@ -47,14 +47,14 @@ build_musl() {
     #-----------------------#
 
     # Compile musl
-    make DESTDIR="$fs"
+    make DESTDIR="$fs" $MAKEFLAGS
  
     #---------------------#
     # ----- Install ----- #
     #---------------------#
     
     # Install musl to FS
-    make DESTDIR="$fs" install
+    make DESTDIR="$fs" install $MAKEFLAGS
 
     # Copy libssp
     cp libssp_nonshared.a "$fs"/usr/lib

@@ -48,7 +48,7 @@ build_linux() {
     #---------------------------#
    
     # Generate Linux Kernel Config
-    make ARCH=$XKARCH CROSS_COMPILE=${CROSS_COMPILE} $DEFCONFIG
+    make ARCH=$XKARCH CROSS_COMPILE=${CROSS_COMPILE} $DEFCONFIG $MAKEFLAGS
 
     # Set Configuration Variables
     sed -i "s/.*CONFIG_DEFAULT_HOSTNAME.*/CONFIG_DEFAULT_HOSTNAME=\"stelalinux\"/" .config  # Changes Hostname
@@ -85,7 +85,7 @@ build_linux() {
     #-----------------------#
 
     # Compile Linux Kernel
-    make ARCH=$XKARCH CROSS_COMPILE=${CROSS_COMPILE} CFLAGS="$CFLAGS" bzImage
+    make ARCH=$XKARCH CROSS_COMPILE=${CROSS_COMPILE} CFLAGS="$CFLAGS" bzImage $MAKEFLAGS
  
     #---------------------#
     # ----- Install ----- #

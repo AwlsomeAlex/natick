@@ -41,7 +41,7 @@ build_busybox() {
     #---------------------------#
    
     # Prepare BusyBox Configuration
-    make ARCH=$XKARCH CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS" defconfig
+    make ARCH=$XKARCH CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS" defconfig $MAKEFLAGS
 
     # Turn on static linking'
     sed -i "s|.*CONFIG_STATIC.*|CONFIG_STATIC=y|" .config
@@ -54,8 +54,8 @@ build_busybox() {
     #-----------------------#
 
     # Compile BusyBox
-    make ARCH=$XKARCH CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS"
-    make ARCH=$XKARCH CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS" busybox.links
+    make ARCH=$XKARCH CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS" $MAKEFLAGS
+    make ARCH=$XKARCH CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS" busybox.links $MAKEFLAGS
    
     #---------------------#
     # ----- Install ----- #

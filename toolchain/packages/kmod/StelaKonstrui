@@ -43,7 +43,7 @@ build_kmod() {
 
     # Compile Package
     set +e
-    make
+    make $MAKEFLAGS
     set -e
 
     #---------------------#
@@ -51,7 +51,7 @@ build_kmod() {
     #---------------------#
     
     # Install Package to Toolchain Directory
-    make install
+    make install $MAKEFLAGS
 
     # Create symlinks (Ataraxia)
     for tool in {ins,ls,rm,dep}mod mod{probe,info}; do

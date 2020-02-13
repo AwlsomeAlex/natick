@@ -65,21 +65,21 @@ build_binutils() {
 		--disable-werror
 	
     # Configure Host
-    make MAKEINFO="true" configure-host
+    make MAKEINFO="true" configure-host $MAKEFLAGS
  
     #-----------------------#
     # ----- Compiling ----- #
     #-----------------------#
 
     # Compile Package
-    make MAKEINFO="true"
+    make MAKEINFO="true" $MAKEFLAGS
 
     #---------------------#
     # ----- Install ----- #
     #---------------------#
     
     # Install Package to Toolchain Directory
-    make MAKEINFO="true" install
+    make MAKEINFO="true" install $MAKEFLAGS
 
     # Symlink ld
     rm -rf "$TFIN_DIR"/bin/$XTARGET-ld

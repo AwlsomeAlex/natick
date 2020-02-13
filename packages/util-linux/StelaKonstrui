@@ -63,14 +63,14 @@ build_util-linux() {
     #-----------------------#
 
     # Compile util-linux
-    make
+    make $MAKEFLAGS
 
     #---------------------#
     # ----- Install ----- #
     #---------------------#
 
     # Install to fs
-    make install
+    make install $MAKEFLAGS
 
     cd "$fs"
 

@@ -16,7 +16,7 @@
 
 # ----- Package Information ----- #
 PKG_NAME=linux-headers
-PKG_VERSION=5.4.19
+PKG_VERSION=5.5.3
 PKG_SRC=("https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-$PKG_VERSION.tar.xz")
 PKG_DEPS=()
 
@@ -43,14 +43,14 @@ build_linux-headers() {
     #---------------------------#
    
     # Generate Linux Kernel Config
-    make mrproper
+    make mrproper $MAKEFLAGS
 
     #-----------------------#
     # ----- Compiling ----- #
     #-----------------------#
 
     # Compile Linux Kernel Headers
-    make ARCH=$XKARCH INSTALL_HDR_PATH="$fs"/usr headers_install
+    make ARCH=$XKARCH INSTALL_HDR_PATH="$fs"/usr headers_install $MAKEFLAGS
  
     #---------------------#
     # ----- Install ----- #
