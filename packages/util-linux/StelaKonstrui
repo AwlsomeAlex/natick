@@ -19,7 +19,7 @@ PKG_NAME=util-linux
 PKG_VERSION=2.35.1
 PKG_RELEASE=2.35
 PKG_SRC=("https://www.kernel.org/pub/linux/utils/util-linux/v$PKG_RELEASE/util-linux-$PKG_VERSION.tar.xz")
-PKG_DEPS=()
+PKG_DEPS=("ncurses")
 
 # ----- Build Function ----- #
 build_util-linux() {

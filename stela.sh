@@ -24,14 +24,14 @@ export BUILD_NAME="Git Build"
 export BUILD_NUMBER="git"
 
 # InitramFS Package List
-INITRAMFS_PKG=("linux" "nova" "busybox" "musl" "musl-tools" "syslinux" "ncurses" "util-linux" "vim")
+INITRAMFS_PKG=("linux" "nova" "busybox" "musl" "musl-tools" "syslinux" "ncurses" "vim" "dialog" "util-linux" "e2fsprogs" "zlib")
 
 # StelaLinux Toolchain Package List
 TOOL_PKG=("file" "gettext-tiny" "m4" "bison" "flex" "bc" "ncurses" "gperf" "libtool" "autoconf" "automake" "linux-headers" "binutils" "gcc-extras" "gcc-static" "musl" "gcc" "cracklib" "pkgconf")
 
 # StelaLinux Target Architecture (Supported: i686/x86_64)
-export BARCH=i686
-#export BARCH=x86_64
+#export BARCH=i686
+export BARCH=x86_64
 
 # ----- Directory Infomation ----- #
 
@@ -276,12 +276,12 @@ function loka_download() {
 # loka_extract($1: location $2: url): Extracts a file
 function loka_extract() {
 
-    # Local Variables
+    # ----- Local Variables ----- #
     location=$1
     url=$2
     archive_file=${url##*/}
 
-    # Download File
+    # ----- Download File ----- #
     loka_print "Extracting $archive_file...." "...."
     if [[ $location == "-t" ]]; then
         if [[ $archive_file == *".bz2"* ]]; then
@@ -301,7 +301,7 @@ function loka_extract() {
             pv $SRC_DIR/$archive_file | tar -xjf - -C $work_dir/
         elif [[ $archive_file == *".xz"* ]]; then
             pv $SRC_DIR/$archive_file | tar -xJf - -C $work_dir/
-        elif [[ $archive_file == *".gz"* ]]; then
+        elif [[ $archive_file == *".gz"* ]] || [[ $archive_file == *".tgz"* ]]; then
             pv $SRC_DIR/$archive_file | tar -xzf - -C $work_dir/
         elif [[ $archive_file == *".zip"* ]]; then
             unzip -o $SRC_DIR/$archive_file -d $work_dir/ | pv -l >/dev/null
@@ -441,9 +441,17 @@ function tutmonda_build() {
         loka_print "No Package Defined." "fail"
         exit
     fi
-    #loka_prepare -p
     if [ ! -d $repo_dir ]; then
         loka_print "Package $PACKAGE Not Found in Repo." "fail"
+        exit
+    fi
+
+    # ----- Check Architecture ----- #
+    if [[ $BARCH != "x86_64" ]] && [[ $PACKAGE == "zulujdk-11" ]]; then
+        loka_print "Unsupported Architecture: $BARCH for package $PACKAGE" "fail"
+        exit
+    elif [[ $BARCH != "x86_64" ]] && [[ $PACKAGE == "zulujdk-8" ]]; then
+        loka_print "Unsupported Architecture: $BARCH for package $PACKAGE" "fail"
         exit
     fi
 
@@ -501,6 +509,10 @@ function tutmonda_build() {
         export DIR=$work_dir
     elif [[ $PACKAGE == "linux-headers" ]]; then
         export DIR=$work_dir/linux-$PKG_VERSION
+    elif [[ $PACKAGE == "zulujdk-11" ]]; then
+        export DIR=$work_dir/zulu11*
+    elif [[ $PACKAGE == "zulujdk-8" ]]; then
+        export DIR=$work_dir/zulu8*
     else
         export DIR=$work_dir/$PACKAGE-*
     fi
@@ -636,13 +648,13 @@ function tutmonda_qemu() {
             loka_print "QEMU 64-bit Not Installed." "fail"
             exit
         fi
-        qemu-system-x86_64 -enable-kvm -m 512M -cdrom $STELA/StelaLinux-$BUILD_NUMBER-$BARCH.iso -serial stdio -boot d
+        qemu-system-x86_64 -enable-kvm -m 1G -cdrom $STELA/StelaLinux-$BUILD_NUMBER-$BARCH.iso -serial stdio -boot d
     elif [[ $BARCH == "i586" ]] || [[ $BARCH == "i686" ]]; then
         if [[ $(which qemu-system-i386) == "" ]]; then
             loka_print "QEMU 32-bit Not Installed." "fail"
             exit
         fi
-        qemu-system-i386 -enable-kvm -m 512M -cdrom $STELA/StelaLinux-$BUILD_NUMBER-$BARCH.iso -serial stdio -boot d
+        qemu-system-i386 -enable-kvm -m 1G -cdrom $STELA/StelaLinux-$BUILD_NUMBER-$BARCH.iso -serial stdio -boot d
     else
         loka_print "Unknown Architecture: $BARCH" "fail"
         exit
@@ -661,7 +673,7 @@ function tutmonda_all() {
     fi
 
     # ----- Build All Packages ----- #
-    # Reset Cross Compiler Variables
+    # --- Reset Cross Compiler Variables --- #
     export CROSS_COMPILE="$XTARGET-"
     export CC="$XTARGET-gcc"
     export CXX="$XTARGET-g++"
@@ -676,10 +688,10 @@ function tutmonda_all() {
     export PKG_CONFIG_PATH="$FIN_DIR/usr/lib/pkgconfig:$FIN_DIR/usr/share/pkgconfig"
     export PKG_CONFIG_SYSROOT="$FIN_DIR"
 
-    # Build Defined Packages
+    # --- Build Defined Packages --- #
     for p in "${INITRAMFS_PKG[@]}"; do
         PACKAGE="$p"
-        # Skip musl and linux-headers
+        # - Skip musl and linux-headers - #
         if [[ $PACKAGE == "musl" ]] || [[ $PACKAGE == "linux-headers" ]]; then
             continue
         fi

@@ -1,0 +1,52 @@
+####################################
+#----------------------------------#
+# StelaKonstrui Script - zulujdk 8 #
+#----------------------------------#
+####################################
+# Copyright (c) 2020 Alexander Barris <awlsomealex at outlook dot com>
+# All Rights Reserved
+# Licensed under the GNU GPLv3, which can be found at https://www.gnu.org/licenses/gpl-3.0.en.html
+#
+# Description:  Zulu Community builds of OpenJDK 8 (musl)
+# URL:          https://www.azul.com/downloads/zulu-community/?&architecture=x86-64-bit&package=jdk
+# License:      GNU GPLv2 w/ Classpath Exception
+# Maintainer:   AwlsomeAlex
+# Section:      kerno
+#
+
+# ----- Package Information ----- #
+PKG_NAME=zulujdk-8
+PKG_VERSION=8.44.0.11
+PKG_JAVA=8.0.242
+PKG_SRC=("https://cdn.azul.com/zulu/bin/zulu$PKG_VERSION-ca-jdk$PKG_JAVA-linux_musl_x64.tar.gz")
+PKG_DEPS=("zlib")
+
+# ----- Build Function ----- #
+build_zulujdk-8() {
+    
+    #-----------------------------#
+    # ----- Local Variables ----- #
+    #-----------------------------#
+
+    #---------------------------#
+    # ----- Configuration ----- #
+    #---------------------------#
+   
+    # Make Directories
+    mkdir -p $fs/opt/jvm/zulu-$PKG_JAVA
+
+    #-----------------------#
+    # ----- Compiling ----- #
+    #-----------------------#
+
+    #---------------------#
+    # ----- Install ----- #
+    #---------------------#
+    
+    # Move zulujdk to /opt
+    mv * $fs/opt/jvm/zulu-$PKG_JAVA
+
+    # Symlink Java 8 to /opt/jvm/default
+    cd $fs/opt/jvm
+    ln -s /opt/jvm/zulu-$PKG_JAVA default
+}

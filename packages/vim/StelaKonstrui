@@ -9,6 +9,7 @@
 #
 # Description:  Vim - The ubiquitous text editor
 # URL:          https://www.vim.org/
+# License:      VIM License
 # Maintainer:   AwlsomeAlex
 # Section:      kerno
 #
@@ -17,7 +18,7 @@
 PKG_NAME=vim
 PKG_VERSION=8.2.0273
 PKG_SRC=("https://github.com/vim/vim/archive/v$PKG_VERSION.tar.gz" "vimrc")
-PKG_DEPS=()
+PKG_DEPS=("ncurses")
 
 # ----- Build Function ----- #
 build_vim() {
