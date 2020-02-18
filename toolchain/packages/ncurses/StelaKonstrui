@@ -15,7 +15,7 @@
 
 # ----- Package Information ----- #
 PKG_NAME=ncurses
-PKG_VERSION=6.1
+PKG_VERSION=6.2
 PKG_SRC=("http://ftp.gnu.org/pub/gnu/ncurses/ncurses-$PKG_VERSION.tar.gz")
 
 # ----- Build Function ----- #

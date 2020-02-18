@@ -16,7 +16,7 @@
 
 # ----- Package Information ----- #
 PKG_NAME=linux
-PKG_VERSION=5.5.3
+PKG_VERSION=5.5.4
 PKG_SRC=("https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-$PKG_VERSION.tar.xz")
 PKG_DEPS=()
 
@@ -93,4 +93,5 @@ build_linux() {
 
     # Install to /boot
     mkdir $fs/boot
+    cp -r $image_file $fs/boot/kernel.xz
 }

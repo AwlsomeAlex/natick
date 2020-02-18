@@ -16,7 +16,7 @@
 
 # ----- Package Information ----- #
 PKG_NAME=bison
-PKG_VERSION=3.5.1
+PKG_VERSION=3.5.2
 PKG_SRC=("https://ftp.gnu.org/gnu/bison/bison-$PKG_VERSION.tar.gz")
 
 # ----- Build Function ----- #

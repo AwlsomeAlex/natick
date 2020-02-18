@@ -15,7 +15,7 @@
 
 # ----- Package Information ----- #
 PKG_NAME=vim
-PKG_VERSION=8.2.0252
+PKG_VERSION=8.2.0273
 PKG_SRC=("https://github.com/vim/vim/archive/v$PKG_VERSION.tar.gz" "vimrc")
 PKG_DEPS=()
 

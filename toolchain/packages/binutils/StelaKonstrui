@@ -16,7 +16,7 @@
 
 # ----- Package Information ----- #
 PKG_NAME=binutils
-PKG_VERSION=2.33.1
+PKG_VERSION=2.34
 PKG_SRC=("http://ftp.gnu.org/gnu/binutils/binutils-$PKG_VERSION.tar.xz")
 
 # ----- Build Function ----- #

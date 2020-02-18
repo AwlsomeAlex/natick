@@ -30,8 +30,8 @@ INITRAMFS_PKG=("linux" "nova" "busybox" "musl" "musl-tools" "syslinux" "ncurses"
 TOOL_PKG=("file" "gettext-tiny" "m4" "bison" "flex" "bc" "ncurses" "gperf" "libtool" "autoconf" "automake" "linux-headers" "binutils" "gcc-extras" "gcc-static" "musl" "gcc" "cracklib" "pkgconf")
 
 # StelaLinux Target Architecture (Supported: i686/x86_64)
-#export BARCH=i686
-export BARCH=x86_64
+export BARCH=i686
+#export BARCH=x86_64
 
 # ----- Directory Infomation ----- #
 
@@ -717,6 +717,7 @@ function tutmonda_usage() {
     loka_print ""
     loka_print "Developed by Alexander Barris (AwlsomeAlex)"
     loka_print "Licensed under the GNU GPLv3"
+    loka_print "Want the source code? 'vim stela.sh'"
     loka_print "No penguins were harmed in the making of this distro."
     loka_print ""
 }
