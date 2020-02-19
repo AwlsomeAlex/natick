@@ -446,15 +446,6 @@ function tutmonda_build() {
         exit
     fi
 
-    # ----- Check Architecture ----- #
-    if [[ $BARCH != "x86_64" ]] && [[ $PACKAGE == "zulujdk-11" ]]; then
-        loka_print "Unsupported Architecture: $BARCH for package $PACKAGE" "fail"
-        exit
-    elif [[ $BARCH != "x86_64" ]] && [[ $PACKAGE == "zulujdk-8" ]]; then
-        loka_print "Unsupported Architecture: $BARCH for package $PACKAGE" "fail"
-        exit
-    fi
-
     # ----- Source Build Script ----- #
     source $repo_dir/StelaKonstrui
 

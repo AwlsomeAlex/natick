@@ -28,6 +28,13 @@ build_zulujdk-8() {
     # ----- Local Variables ----- #
     #-----------------------------#
 
+    # Check Architecture
+    if [[ $BARCH != "x86_64" ]]; then
+        loka_print "Architecture $BARCH not supported by ZuluJDK" "fail"
+        exit
+    fi  
+ 
+
     #---------------------------#
     # ----- Configuration ----- #
     #---------------------------#
