@@ -24,7 +24,7 @@ export BUILD_NAME="Git Build"
 export BUILD_NUMBER="git"
 
 # InitramFS Package List
-INITRAMFS_PKG=("linux" "nova" "busybox" "musl" "musl-tools" "syslinux" "ncurses" "vim" "dialog" "util-linux" "e2fsprogs" "zlib")
+INITRAMFS_PKG=("linux" "nova" "busybox" "musl" "musl-tools" "syslinux" "ncurses" "vim" "dialog" "util-linux" "e2fsprogs" "zlib" "file")
 
 # StelaLinux Toolchain Package List
 TOOL_PKG=("file" "gettext-tiny" "m4" "bison" "flex" "bc" "ncurses" "gperf" "libtool" "autoconf" "automake" "linux-headers" "binutils" "gcc-extras" "gcc-static" "musl" "gcc" "cracklib" "pkgconf")
@@ -67,6 +67,9 @@ export IMAGE_DIR="$WRK_DIR/image"
 
 # InitramFS Directory
 export INITRAMFS_DIR="$WRK_DIR/initramfs"
+
+# Archive Directory
+export ARCHIVE_DIR="$WRK_DIR/archive"
 
 # ----- Color Codes ----- #
 NC='\033[0m'        # No Color
@@ -180,7 +183,6 @@ function loka_print() {
             ;;
     esac
 }
-
 
 # loka_prepare($1: location): Prepare Build Environment
 function loka_prepare() {
@@ -329,7 +331,7 @@ function loka_install() {
 # ----- stela Functions ----- #
 #-----------------------------#
 
-# loka_clean(): Cleans the StelaLinux Directories
+# clean(): Cleans the StelaLinux Directories
 function tutmonda_clean() {
     loka_title
 
@@ -627,6 +629,78 @@ function tutmonda_image() {
     loka_print "Generated Disk Image." "done"
 }
 
+# archive(): Archives filesystem into a tar.xz
+function tutmonda_archive() {
+    loka_title
+
+    # ----- Check if InitramFS exists ----- #
+    if [[ ! -f $INITRAMFS_DIR/initramfs.cpio.xz ]]; then
+        loka_print "InitramFS does not exist." "fail"
+        loka_print "Please build with '$EXECUTE initramfs'"
+        exit
+    fi
+
+    # ----- Check if Archive Directory exists ----- #
+    if [[ -d $ARCHIVE_DIR ]]; then
+        if [[ $PACKAGE == "-Y" ]]; then
+            loka_print "Removing Archive" "...."
+            rm -rf $ARCHIVE_DIR
+            loka_print "Removed Archive" "done"
+        else
+            loka_print "Archive Already Exists." "warn"
+            read -p "Do you want to overwrite? (Y/n) " OPT
+            if [ $OPT == 'Y' ]; then
+                loka_print "Removing Archive" "...."
+                rm -rf $ARCHIVE_DIR
+                loka_print "Removed Archive" "done"
+            else
+                loka_print "Nothing" "done"
+                exit
+            fi
+        fi
+    fi
+
+    # ----- Create System Hierarchy ----- #
+    loka_print "Creating Filesystem Hierarchy...." "...."
+    mkdir -p $ARCHIVE_DIR/fs/{boot,dev,etc,mnt/root,proc,root,sys,tmp,usr/{bin,lib,sbin,share,include},run}
+    # Create symlinks
+    curr=$(pwd)
+    cd $ARCHIVE_DIR/fs
+    ln -s usr/bin bin
+    ln -s usr/sbin sbin
+    ln -s usr/lib lib
+    cd $curr
+    loka_print "Created Filesystem Hierarchy." "done"
+
+    # ----- Copy Package FS to Archive ----- #
+    for i in "${INITRAMFS_PKG[@]}"; do
+        loka_print "Copying $i to Archive...." "...."
+        cp -r --remove-destination $WRK_DIR/$i/$i.fs/* $ARCHIVE_DIR/fs
+        loka_print "Copied $i to Archive." "done"
+    done
+
+    # ----- Copy InitramFS ----- #
+    loka_print "Copying InitramFS to Archive...." "...."
+    cp $INITRAMFS_DIR/initramfs.cpio.xz $ARCHIVE_DIR/fs/boot/initramfs.xz
+    loka_print "Copied InitramFS to Archive" "done"
+    
+    # ----- Strip Archive ----- #
+    loka_print "Stripping InitramFS...." "...."
+    set +e
+    $XTARGET-strip -g \
+        $INITRAMFS_DIR/fs/usr/bin/* \
+        $INITRAMFS_DIR/fs/usr/lib/* \
+        $INITRAMFS_DIR/fs/usr/sbin/* \
+        2>/dev/null
+    set -e
+    loka_print "Stripped InitramFS." "done"
+
+    # ----- Generate tar file ----- #
+    loka_print "Archiving Directory...." "...."
+    pv $STELA/StelaLinux-$BUILD_NUMBER-$BARCH.tar.xz | tar cJf - -C $ARCHIVE_DIR/fs/.
+    loka_print "Archived Directory." "done"
+}
+
 # qemu(): Launch QEMU Emulator with Live CD
 function tutmonda_qemu() {
     if [ ! -f $STELA/StelaLinux-$BUILD_NUMBER-$BARCH.iso ]; then
@@ -692,6 +766,9 @@ function tutmonda_all() {
     # ----- Generate InitramFS ----- #
     tutmonda_initramfs
 
+    # ----- Generate Archive ----- #
+    tutmonda_archive
+
     # ----- Generate Image ----- #
     tutmonda_image
 }
@@ -706,6 +783,7 @@ function tutmonda_usage() {
     loka_print "      toolchain:  Builds the toolchain required to build StelaLinux"
     loka_print "      build:      Builds a package for StelaLinux"
     loka_print "      initramfs:  Generate InitramFS"
+    loka_print "      archive:    Generate Archive"
     loka_print "      image:      Generate Disk Image"
     loka_print "      qemu:       Launch Disk Image in QEMU (kvm)"
     loka_print "      clean:      Clean the directory (MUST BE USED BEFORE COMMIT)"
@@ -745,6 +823,9 @@ function main() {
             ;;
         image )
             time tutmonda_image
+            ;;
+        archive )
+            time tutmonda_archive
             ;;
         qemu )
             time tutmonda_qemu

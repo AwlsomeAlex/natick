@@ -46,10 +46,10 @@ build_linux() {
     #---------------------------#
     # ----- Configuration ----- #
     #---------------------------#
-   
+  
     # Generate Linux Kernel Config
     make ARCH=$XKARCH CROSS_COMPILE=${CROSS_COMPILE} $DEFCONFIG $MAKEFLAGS
-
+    
     # Set Configuration Variables
     sed -i "s/.*CONFIG_DEFAULT_HOSTNAME.*/CONFIG_DEFAULT_HOSTNAME=\"stelalinux\"/" .config  # Changes Hostname
     sed -i 's:# CONFIG_LOCALVERSION is not set :CONFIG_LOCALVERSION="-stela":g' .config     # Adds -stela to Kernel Version
@@ -79,7 +79,7 @@ build_linux() {
 
     # Make mrproper
     unset LDFLAGS
-    
+   
     #-----------------------#
     # ----- Compiling ----- #
     #-----------------------#
