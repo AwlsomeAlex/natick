@@ -761,6 +761,9 @@ function tutmonda_all() {
             continue
         fi
         tutmonda_build
+        if [[ $PACKAGE == "ncurses" ]]; then
+            export BUILDFLAGS="--build=$XHOST --host=$XTARGET"
+        fi
     done
 
     # ----- Generate InitramFS ----- #
