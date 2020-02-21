@@ -337,7 +337,7 @@ function tutmonda_clean() {
 
     # ----- Clean Build Directories & ISO ----- #
     loka_print "Cleaning StelaLinux Build Directories...." "...."
-    rm -rf $SRC_DIR $WRK_DIR $FIN_DIR $STELA/*.iso
+    rm -rf $SRC_DIR $WRK_DIR $FIN_DIR
     loka_print "Cleaned StelaLinux Build Directories." "done"
 
     # ----- Check if cleaning toolchain ----- #
@@ -346,6 +346,11 @@ function tutmonda_clean() {
         rm -rf $TSRC_DIR $TWRK_DIR $TFIN_DIR
         loka_print "Cleaned StelaLinux Toolchain." "done"
     fi
+
+    # ----- Clean Archive and ISOs ----- #
+    loka_print "Cleaning StelaLinux Disk Images and Archives...." "...."
+    rm -rf $STELA/*.iso $STELA/*.tar.xz
+    loka_print "Cleaned StelaLinux Disk Images and Archives." "done"
 }
 
 # toolchain(): Build Toolchain
@@ -685,19 +690,20 @@ function tutmonda_archive() {
     loka_print "Copied InitramFS to Archive" "done"
     
     # ----- Strip Archive ----- #
-    loka_print "Stripping InitramFS...." "...."
+    loka_print "Stripping Archive Filesystem...." "...."
     set +e
     $XTARGET-strip -g \
-        $INITRAMFS_DIR/fs/usr/bin/* \
-        $INITRAMFS_DIR/fs/usr/lib/* \
-        $INITRAMFS_DIR/fs/usr/sbin/* \
+        $ARCHIVE_DIR/fs/usr/bin/* \
+        $ARCHIVE_DIR/fs/usr/lib/* \
+        $ARCHIVE_DIR/fs/usr/sbin/* \
         2>/dev/null
     set -e
-    loka_print "Stripped InitramFS." "done"
+    loka_print "Stripped Archive Filesystem." "done"
 
     # ----- Generate tar file ----- #
     loka_print "Archiving Directory...." "...."
-    pv $STELA/StelaLinux-$BUILD_NUMBER-$BARCH.tar.xz | tar cJf - -C $ARCHIVE_DIR/fs/.
+    cd $ARCHIVE_DIR/fs/
+    tar -cJf $STELA/StelaLinux-$BUILD_NUMBER-$BARCH.tar.xz .
     loka_print "Archived Directory." "done"
 }
 
