@@ -16,7 +16,7 @@
 
 # ----- Package Information ----- #
 PKG_NAME=ncurses
-PKG_VERSION=6.1
+PKG_VERSION=6.2
 PKG_SRC=("https://invisible-mirror.net/archives/ncurses/ncurses-$PKG_VERSION.tar.gz")
 PKG_DEPS=()
 
@@ -74,7 +74,7 @@ build_ncurses() {
     #---------------------#
     
     # Install to FS
-    make -j1 DESTDIR="$fs" install $MAKEFLAGS
+    make -j1 DESTDIR="$fs" install
 
     # Symlink Libraries together (Ataraxia)
     #
@@ -86,8 +86,8 @@ build_ncurses() {
 		ln -sf ${lib}w.pc "$fs"/usr/lib/pkgconfig/${lib}.pc
 	done
 	for lib in tic tinfo; do
-		echo "INPUT(libncursesw.so.${version:0:1})" > "$fs"/usr/lib/lib${lib}.so
-		ln -sf libncursesw.so.${version:0:1} "$fs"/usr/lib/lib${lib}.so.${version:0:1}
+		echo "INPUT(libncursesw.so.${PKG_VERSION})" > "$fs"/usr/lib/lib${lib}.so
+		ln -sf libncursesw.so.${PKG_VERSION} "$fs"/usr/lib/lib${lib}.so.${PKG_VERSION}
 	done
 	echo 'INPUT(-lncursesw)' > "$fs"/usr/lib/libcursesw.so
 	ln -sf libncurses.so "$fs"/usr/lib/libcurses.so
