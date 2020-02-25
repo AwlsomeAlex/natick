@@ -1,5 +1,5 @@
 # StelaLinux - A Minimal Linux Distribution
-StelaLinux is an experimental Linux Distribution built with the Linux Kernel, musl C Library, the BusyBox Userland, and a custom init script. Various packages are also included like vim, util-linux, etc.
+StelaLinux is a research Linux Distribution built with the Linux Kernel, musl C Library, the BusyBox Userland, and a custom init script. Various packages are also included like vim, util-linux, etc.
 
 StelaLinux (formally StarLinux, AwlsomeLinux, and AwlBuntu) has been my project in researching how a Linux Distribution works, along with building one from the ground up. It was originally based off of Minimal Linux Live, as I reworked a few things, but evolved into a totally different standalone project. Now it is more of a Linux From Scratch-like distribution. StelaLinux is built with a musl-powered toolchain, runs using custom init scripts (called Xiongnu), has a package manager in the works called fox, and a package repository.
 
