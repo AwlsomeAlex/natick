@@ -21,12 +21,8 @@ PKG_SRC=("https://www.busybox.net/downloads/busybox-$PKG_VERSION.tar.bz2" "stela
 PKG_DEPS=()
 
 # ----- Build Function ----- #
-build_busybox() {
-    
-    #-----------------------------#
-    # ----- Local Variables ----- #
-    #-----------------------------#
-    
+build() {
+    # Platform Specific Information 
     case $BARCH in
         x86_64)
             export XKARCH="x86_64"
@@ -36,10 +32,6 @@ build_busybox() {
             ;;
     esac
 
-    #---------------------------#
-    # ----- Configuration ----- #
-    #---------------------------#
-   
     # Prepare BusyBox Configuration
     make ARCH=$XKARCH CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS" defconfig $MAKEFLAGS
 
@@ -49,18 +41,10 @@ build_busybox() {
     # Create Directories
     mkdir -p $fs/usr/bin/
 
-    #-----------------------#
-    # ----- Compiling ----- #
-    #-----------------------#
-
     # Compile BusyBox
     make ARCH=$XKARCH CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS" $MAKEFLAGS
     make ARCH=$XKARCH CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS" busybox.links $MAKEFLAGS
    
-    #---------------------#
-    # ----- Install ----- #
-    #---------------------#
-
     # Install to FS
     install -D busybox "$fs"/usr/bin/busybox
 

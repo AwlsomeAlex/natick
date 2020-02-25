@@ -20,12 +20,7 @@ PKG_VERSION=2.34
 PKG_SRC=("http://ftp.gnu.org/gnu/binutils/binutils-$PKG_VERSION.tar.xz")
 
 # ----- Build Function ----- #
-build_binutils() {
-    
-    #-----------------------------#
-    # ----- Local Variables ----- #
-    #-----------------------------#
-
+build() {
     # Set Hash Style
     hashconfig="--enable-default-hash-style=gnu"
 
@@ -33,16 +28,12 @@ build_binutils() {
     if [[ $BARCH == "x86_64" ]]; then
         archconfig="--enable-targets=x86_64-pep"    
     fi
-
-    #---------------------------#
-    # ----- Configuration ----- #
-    #---------------------------#
     
     # Create and cd into build directory
     mkdir build
     cd build
 
-    # Configure Package
+    # Configure binutils
     ../configure \
 		--prefix="$TFIN_DIR" \
 		--target=$XTARGET $archconfig $hashconfig \
@@ -67,18 +58,10 @@ build_binutils() {
     # Configure Host
     make MAKEINFO="true" configure-host $MAKEFLAGS
  
-    #-----------------------#
-    # ----- Compiling ----- #
-    #-----------------------#
-
-    # Compile Package
+    # Compile binutils
     make MAKEINFO="true" $MAKEFLAGS
 
-    #---------------------#
-    # ----- Install ----- #
-    #---------------------#
-    
-    # Install Package to Toolchain Directory
+    # Install binutils to Toolchain Directory
     make MAKEINFO="true" install $MAKEFLAGS
 
     # Symlink ld

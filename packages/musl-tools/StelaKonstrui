@@ -20,29 +20,12 @@ PKG_SRC=("getconf.c" "getent.c" "iconv.c")
 PKG_DEPS=()
 
 # ----- Build Function ----- #
-build_musl-tools() {
-    
-    #-----------------------------#
-    # ----- Local Variables ----- #
-    #-----------------------------#
-
-    #---------------------------#
-    # ----- Configuration ----- #
-    #---------------------------#
-   
+build() {
     # Create Directory
     mkdir -p $fs/usr/bin/
     
-    #-----------------------#
-    # ----- Compiling ----- #
-    #-----------------------#
-
     # Compile and Statically Link against libc
     ${CROSS_COMPILE}cc $CFLAGS -static getconf.c -o "$fs"/usr/bin/getconf
     ${CROSS_COMPILE}cc $CFLAGS -static getent.c -o "$fs"/usr/bin/getent
     ${CROSS_COMPILE}cc $CFLAGS -static iconv.c -o "$fs"/usr/bin/iconv
-
-    #---------------------#
-    # ----- Install ----- #
-    #---------------------#
 }

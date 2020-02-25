@@ -21,28 +21,13 @@ PKG_SRC=("https://invisible-mirror.net/archives/ncurses/ncurses-$PKG_VERSION.tar
 PKG_DEPS=()
 
 # ----- Build Function ----- #
-build_ncurses() {
-    
-    #-----------------------------#
-    # ----- Local Variables ----- #
-    #-----------------------------#
-
+build() {
     # Set HostCC
     if [ -n "$HOSTCC" ]; then
         BUILDFLAGS="$BUILDFLAGS --with-build-cc=$HOSTCC"
     else
         BUILDFLAGS="$BUILDFLAGS"
     fi
-
-    #---------------------------#
-    # ----- Configuration ----- #
-    #---------------------------#
-   
-    # Remove Static Library (LFS)
-    #
-    # Source: http://www.linuxfromscratch.org/lfs/view/development/chapter06/ncurses.html
-    #
-    #sed -i '/LIBTOOL_INSTALL/d' c++/Makefile.in
 
     # Configure Ncurses (Ataraxia)
     ./configure $BUILDFLAGS \
@@ -62,17 +47,9 @@ build_ncurses() {
 		--disable-rpath-hack \
 		--disable-stripping
 
-    #-----------------------#
-    # ----- Compiling ----- #
-    #-----------------------#
-
     # Make ncurses
     make $MAKEFLAGS
 
-    #---------------------#
-    # ----- Install ----- #
-    #---------------------#
-    
     # Install to FS
     make -j1 DESTDIR="$fs" install
 

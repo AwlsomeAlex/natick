@@ -20,31 +20,14 @@ PKG_VERSION=3.1
 PKG_SRC=("http://ftp.gnu.org/gnu/gperf/gperf-$PKG_VERSION.tar.gz")
 
 # ----- Build Function ----- #
-build_gperf() {
-    
-    #-----------------------------#
-    # ----- Local Variables ----- #
-    #-----------------------------#
-
-    #---------------------------#
-    # ----- Configuration ----- #
-    #---------------------------#
-    
-    # Configure Package
+build() {
+    # Configure gperf
     ./configure \
         --prefix="$TFIN_DIR" 
  
-    #-----------------------#
-    # ----- Compiling ----- #
-    #-----------------------#
-
-    # Compile Package
+    # Compile gperf
     make $MAKEFLAGS
 
-    #---------------------#
-    # ----- Install ----- #
-    #---------------------#
-    
-    # Install Package to Toolchain Directory
+    # Install gperf to Toolchain Directory
     make install $MAKEFLAGS
 }

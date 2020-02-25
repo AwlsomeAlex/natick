@@ -20,37 +20,20 @@ PKG_VERSION=26
 PKG_SRC=("https://www.kernel.org/pub/linux/utils/kernel/kmod/kmod-$PKG_VERSION.tar.xz")
 
 # ----- Build Function ----- #
-build_kmod() {
-    
-    #-----------------------------#
-    # ----- Local Variables ----- #
-    #-----------------------------#
-
-    #---------------------------#
-    # ----- Configuration ----- #
-    #---------------------------#
-    
-    # Configure Package
+build() {
+    # Configure kmod
     ./configure \
 		--prefix="$TFIN_DIR" \
 		--with-xz \
 		--with-zlib \
 		--disable-manpages 
     
-    #-----------------------#
-    # ----- Compiling ----- #
-    #-----------------------#
-
-    # Compile Package
+    # Compile kmod
     set +e
     make $MAKEFLAGS
     set -e
 
-    #---------------------#
-    # ----- Install ----- #
-    #---------------------#
-    
-    # Install Package to Toolchain Directory
+    # Install kmod to Toolchain Directory
     make install $MAKEFLAGS
 
     # Create symlinks (Ataraxia)

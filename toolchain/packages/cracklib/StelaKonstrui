@@ -20,33 +20,16 @@ PKG_VERSION=2.9.7
 PKG_SRC=("https://github.com/cracklib/cracklib/releases/download/v$PKG_VERSION/cracklib-$PKG_VERSION.tar.gz")
 
 # ----- Build Function ----- #
-build_cracklib() {
-    
-    #-----------------------------#
-    # ----- Local Variables ----- #
-    #-----------------------------#
-
-    #---------------------------#
-    # ----- Configuration ----- #
-    #---------------------------#
-    
-    # Configure Package
+build() {
+    # Configure cracklib
     ./configure \
         --prefix="$TFIN_DIR" \
         --sbindir="$TFIN_DIR"/bin \
         --without-python
         
-    #-----------------------#
-    # ----- Compiling ----- #
-    #-----------------------#
-
-    # Compile Package
+    # Compile cracklib
     make $MAKEFLAGS
 
-    #---------------------#
-    # ----- Install ----- #
-    #---------------------#
-    
-    # Install Package to Toolchain Directory
+    # Install cracklib to Toolchain Directory
     make install $MAKEFLAGS
 }

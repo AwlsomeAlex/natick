@@ -20,12 +20,7 @@ PKG_VERSION=9.2.0
 PKG_SRC=("http://ftp.gnu.org/gnu/gcc/gcc-$PKG_VERSION/gcc-$PKG_VERSION.tar.xz")
 
 # ----- Build Function ----- #
-build_gcc-static() {
-    
-    #-----------------------------#
-    # ----- Local Variables ----- #
-    #-----------------------------#
-
+build() {
     # Set GCC Flags
     case $BARCH in
         x86_64)
@@ -55,10 +50,6 @@ build_gcc-static() {
 	export CXXFLAGS_FOR_TARGET=" "
 	export LDFLAGS_FOR_TARGET=" "
 
-    #---------------------------#
-    # ----- Configuration ----- #
-    #---------------------------#
-    
     # Patch Makefile
     sed -i 's@\./fixinc\.sh@-c true@' gcc/Makefile.in
 
@@ -90,8 +81,7 @@ build_gcc-static() {
     mkdir build
     cd build
 
-    # Configure Package
-    
+    # Configure gcc-static
     AR=ar \
 	../configure \
 		--prefix="$TFIN_DIR" \
@@ -135,18 +125,10 @@ build_gcc-static() {
 		--disable-threads \
 		--disable-werror
 
-    #-----------------------#
-    # ----- Compiling ----- #
-    #-----------------------#
-
-    # Compile Package
+    # Compile gcc-static
     make all-gcc all-target-libgcc $MAKEFLAGS
     
-    #---------------------#
-    # ----- Install ----- #
-    #---------------------#
-    
-    # Install Package to Toolchain Directory
+    # Install gcc-static to Toolchain Directory
     make -j1 install-gcc install-target-libgcc
 
     # Symlink gcc

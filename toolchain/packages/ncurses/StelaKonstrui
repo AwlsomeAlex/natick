@@ -19,33 +19,16 @@ PKG_VERSION=6.2
 PKG_SRC=("http://ftp.gnu.org/pub/gnu/ncurses/ncurses-$PKG_VERSION.tar.gz")
 
 # ----- Build Function ----- #
-build_ncurses() {
-    
-    #-----------------------------#
-    # ----- Local Variables ----- #
-    #-----------------------------#
-
-    #---------------------------#
-    # ----- Configuration ----- #
-    #---------------------------#
-    
-    # Configure Package
+build() {
+    # Configure ncurses
     ./configure \
         --prefix="$TFIN_DIR" \
         --without-debug
         
-    #-----------------------#
-    # ----- Compiling ----- #
-    #-----------------------#
-
-    # Compile Package
+    # Compile ncurses
     make -C include
     make -C progs tic
 
-    #---------------------#
-    # ----- Install ----- #
-    #---------------------#
-    
-    # Install Package to Toolchain Directory
+    # Install ncurses to Toolchain Directory
     cp progs/tic "$TFIN_DIR"/bin
 }

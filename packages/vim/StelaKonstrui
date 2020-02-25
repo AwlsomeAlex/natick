@@ -21,12 +21,7 @@ PKG_SRC=("https://github.com/vim/vim/archive/v$PKG_VERSION.tar.gz" "vimrc")
 PKG_DEPS=("ncurses")
 
 # ----- Build Function ----- #
-build_vim() {
-    
-    #-----------------------------#
-    # ----- Local Variables ----- #
-    #-----------------------------#
-
+build() {
     # Cross Compiler Flag
     export vim_cv_toupper_broken=no
     export vim_cv_terminfo=yes    
@@ -37,10 +32,6 @@ build_vim() {
     export vim_cv_stat_ignores_slash=yes
     export vim_cv_memmove_handles_overlap=yes
 
-    #---------------------------#
-    # ----- Configuration ----- #
-    #---------------------------#
-   
     # Configure vim
     ./configure $BUILDFLAGS \
 		--prefix=/usr \
@@ -53,17 +44,9 @@ build_vim() {
 		--disable-nls \
 		--disable-gui
 
-    #-----------------------#
-    # ----- Compiling ----- #
-    #-----------------------#
-
     # Compile vim
     make $MAKEFLAGS
 
-    #---------------------#
-    # ----- Install ----- #
-    #---------------------#
-    
     # Install Vim to fs
     make DESTDIR="$fs" install $MAKEFLAGS
 

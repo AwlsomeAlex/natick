@@ -21,16 +21,7 @@ PKG_SRC=("http://ftp.astron.com/pub/file/file-$PKG_VERSION.tar.gz")
 PKG_DEPS=("zlib")
 
 # ----- Build Function ----- #
-build_file() {
-    
-    #-----------------------------#
-    # ----- Local Variables ----- #
-    #-----------------------------#
-
-    #---------------------------#
-    # ----- Configuration ----- #
-    #---------------------------#
-   
+build() {
     # Configure file
     ./configure $BUILDFLAGS \
 		--prefix=/usr \
@@ -41,17 +32,9 @@ build_file() {
     # Modify libtool
     sed -i 's/ -shared / -Wl,--as-needed\0/g' libtool
 
-    #-----------------------#
-    # ----- Compiling ----- #
-    #-----------------------#
-
     # Compile file
     make $MAKEFLAGS
 
-    #---------------------#
-    # ----- Install ----- #
-    #---------------------#
-    
-    # Install e2fsprogs to fs
+    # Install file to fs
     make DESTDIR="$fs" install $MAKEFLAGS
 }

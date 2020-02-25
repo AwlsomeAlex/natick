@@ -20,32 +20,15 @@ PKG_VERSION=2.4.6
 PKG_SRC=("http://ftp.gnu.org/gnu/libtool/libtool-$PKG_VERSION.tar.xz")
 
 # ----- Build Function ----- #
-build_libtool() {
-    
-    #-----------------------------#
-    # ----- Local Variables ----- #
-    #-----------------------------#
-
-    #---------------------------#
-    # ----- Configuration ----- #
-    #---------------------------#
-    
-    # Configure Package
+build() {
+    # Configure libtool
     ./configure \
         --prefix="$TFIN_DIR" \
         --disable-static
         
-    #-----------------------#
-    # ----- Compiling ----- #
-    #-----------------------#
-
-    # Compile Package
+    # Compile libtool
     make $MAKEFLAGS
 
-    #---------------------#
-    # ----- Install ----- #
-    #---------------------#
-    
-    # Install Package to Toolchain Directory
+    # Install libtool to Toolchain Directory
     make install $MAKEFLAGS
 }

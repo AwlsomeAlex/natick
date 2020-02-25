@@ -20,17 +20,8 @@ PKG_VERSION=1.6.3
 PKG_SRC=("http://distfiles.dereferenced.org/pkgconf/pkgconf-$PKG_VERSION.tar.xz")
 
 # ----- Build Function ----- #
-build_pkgconf() {
-    
-    #-----------------------------#
-    # ----- Local Variables ----- #
-    #-----------------------------#
-
-    #---------------------------#
-    # ----- Configuration ----- #
-    #---------------------------#
-
-    # Configure Package
+build() {
+    # Configure pkgconf
     LDFLAGS="-static" \
     ./configure \
         --prefix="$TFIN_DIR" \
@@ -39,18 +30,10 @@ build_pkgconf() {
         --with-system-libdir="$FIN_DIR/usr/lib" \
         --with-system-includedir="$FIN_DIR/usr/include"
     
-    #-----------------------#
-    # ----- Compiling ----- #
-    #-----------------------#
-
-    # Compile Package
+    # Compile pkgconf
     make $MAKEFLAGS
 
-    #---------------------#
-    # ----- Install ----- #
-    #---------------------#
-    
-    # Install Package to Toolchain Directory
+    # Install pkgconf to Toolchain Directory
     make install $MAKEFLAGS
 
     # Symlink pkgconfig

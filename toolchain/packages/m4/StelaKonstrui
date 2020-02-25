@@ -20,35 +20,18 @@ PKG_VERSION=1.4.18
 PKG_SRC=("https://ftp.gnu.org/gnu/m4/m4-$PKG_VERSION.tar.gz")
 
 # ----- Build Function ----- #
-build_m4() {
-    
-    #-----------------------------#
-    # ----- Local Variables ----- #
-    #-----------------------------#
-
-    #---------------------------#
-    # ----- Configuration ----- #
-    #---------------------------#
-    
+build() {
     # Patch for GLIBC Systems
     sed -i 's/IO_ftrylockfile/IO_EOF_SEEN/' lib/*.c
 	echo "#define _IO_IN_BACKUP 0x100" >> lib/stdio-impl.h
 
-    # Configure Package
+    # Configure m4
     ./configure \
         --prefix="$TFIN_DIR"
         
-    #-----------------------#
-    # ----- Compiling ----- #
-    #-----------------------#
-
-    # Compile Package
+    # Compile m4
     make $MAKEFLAGS
 
-    #---------------------#
-    # ----- Install ----- #
-    #---------------------#
-    
-    # Install Package to Toolchain Directory
+    # Install m4 to Toolchain Directory
     make install $MAKEFLAGS
 }

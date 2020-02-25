@@ -20,35 +20,18 @@ PKG_VERSION=2.6.4
 PKG_SRC=("https://github.com/westes/flex/releases/download/v$PKG_VERSION/flex-$PKG_VERSION.tar.gz")
 
 # ----- Build Function ----- #
-build_flex() {
-    
-    #-----------------------------#
-    # ----- Local Variables ----- #
-    #-----------------------------#
-
-    #---------------------------#
-    # ----- Configuration ----- #
-    #---------------------------#
-    
+build() {
     # Patch for glibc systems
     sed -i "/math.h/a #include <malloc.h>" src/flexdef.h
 
-    # Configure Package
+    # Configure flex
     ./configure \
         --prefix="$TFIN_DIR"
- 
-    #-----------------------#
-    # ----- Compiling ----- #
-    #-----------------------#
 
-    # Compile Package
+    # Compile flex
     make $MAKEFLAGS
 
-    #---------------------#
-    # ----- Install ----- #
-    #---------------------#
-    
-    # Install Package to Toolchain Directory
+    # Install flex to Toolchain Directory
     make install $MAKEFLAGS
 
     # Symlink flex

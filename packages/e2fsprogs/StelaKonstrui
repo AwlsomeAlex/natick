@@ -21,16 +21,7 @@ PKG_SRC=("https://sourceforge.net/projects/e2fsprogs/files/e2fsprogs/v$PKG_VERSI
 PKG_DEPS=("util-linux")
 
 # ----- Build Function ----- #
-build_e2fsprogs() {
-    
-    #-----------------------------#
-    # ----- Local Variables ----- #
-    #-----------------------------#
-
-    #---------------------------#
-    # ----- Configuration ----- #
-    #---------------------------#
-   
+build() {
     # Patch Makefile
     sed -i '/init\.d/s|^|#|' misc/Makefile.in
 
@@ -52,17 +43,9 @@ build_e2fsprogs() {
 		--disable-nls \
 		--disable-uuidd
 
-    #-----------------------#
-    # ----- Compiling ----- #
-    #-----------------------#
-
     # Compile e2fsprogs
     make $MAKEFLAGS
 
-    #---------------------#
-    # ----- Install ----- #
-    #---------------------#
-    
     # Install e2fsprogs to fs
     make -j1 MKDIR_P="install -d" DESTDIR="$fs" install install-libs
 

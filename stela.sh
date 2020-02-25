@@ -429,7 +429,7 @@ function tutmonda_toolchain() {
         # --- Build Package --- #
         cd $DIR
         loka_print "Building $PACKAGE...." "...."
-        build_$PACKAGE
+        build
         loka_print "Built $PACKAGE." "done"
     done
 }
@@ -518,7 +518,7 @@ function tutmonda_build() {
     # ----- Build Package ----- #
     cd $DIR
     loka_print "Building $PACKAGE...." "...."
-    build_$PACKAGE
+    build
     loka_print "Built $PACKAGE." "done"
 
     # ----- Install Package ----- #

@@ -20,17 +20,8 @@ PKG_VERSION=5.38
 PKG_SRC=("http://ftp.astron.com/pub/$PKG_NAME/$PKG_NAME-$PKG_VERSION.tar.gz")
 
 # ----- Build Function ----- #
-build_file() {
-    
-    #-----------------------------#
-    # ----- Local Variables ----- #
-    #-----------------------------#
-
-    #---------------------------#
-    # ----- Configuration ----- #
-    #---------------------------#
-    
-    # Configure Package
+build() {
+    # Configure file
     ./configure \
         --prefix="$TFIN_DIR" \
         --disable-seccomp
@@ -38,17 +29,9 @@ build_file() {
     # Modify libtool
     sed -i 's/ -shared / -Wl,--as-needed\0/g' libtool
 
-    #-----------------------#
-    # ----- Compiling ----- #
-    #-----------------------#
-
-    # Compile Package
+    # Compile file
     make $MAKEFLAGS
 
-    #---------------------#
-    # ----- Install ----- #
-    #---------------------#
-    
-    # Install Package to Toolchain Directory
+    # Install file to Toolchain Directory
     make install $MAKEFLAGS
 }

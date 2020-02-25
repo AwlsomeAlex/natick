@@ -21,23 +21,7 @@ PKG_SRC=("https://www.github.com/AwlsomeAlex/Xiongnu/archive/nova.zip" "inittab"
 PKG_DEPS=()
 
 # ----- Build Function ----- #
-build_nova() {
-    
-    #-----------------------------#
-    # ----- Local Variables ----- #
-    #-----------------------------#
-
-    #---------------------------#
-    # ----- Configuration ----- #
-    #---------------------------#
-   
-    #-----------------------#
-    # ----- Compiling ----- #
-    #-----------------------#
-
-    #---------------------#
-    # ----- Install ----- #
-    #---------------------#
+build() {
     cd src
     
     # Copy Xiongnu to fs

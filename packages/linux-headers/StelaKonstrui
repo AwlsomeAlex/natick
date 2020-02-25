@@ -21,12 +21,7 @@ PKG_SRC=("https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-$PKG_VERSION.tar.xz
 PKG_DEPS=()
 
 # ----- Build Function ----- #
-build_linux-headers() {
-    
-    #-----------------------------#
-    # ----- Local Variables ----- #
-    #-----------------------------#
-    
+build() {
     # Kernel Architecture
     case $BARCH in
         x86_64)
@@ -38,21 +33,9 @@ build_linux-headers() {
     esac
     export SUBKARCH="x86"
 
-    #---------------------------#
-    # ----- Configuration ----- #
-    #---------------------------#
-   
     # Generate Linux Kernel Config
     make mrproper $MAKEFLAGS
 
-    #-----------------------#
-    # ----- Compiling ----- #
-    #-----------------------#
-
     # Compile Linux Kernel Headers
     make ARCH=$XKARCH INSTALL_HDR_PATH="$fs"/usr headers_install $MAKEFLAGS
- 
-    #---------------------#
-    # ----- Install ----- #
-    #---------------------#
 }

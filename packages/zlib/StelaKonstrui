@@ -21,34 +21,17 @@ PKG_SRC=("https://zlib.net/zlib-$PKG_VERSION.tar.xz")
 PKG_DEPS=()
 
 # ----- Build Function ----- #
-build_zlib() {
-    
-    #-----------------------------#
-    # ----- Local Variables ----- #
-    #-----------------------------#
-
+build() {
     # Export CHOST
     export CHOST="$XTARGET"
 
-    #---------------------------#
-    # ----- Configuration ----- #
-    #---------------------------#
-   
     # Configure zlib
     ./configure \
 		--prefix=/usr
 
-    #-----------------------#
-    # ----- Compiling ----- #
-    #-----------------------#
-
     # Compile zlib
     make $MAKEFLAGS
 
-    #---------------------#
-    # ----- Install ----- #
-    #---------------------#
-    
     # Install zlib to fs
     make DESTDIR="$fs" install
 }

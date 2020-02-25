@@ -21,12 +21,7 @@ PKG_SRC=("https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-$PKG_VERSION.tar.xz
 PKG_DEPS=()
 
 # ----- Build Function ----- #
-build_linux() {
-    
-    #-----------------------------#
-    # ----- Local Variables ----- #
-    #-----------------------------#
-    
+build() {
     # Kernel Configuration Architecture
     case $BARCH in
         x86_64)
@@ -43,10 +38,6 @@ build_linux() {
     # Image File Location
     image_file="arch/$SUBKARCH/boot/bzImage"
 
-    #---------------------------#
-    # ----- Configuration ----- #
-    #---------------------------#
-  
     # Generate Linux Kernel Config
     make ARCH=$XKARCH CROSS_COMPILE=${CROSS_COMPILE} $DEFCONFIG $MAKEFLAGS
     
@@ -80,17 +71,9 @@ build_linux() {
     # Make mrproper
     unset LDFLAGS
    
-    #-----------------------#
-    # ----- Compiling ----- #
-    #-----------------------#
-
     # Compile Linux Kernel
     make ARCH=$XKARCH CROSS_COMPILE=${CROSS_COMPILE} CFLAGS="$CFLAGS" bzImage $MAKEFLAGS
  
-    #---------------------#
-    # ----- Install ----- #
-    #---------------------#
-
     # Install to /boot
     mkdir $fs/boot
     cp -r $image_file $fs/boot/kernel.xz

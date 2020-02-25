@@ -20,31 +20,14 @@ PKG_VERSION=2.5.3
 PKG_SRC=("https://github.com/gavinhoward/bc/archive/$PKG_VERSION.tar.gz")
 
 # ----- Build Function ----- #
-build_bc() {
-    
-    #-----------------------------#
-    # ----- Local Variables ----- #
-    #-----------------------------#
-
-    #---------------------------#
-    # ----- Configuration ----- #
-    #---------------------------#
-    
-    # Configure Package
+build() {
+    # Configure bc
     PREFIX='' ./configure.sh \
         --disable-nls    
  
-    #-----------------------#
-    # ----- Compiling ----- #
-    #-----------------------#
-
-    # Compile Package
+    # Compile bc
     make PREFIX='' $MAKEFLAGS
 
-    #---------------------#
-    # ----- Install ----- #
-    #---------------------#
-    
-    # Install Package to Toolchain Directory
+    # Install bc to Toolchain Directory
     make PREFIX='' DESTDIR="$TFIN_DIR" install $MAKEFLAGS
 }

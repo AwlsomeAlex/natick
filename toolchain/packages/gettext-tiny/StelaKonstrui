@@ -20,28 +20,10 @@ PKG_VERSION=55a2119d06403e05808d89eedc9e94a20e87cbd3
 PKG_SRC=("https://github.com/sabotage-linux/gettext-tiny/archive/$PKG_VERSION.tar.gz")
 
 # ----- Build Function ----- #
-build_gettext-tiny() {
-    
-    #-----------------------------#
-    # ----- Local Variables ----- #
-    #-----------------------------#
-
-    #---------------------------#
-    # ----- Configuration ----- #
-    #---------------------------#
-    
+build() {
     # Patch for bash
     sed -i 's,#!/bin/sh,#!/bin/bash,g' src/autopoint.in
 
-    #-----------------------#
-    # ----- Compiling ----- #
-    #-----------------------#
-
-    #---------------------#
-    # ----- Install ----- #
-    #---------------------#
-    
-    # Install Package to Toolchain Directory
+    # Install gettext-tiny to Toolchain Directory
     make -j1 prefix="$TFIN_DIR" install
-
 }

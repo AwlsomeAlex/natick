@@ -21,24 +21,7 @@ PKG_SRC=("https://mirrors.edge.kernel.org/pub/linux/utils/boot/syslinux/6.xx/sys
 PKG_DEPS=()
 
 # ----- Build Function ----- #
-build_syslinux() {
-    
-    #-----------------------------#
-    # ----- Local Variables ----- #
-    #-----------------------------#
-    
-    #---------------------------#
-    # ----- Configuration ----- #
-    #---------------------------#
-   
-    #-----------------------#
-    # ----- Compiling ----- #
-    #-----------------------#
-
-    #---------------------#
-    # ----- Install ----- #
-    #---------------------#
-
+build() {
     # Create Directories
     mkdir -p $fs/boot/isolinux
     mkdir -p $fs/boot/syslinux

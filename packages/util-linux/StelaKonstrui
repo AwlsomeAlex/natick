@@ -22,16 +22,7 @@ PKG_SRC=("https://www.kernel.org/pub/linux/utils/util-linux/v$PKG_RELEASE/util-l
 PKG_DEPS=("ncurses")
 
 # ----- Build Function ----- #
-build_util-linux() {
-    
-    #-----------------------------#
-    # ----- Local Variables ----- #
-    #-----------------------------#
-
-    #---------------------------#
-    # ----- Configuration ----- #
-    #---------------------------#
-
+build() {
     # Make directories
     mkdir -p "$fs"/usr/{bin,lib}
        
@@ -58,16 +49,8 @@ build_util-linux() {
         --without-systemd    \
         --without-systemdsystemunitdir
 
-    #-----------------------#
-    # ----- Compiling ----- #
-    #-----------------------#
-
     # Compile util-linux
     make $MAKEFLAGS
-
-    #---------------------#
-    # ----- Install ----- #
-    #---------------------#
 
     # Install to fs
     make install $MAKEFLAGS

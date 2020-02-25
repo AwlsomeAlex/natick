@@ -21,32 +21,15 @@ PKG_SRC=("https://invisible-mirror.net/archives/dialog/dialog-${PKG_VERSION/+/-}
 PKG_DEPS=("ncurses")
 
 # ----- Build Function ----- #
-build_dialog() {
-    
-    #-----------------------------#
-    # ----- Local Variables ----- #
-    #-----------------------------#
-
-    #---------------------------#
-    # ----- Configuration ----- #
-    #---------------------------#
-   
+build() {
     # Configure dialog
     ./configure $BUILDFLAGS \
 		--prefix=/usr \
 		--with-ncursesw
 
-    #-----------------------#
-    # ----- Compiling ----- #
-    #-----------------------#
-
     # Compile dialog
     make $MAKEFLAGS
 
-    #---------------------#
-    # ----- Install ----- #
-    #---------------------#
-    
     # Install dialog to fs
     make DESTDIR="$fs" install $MAKEFLAGS
 }
