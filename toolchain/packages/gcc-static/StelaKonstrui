@@ -93,8 +93,6 @@ build() {
 		--with-pkgversion="StelaLinux $BUILD_NUMBER for $BARCH" \
 		--with-bugurl="https://github.com/awlsomealex/stelalinux/issues" \
 		--with-sysroot="$FIN_DIR" \
-		--with-local-prefix="$FIN_DIR" \
-		--with-native-system-header-dir="$FIN_DIR/usr/include" \
 		--with-isl \
 		--with-system-zlib \
 		--with-newlib \
@@ -106,6 +104,7 @@ build() {
 		--enable-languages=c \
 		--enable-linker-build-id \
 		--enable-lto \
+        --enable-plugins \
 		--disable-decimal-float \
 		--disable-gnu-indirect-function \
 		--disable-libatomic \

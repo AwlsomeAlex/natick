@@ -1,0 +1,47 @@
+##########################################
+#----------------------------------------#
+# StelaKonstrui Script - rpm (Toolchain) #
+#----------------------------------------#
+##########################################
+# Copyright (c) 2020 Alexander Barris <awlsomealex at outlook dot com>
+# All Rights Reserved
+# Licensed under the GNU GPLv3, which can be found at https://www.gnu.org/licenses/gpl-3.0.en.html
+#
+# Description:  RPM Package Manager
+# URL:          http://ftp.rpm.org/releases/rpm-/rpm-$version.tar.bz2
+# License:      GNU GPLv2
+# Maintainer:   AwlsomeAlex
+# Section:      toolchain (Stage 1)
+
+# ----- Package Information ----- #
+PKG_NAME=rpm
+PKG_VERSION=4.15.1
+PKG_BASE_VER=4.15
+PKG_SRC=("http://ftp.rpm.org/releases/rpm-$PKG_BASE_VER.x/rpm-$PKG_VERSION.tar.bz2")
+
+# ----- Build Function ----- #
+build() {
+    # Patch RPM to use Musl
+    patch -Np1 -i $TR_DIR/rpm/0001-Fix-build-with-musl-C-library.patch
+    
+    # Configure RPM
+    autoreconf -fi 
+    ./configure \
+        --prefix="$TFIN_DIR" \
+        --localstatedir=/var \
+		--with-acl \
+		--with-cap \
+		--with-crypto=openssl \
+		--with-external-db \
+		--without-lua \
+		--enable-zstd \
+		--disable-inhibit-plugin \
+		--disable-nls \
+		PYTHON=python3
+        
+    # Compile RPM
+    make $MAKEFLAGS
+
+    # Install RPM to Toolchain Directory
+    make install $MAKEFLAGS
+}
