@@ -27,7 +27,7 @@ export BUILD_NUMBER="git"
 INITRAMFS_PKG=("linux" "nova" "busybox" "musl" "musl-tools" "syslinux" "ncurses" "vim" "dialog" "util-linux" "e2fsprogs" "zlib" "file")
 
 # StelaLinux Toolchain Package List
-TOOL_PKG=("rpm" "file" "gettext-tiny" "m4" "bison" "flex" "bc" "ncurses" "gperf" "linux-headers" "binutils" "gcc-static" "musl" "gcc" "slibtool" "autoconf" "automake" "cracklib" "pkgconf")
+TOOL_PKG=("file" "gettext-tiny" "m4" "bison" "flex" "bc" "ncurses" "gperf" "linux-headers" "binutils" "gcc-extras" "gcc-static" "musl" "gcc" "slibtool" "autoconf" "automake" "cracklib" "pkgconf")
 
 # StelaLinux Target Architecture (Supported: i686/x86_64)
 #export BARCH=i686

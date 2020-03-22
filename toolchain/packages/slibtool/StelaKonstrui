@@ -17,7 +17,7 @@
 # ----- Package Information ----- #
 PKG_NAME=slibtool
 PKG_VERSION=2191ff0d40a2bd3db55873b38fd961f888c3cd5f
-PKG_SRC=("https://github.com/midipix-project/slibtool/archive/$PKG_VERSION.tar.gz" "https://raw.githubusercontent.com/ataraxialinux/storage/master/ltmain.sh")
+PKG_SRC=("https://github.com/midipix-project/slibtool/archive/$PKG_VERSION.tar.gz")
 
 # ----- Build Function ----- #
 build() {
@@ -53,10 +53,10 @@ build() {
 	for aux in compile depcomp install-sh missing; do
 		install -Dm0755 "$TR_DIR"/slibtool/$aux "$TFIN_DIR"/share/libtoolize/AC_CONFIG_AUX_DIR/$aux
 	done
-	install -Dm0755 "$SRC"/ltmain.sh "$TFIN_DIR"/share/libtoolize/AC_CONFIG_AUX_DIR/ltmain.sh
+	install -Dm0755 "$TR_DIR"/slibtool/ltmain.sh "$TFIN_DIR"/share/libtoolize/AC_CONFIG_AUX_DIR/ltmain.sh
 
-	install -Dm0755 "$TR_DIR"/config.sub "$TFIN_DIR"/share/libtoolize/AC_CONFIG_AUX_DIR/config.sub
-	install -Dm0755 "$TR_DIR"/config.guess "$TFIN_DIR"/share/libtoolize/AC_CONFIG_AUX_DIR/config.guess
+	install -Dm0755 "$TR_DIR"/slibtool/config.sub "$TFIN_DIR"/share/libtoolize/AC_CONFIG_AUX_DIR/config.sub
+	install -Dm0755 "$TR_DIR"/slibtool/config.guess "$TFIN_DIR"/share/libtoolize/AC_CONFIG_AUX_DIR/config.guess
 
 	install -Dm0755 "$TR_DIR"/slibtool/libtoolize "$TFIN_DIR"/bin/libtoolize
 	sed -i "s,uncom_sysroot,$TFIN_DIR,g" "$TFIN_DIR"/bin/libtoolize
