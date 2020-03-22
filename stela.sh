@@ -203,7 +203,7 @@ function loka_prepare() {
             if [[ $PACKAGE != "-Y" ]]; then
                 loka_print "Toolchain Already Exists." "warn"
                 read -p "Do you want to overwrite? (Y/n) " OPT
-                if [ $OPT != 'Y' ]; then
+                if [[ $OPT != 'Y' ]]; then
                     loka_print "Nothing." "done"
                     exit
                 fi
@@ -222,7 +222,7 @@ function loka_prepare() {
             if [[ $PACKAGE != "-Y" ]]; then
                 loka_print "Build Environment Already Exists." "warn"
                 read -p "Do you want to overwrite? (Y/n) " OPT
-                if [ $OPT != 'Y' ]; then
+                if [[ $OPT != 'Y' ]]; then
                     loka_print "Nothing." "done"
                     exit
                 fi
