@@ -1,14 +1,14 @@
-# StelaLinux - A Minimal Linux Distribution
-StelaLinux is a research Linux Distribution built with the Linux Kernel, musl C Library, the BusyBox Userland, and a custom init script. Various packages are also included like vim, util-linux, etc.
-
-StelaLinux (formally StarLinux, AwlsomeLinux, and AwlBuntu) has been my project in researching how a Linux Distribution works, along with building one from the ground up. It was originally based off of Minimal Linux Live, as I reworked a few things, but evolved into a totally different standalone project. Now it is more of a Linux From Scratch-like distribution. StelaLinux is built with a musl-powered toolchain, runs using custom init scripts (called Xiongnu), has a package manager in the works called fox, and a package repository.
-
-StelaLinux has alot of user customization features, from target architecture to included packages. Right now StelaLinux can be built for x86 processors (x86_64 and i686), but RISC-V and ARM (Raspberry Pi) are in the works. StelaLinux uses a musl toolchain to build packages so the user does not have to rely on installed libraries. The choice of using the musl C Library instead of GNU C Library is for safety and lightweightness. I understand this breaks support for Nvidia Drivers, precompiled packages (except Flatpaks), and Systemd (good.), but with more musl-based Distributions arising, hopefully more strain is put on developers to support musl natively. 
+# StelaLinux - A musl-libc Linux Distribution
+Bonvenon al StelaLinux!<br>
+StelaLinux is a research and developmental Linux distribution powered by the latest stable Linux Kernel, the BusyBox userland, and the musl C library. Extra packages, like vim, util-linux, and more, are also included.<br>
+StelaLinux (formally StarLinux, AwlsomeLinux, and AwlBuntu) is my personal research project for understanding how a Linux distribution works. It also serves as a launchpad for building one from source. It was originally based off of Minimal Linux Live as a easier-to-read rewrite, but has evolved into a separate different project. It is more of a LFS-like distribution now. It is built using a musl-powered GCC toolchain, runs a custom init called Xiongnu, and has a public package source repository.<br>
+StelaLinux allows for a lot of customization: from packages included with each build to target architecture. Right now StelaLinux is targeted for x86 machines (i686 and x86_64). However, I plan on adding ARMv8 (Raspberry Pi) and RISC-V/SPARC support in the future. The use of a toolchain means after it's built, StelaLinux packages will only be built under the toolchain. I chose musl libc over glibc due to its safety and lightweightness. I understand this breaks support for proprietary packages like Steam (which can be bypassed via Flatpak), Nvidia Drivers, and Systemd (good), but if more systems were to adopt musl, and more musl-based distributions got public attention, it might put a strain to develop packages for musl libc. This can be seen as Zulu releases a separate JDK and JRE compiled against Alpine Linux (musl), which we include as a default JDK and JRE.<br>
+**This project is for advanced Linux powerusers, and should not be used for daily and production-ready use in its current state!**
 
 ## Building StelaLinux:
 #### Dependencies (Debian-based Distributions)<br>
 Tested on Ubuntu 19.10 MATE<br>
-`sudo apt install build-essential m4 bison flex textinfo bc pv flex rsync unzip libssl-dev libelf-dev`
+`sudo apt install build-essential m4 bison flex texinfo bc pv flex rsync unzip libssl-dev libelf-dev`
 
 #### Dependencies (Fedora-based Distributions)<br>
 Tested on Fedora 31 Workstation and Server Edition<br>
@@ -22,14 +22,15 @@ Tested on Fedora 31 Workstation and Server Edition<br>
 #### Dependencies (Arch-based Distributions)<br>
 `Untested`
 
-### `stela.sh` (StelaLinux Build Script) Options:
-`./stela all`             - Builds the StelaLinux Toolchain, StelaLinux Packages, InitramFS, and LiveCD Image<br>
-`./stela toolchain`       - Builds the StelaLinux Toolchain<br>
-`./stela build [package]` - Builds a defined StelaLinux Package<br>
-`./stela initramfs`       - Generate a StelaLinux InitramFS<br>
-`./stela image`           - Generate a StelaLinux LiveCD (No EFI Support)<br>
-`./stela qemu`            - Launches QEMU with the StelaLinux LiveCD<br>
-`./stela clean`           - Cleans the StelaLinux Build Directories<br>
+### `vulpo` (StelaLinux Build Tool) Options:
+`./vulpo all`             - Builds Toolchain, Packages, InitramFS, and LiveCD<br>
+`./vulpo toolchain`       - Builds Toolchain<br>
+`./vulpo build [package]` - Builds defined Package<br>
+`./vulpo pack [package]`  - Packs defined Package<br>
+`./vulpo initramfs`       - Generates initramFS<br>
+`./vulpo image`           - Generates LiveCD<br>
+`./vulpo qemu`            - Launches QEMU with StelaLinux LiveCD<br>
+`./vulpo clean`           - Cleans StelaLinux Build Directories<br>
 
 ## Installing StelaLinux:
 `TBA`
