@@ -1,8 +1,12 @@
 # StelaLinux - A musl-libc Linux Distribution
-Bonvenon al StelaLinux!<br>
+**Bonvenon al StelaLinux!<br>**
+
 StelaLinux is a research and developmental Linux distribution powered by the latest stable Linux Kernel, the BusyBox userland, and the musl C library. Extra packages, like vim, util-linux, and more, are also included.<br>
+
 StelaLinux (formally StarLinux, AwlsomeLinux, and AwlBuntu) is my personal research project for understanding how a Linux distribution works. It also serves as a launchpad for building one from source. It was originally based off of Minimal Linux Live as a easier-to-read rewrite, but has evolved into a separate different project. It is more of a LFS-like distribution now. It is built using a musl-powered GCC toolchain, runs a custom init called Xiongnu, and has a public package source repository.<br>
+
 StelaLinux allows for a lot of customization: from packages included with each build to target architecture. Right now StelaLinux is targeted for x86 machines (i686 and x86_64). However, I plan on adding ARMv8 (Raspberry Pi) and RISC-V/SPARC support in the future. The use of a toolchain means after it's built, StelaLinux packages will only be built under the toolchain. I chose musl libc over glibc due to its safety and lightweightness. I understand this breaks support for proprietary packages like Steam (which can be bypassed via Flatpak), Nvidia Drivers, and Systemd (good), but if more systems were to adopt musl, and more musl-based distributions got public attention, it might put a strain to develop packages for musl libc. This can be seen as Zulu releases a separate JDK and JRE compiled against Alpine Linux (musl), which we include as a default JDK and JRE.<br>
+
 **This project is for advanced Linux powerusers, and should not be used for daily and production-ready use in its current state!**
 
 ## Building StelaLinux:
