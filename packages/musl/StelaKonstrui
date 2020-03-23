@@ -1,8 +1,8 @@
-########################################
-#--------------------------------------#
-# StelaKonstrui Script - Linux Headers #
-#--------------------------------------#
-########################################
+####################################
+#----------------------------------#
+# StelaKonstrui Script - musl libc #
+#----------------------------------#
+####################################
 # Copyright (c) 2020 Alexander Barris <awlsomealex at outlook dot com>
 # All Rights Reserved
 # Licensed under the GNU GPLv3, which can be found at https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -16,7 +16,7 @@
 
 # ----- Package Information ----- #
 PKG_NAME=musl
-PKG_VERSION=1.1.24
+PKG_VERSION=1.2.0
 PKG_SRC=("http://www.musl-libc.org/releases/musl-$PKG_VERSION.tar.gz")
 PKG_DEPS=()
 
