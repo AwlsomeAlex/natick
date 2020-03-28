@@ -151,9 +151,10 @@ function vtitle() {
     vprint ""
 }
 
-# vget($1: url): Download and Extract a file
+# vget($1: url $2: location): Download and Extract a file
 function vget() {
     url=$1
+    location=$2
     archive_file=${url##*/}
     if [[ -f ${SRC_DIR}/${archove_file} ]]; then
         vprint "${archive_file} already exists. Skipping.." "ok"
@@ -164,11 +165,11 @@ function vget() {
     fi
     if [[ ${archive_file} == *".bz2" ]] || [[ ${archive_file} == *".xz" ]] || [[ ${archive_file} == *".gz" ]]; then
         vprint "Untarring ${archive_file}.." ".."
-        pv ${SRC_DIR}/${archive_file} | tar -xf - -C ${work_dir}/
+        pv ${SRC_DIR}/${archive_file} | tar -xf - -C ${location}/
         vprint "Untarred ${archive_file}." "ok"
     elif [[ ${archive_file} == *".zip" ]]; then
         vprint "Unzipping ${archive_file}.." ".."
-        unzip -o ${SRC_DIR}/${archive_file} -d ${work_dir}/ | pv -l >/dev/null
+        unzip -o ${SRC_DIR}/${archive_file} -d ${location}/ | pv -l >/dev/null
         vprint "Unzipped ${archive_file}." "ok"
     fi
 }
@@ -189,8 +190,11 @@ function vinstall() {
 function bclean() {
     vtitle
     vprint "Cleaning StelaLinux Build Environment.." ".."
+    # Clean Source/Work/Final Directories
     rm -r ${SRC_DIR} ${WRK_DIR} ${FIN_DIR}
+    # Clean Toolchain Directory
     rm -r ${TROOT}
+    # Remove ISO and Archive
     rm ${STELA}/*.iso ${STELA}/*.tar.xz
     vprint "Cleaned StelaLinux Build Environment." "ok"
 }
@@ -206,4 +210,5 @@ function btool() {
             exit
         fi
     fi
+
 }
