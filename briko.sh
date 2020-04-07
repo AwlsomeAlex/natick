@@ -103,8 +103,8 @@ export STRIP="$XTARGET-strip"
 
 # lprint($1: message | $2: flag): Prints a formatted text
 function lprint() {
-    message=$1
-    flag=$2
+    local message=$1
+    local flag=$2
 
     case ${flag} in
         "....")
@@ -137,10 +137,11 @@ function ltitle() {
     lprint ""
 }
 
-# lget($1: url): Downloads and Extracts a File
+# lget($1: url | $2: sum): Downloads and Extracts a File
 function lget() {
-    url=$1
-    archive=${url##*/}
+    local url=$1
+    local sum=$2
+    local archive=${url##*/}
 
     if [[ -f ${SRC_DIR}/${archive} ]]; then
         lprint "${archive} already exists. Skipping...." "done"
@@ -149,6 +150,7 @@ function lget() {
         (cd ${SRC_DIR} && curl -O ${url})
         lprint "${archive} Downloaded." "done"
     fi
+    (cd ${SRC_DIR} && echo "${sum}  ${archive}" | sha256sum -c -)
     lprint "Extracting ${archive}...." "...."
     if [[ ${archive} == *".bz2" ]] || [[ ${archive} == *".xz" ]] || [[ ${archive} == *".gz" ]]; then
         pv ${SRC_DIR}/${archive} | tar -xf - -C ${work_dir}/
@@ -160,7 +162,7 @@ function lget() {
 
 # linstall($1: pkg): Installs a package into RootFS
 function linstall() {
-    pkg=$1
+    local pkg=$1
     lprint "Installing ${pkg} to RootFS...." "...."
     cp -r --remove-destination ${pkg} $FIN_DIR/
     lprint "Installed ${pkg} to RootFS." "done"
@@ -190,5 +192,69 @@ function ttool() {
             lprint "Adiaux."
             exit
         fi
+    fi
+}
+
+# tbuild($1: pkg): Builds a package with/without Toolchain
+function tbuild() {
+
+    # --- Local Variables --- #
+    local pkg=$1
+    local repo_dir="${RDIR}/${pkg}"
+    local work_dir="${WRK_DIR}/${pkg}"
+    local fs="${work_dir}/${pkg}.fs"
+
+    # --- Check Package Repo --- #
+    if [[ ! -d ${repo_dir} ]]; then
+        lprint "Package ${pkg} not found in repo." "fail"
+        exit
+    fi
+
+    # --- Source Build Script --- #
+    source ${repo_dir}/StelaKonstrui
+
+    # --- Set Build Flags --- #
+
+    # --- Check Package Dependency --- #
+    for dep in "${pkg_deps[@]}"; do
+        if [[ ! -d ${WRK_DIR}/${dep}/${dep}.fs ]]; then
+            lprint "Dependency ${dep} unmet for ${pkg}." "fail"
+            echo "Please build with ${EXECUTE} build ${dep}"
+            exit
+        fi
+    done
+
+    # --- Prepare Work Directory --- #
+    if [ -d ${work_dir} ]; then
+        lprint "${pkg}'s work directory already exists." "warn"
+        read -p "Rebuild Package? [Y/n]: " opt
+        if [ ${opt} == 'Y' ]; then
+            lprint "Removing ${pkg}'s work directory...." "...."
+            rm -r ${work_dir}
+            lprint "Removed ${pkg}'s work directory." "done"
+        fi
+    fi
+    mkdir -p ${fs}
+
+    # --- Download/Extract Files --- #
+    for i in "${!pkg_src[@]}"; do
+        if [[ ${pkg_src[${i}]} == *"http"* ]]; then
+            lget ${pkg_src[${i}]} ${pkg_sum[${i}]} 
+        else
+            lprint "Copying ${file} to work directory...." "...."
+            cp -r --remove-destination ${repo_dir}/${file} ${work_dir}
+            lprint "Copied ${file} to work directory." "done"
+        fi
+    done
+
+    # --- Build Package --- #
+    cd ${dir}
+    lprint "Building ${pkg}...." "...."
+    konstruu
+    lprint "Built ${pkg}" "done"
+
+    # --- Install Package --- #
+    if [[ ! ${host} ]]; then
+        linstall ${work_dir}/${pkg}.fs
     fi
 }

@@ -1,0 +1,24 @@
+################################
+# briko Build Script - Example # 
+################################
+# Copyright (C) 2020 Alexander Barris <awlsomealex at protonmail dot com>
+# All Rights Reserved
+# Licensed under ISC License 
+################################
+
+# Name:         example
+# Description:  An example StelaKonstrui for future reference
+# URL:          https://github.com/AwlsomeAlex/stelalinux
+# License:      MIT License
+# Maintainer:   AwlsomeAlex
+# Section:      null
+
+pkg_name=example            # Package's name goes here
+pkg_version=0.0.1           # Package's version goes here
+pkg_type=                   # Package's special identification goes here (toolchain)
+pkg_src=("www.google.com")  # Package's source tarball links go here
+pkg_checksum=("xxxxx")      # Downloaded file's checksum goes here
+
+konstruu() {                # Packages get built here
+    echo "Hello!"
+}
