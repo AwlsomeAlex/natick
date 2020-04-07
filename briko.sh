@@ -65,6 +65,7 @@ export TROOT="${STELA}/toolchain"   # Toolchain Root
 # --- Compiler Information --- #
 export HOSTCC="gcc"                 # Set Host C Compiler (Linux uses gcc)
 export HOSTCXX="g++"                # Set Host C++ Compiler (Linux uses g++)
+export HOSTPATH="${PATH}"           # Set Host Path to current path
 export ORIGMAKE="$(which make)"     # Set Host Make (Figure it out systemlevel)
 
 # --- Platform Information --- #
@@ -76,26 +77,25 @@ export CFLAGS="-g0 -Os -s -fexcess-precision=fast -fomit-frame-pointer -Wl,--as-
 export CXXFLAGS="${CFLAGS}"
 export LC_ALL="POSIX"
 export NUM_JOBS="$(expr $(nproc) + 1)"
-export MAKEFLAGS="-j$NUM_JOBS"
+export MAKEFLAGS="-j${NUM_JOBS}"
 
 # --- Build Flags --- #
-export BUILDFLAGS="--build=$XHOST --host=$XTARGET"
-export TOOLFLAGS="--build=$XHOST --host=$XTARGET --target=$XTARGET"
-export PERLFLAGS="--target=$XTARGET"
-export PKG_CONFIG_PATH="$FIN_DIR/usr/lib/pkgconfig:$FIN_DIR/usr/share/pkgconfig"
-export PKG_CONFIG_SYSROOT="$FIN_DIR"
-
-export PATH="${TROOT}/bin:$PATH"i   # Toolchain PATH
+export BUILDFLAGS="--build=${XHOST} --host=${XTARGET}"
+export TOOLFLAGS="--build=${XHOST} --host=${XTARGET} --target=${XTARGET}"
+export PERLFLAGS="--target=${XTARGET}"
+export PKG_CONFIG_PATH="${FIN_DIR}/usr/lib/pkgconfig:${FIN_DIR}/usr/share/pkgconfig"
+export PKG_CONFIG_SYSROOT="${FIN_DIR}"
 
 # --- Executable Names --- #
-export CROSS_COMPILE="$XTARGET-"    # Cross Compiler Compile Binaries
-export CC="$XTARGET-gcc"
-export CXX="$XTARGET-g++"
-export AR="$XTARGET-ar"
-export AS="$XTARGET-as"
-export RANLIB="$XTARGET-ranlib"
-export LD="$XTARGET-ld"
-export STRIP="$XTARGET-strip"
+export PATH="${TROOT}/bin:${PATH}"    # Toolchain PATH
+export CROSS_COMPILE="${XTARGET}-"    # Cross Compiler Compile Binaries
+export CC="${CROSS_COMPILE}gcc"
+export CXX="${CROSS_COMPILE}g++"
+export AR="${CROSS_COMPILE}ar"
+export AS="${CROSS_COMPILE}as"
+export RANLIB="${CROSS_COMPILE}ranlib"
+export LD="${CROSS_COMPILE}ld"
+export STRIP="${CROSS_COMPILE}strip"
 
 #------------------------------#
 # ----- Helper Functions ----- #
@@ -214,6 +214,31 @@ function tbuild() {
     source ${repo_dir}/StelaKonstrui
 
     # --- Set Build Flags --- #
+    if [[ ${pkg_type} == "toolchain" ]]; then
+        export PATH=${HOSTPATH}
+        unset CROSS_COMPILE
+        unset CC
+        unset CXX
+        unset AR
+        unset AS
+        unset RANLIB
+        unset LD
+        unset STRIP
+        unset PKG_CONFIG_PATH
+        unset PKG_CONFIG_PATH_SYSROOT
+    else
+        export PATH="${TROOT}/bin:${PATH}"
+        export CROSS_COMPILE="${XTARGET}-"
+        export CC="${CROSS_COMPILE}gcc"
+        export CXX="${CROSS_COMPILE}g++"
+        export AR="${CROSS_COMPILE}ar"
+        export AS="${CROSS_COMPILE}as"
+        export RANLIB="${CROSS_COMPILE}ranlib"
+        export LD="${CROSS_COMPILE}ld"
+        export STRIP="${CROSS_COMPILE}strip"
+        export PKG_CONFIG_PATH="$FIN_DIR/usr/lib/pkgconfig:$FIN_DIR/usr/share/pkgconfig"
+        export PKG_CONFIG_SYSROOT="$FIN_DIR"
+    fi
 
     # --- Check Package Dependency --- #
     for dep in "${pkg_deps[@]}"; do
@@ -254,7 +279,7 @@ function tbuild() {
     lprint "Built ${pkg}" "done"
 
     # --- Install Package --- #
-    if [[ ! ${host} ]]; then
+    if [[ ${pkg_type} != "toolchain" ]]; then
         linstall ${work_dir}/${pkg}.fs
     fi
 }
