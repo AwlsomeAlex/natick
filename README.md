@@ -26,18 +26,22 @@ Tested on Fedora 31 Workstation and Server Edition<br>
 #### Dependencies (Arch-based Distributions)<br>
 `Untested`
 
-### `vulpo` (StelaLinux Build Tool) Options:
-`./vulpo all`             - Builds Toolchain, Packages, InitramFS, and LiveCD<br>
-`./vulpo toolchain`       - Builds Toolchain<br>
-`./vulpo build [package]` - Builds defined Package<br>
-`./vulpo pack [package]`  - Packs defined Package<br>
-`./vulpo initramfs`       - Generates initramFS<br>
-`./vulpo image`           - Generates LiveCD<br>
-`./vulpo qemu`            - Launches QEMU with StelaLinux LiveCD<br>
-`./vulpo clean`           - Cleans StelaLinux Build Directories<br>
+### `briko.sh` (briko Build Script) Options:
+`./briko.sh all`             - Builds Toolchain, Packages, InitramFS, and LiveCD<br>
+`./briko.sh toolchain`       - Builds Toolchain<br>
+`./briko.sh build [package]` - Builds defined Package<br>
+`./briko.sh pack [package]`  - Packs defined Package<br>
+`./briko.sh initramfs`       - Generates initramFS<br>
+`./briko.sh image`           - Generates LiveCD<br>
+`./briko.sh qemu`            - Launches QEMU with StelaLinux LiveCD<br>
+`./briko.sh clean`           - Cleans StelaLinux Build Directories<br>
 
 ## Installing StelaLinux:
 `TBA`
+
+## License:
+StelaLinux and its predeecessors used to be GNU GPLv3, but with briko<br>
+StelaLinux is now licensed under the permissive ISC License.
 
 ## Contributors:
 * AwlsomeAlex (Lead Developer)
