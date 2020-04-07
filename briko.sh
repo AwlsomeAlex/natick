@@ -264,7 +264,7 @@ function tbuild() {
     # --- Download/Extract Files --- #
     for i in "${!pkg_src[@]}"; do
         if [[ ${pkg_src[${i}]} == *"http"* ]]; then
-            lget ${pkg_src[${i}]} ${pkg_sum[${i}]} 
+            lget ${pkg_src[${i}]} ${pkg_checksum[${i}]} 
         else
             lprint "Copying ${file} to work directory...." "...."
             cp -r --remove-destination ${repo_dir}/${file} ${work_dir}
