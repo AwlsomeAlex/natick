@@ -150,7 +150,7 @@ function lget() {
         (cd ${SRC_DIR} && curl -O ${url})
         lprint "${archive} Downloaded." "done"
     fi
-    (cd ${SRC_DIR} && echo "${sum}  ${archive}" | sha256sum -c -)
+    (cd ${SRC_DIR} && echo "${sum}  ${archive}" | sha256sum -c -) || lprint "Bad Checksum: ${archive}: ${sum}" "fail" && exit 1
     lprint "Extracting ${archive}...." "...."
     if [[ ${archive} == *".bz2" ]] || [[ ${archive} == *".xz" ]] || [[ ${archive} == *".gz" ]]; then
         pv ${SRC_DIR}/${archive} | tar -xf - -C ${work_dir}/
