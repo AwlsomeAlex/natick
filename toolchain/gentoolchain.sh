@@ -28,6 +28,7 @@ set -e
 
 export ROOT_DIR="$(pwd)"                # Script Root Directory
 export BUILD_DIR="${ROOT_DIR}/build"    # Build Directory (Sources and Work)
+export LOG="${ROOT_DIR}/log.txt"        # gentoolchain Log File
 
 #----------------------------------#
 # ----- Compiler Information ----- #
@@ -49,6 +50,23 @@ export LC_ALL="POSIX"
 export NUM_JOBS="$(expr $(nproc) + 1)"
 export MAKEFLAGS="-j${NUM_JOBS}"
 
+# --- Color Codes --- #
+NC='\033[0m'        # No Color
+RED='\033[1;31m'    # Red
+BLUE='\033[1;34m'   # Blue
+GREEN='\033[1;32m'  # Green
+ORANGE='\033[0;33m' # Orange
+BLINK='\033[5m'     # Blink
+NO_BLINK='\033[25m' # No Blink
+
+#-------------------------------------------#
+# ----- Download Versions & Checksums ----- #
+#-------------------------------------------#
+
+# --- File --- #
+FILE_VER="5.38"
+FILE_CHKSUM="593c2ffc2ab349c5aea0f55fedfe4d681737b6b62376a9b3ad1e77b2cc19fa34"
+
 #------------------------------#
 # ----- Helper Functions ----- #
 #------------------------------#
@@ -58,24 +76,32 @@ function lprint() {
     local message=$1
     local flag=$2
 
+    # --- Parse Arguments --- #
     case ${flag} in
         "....")
             echo -e "${BLUE}[....] ${NC}${message}"
+            echo "[....] ${message}" >> ${LOG}
             ;;
         "done")
             echo -e "${GREEN}[DONE] ${NC}${message}"
+            echo "[DONE] ${message}" >> ${LOG}
             ;;
         "warn")
             echo -e "${ORANGE}[WARN] ${NC}${message}"
+            echo "[WARN] ${message}" >> ${LOG}
             ;;
         "fail")
             echo -e "${RED}[FAIL] ${NC}${message}"
+            echo "[FAIL] ${message}" >> ${LOG}
+            exit
             ;;
         "" )
             echo "${message}"
+            echo "${message}" >> ${LOG}
             ;;
         *)
             echo -e "${RED}[FAIL] ${ORANGE}lprint: ${NC}Invalid flag: ${flag}"
+            echo "[FAIL] lprint: Invalid flag: ${flag}" >> ${LOG}
             exit
             ;;
     esac
@@ -98,19 +124,48 @@ function lget() {
     local sum=$2
     local archive=${url##*/}
 
+    echo "--------------------------------------------------------" >> ${LOG}
     lprint "Downloading ${archive}...." "...."
     (cd ${BUILD_DIR} && curl -O ${url})
     lprint "${archive} Downloaded." "done"
-    (cd ${BUILD_DIR} && echo "${sum}  ${archive}" | sha256sum -c -) || lprint "Bad Checksum: ${archive}: ${sum}" "fail" && exit 1
+    (cd ${BUILD_DIR} && echo "${sum}  ${archive}" | sha256sum -c -) > /dev/null && lprint "Good Checksum: ${archive}" "done" || lprint "Bad Checksum: ${archive}: ${sum}" "fail"
     lprint "Extracting ${archive}...." "...."
-    pv ${BUILD_DIR}/${archive} | tar -xf - -C ${BUILD_DIR}/
+    pv ${BUILD_DIR}/${archive} | tar -xzf - -C ${BUILD_DIR}/
     lprint "Extracted ${archive}." "done"
+}
+
+#-----------------------------#
+# ----- Build Functions ----- #
+#-----------------------------#
+
+# lfile(): Builds file
+function lfile() {
+    # Download and Check file
+    lget "http://ftp.astron.com/pub/file/file-${FILE_VER}.tar.gz" "${FILE_CHKSUM}"
+    cd ${BUILD_DIR}/file-${FILE_VER}
+
+    # Configure file
+    lprint "Configuring file...." "...."
+    ./configure \
+        --prefix="${ROOT_DIR}" \
+        --disable-seccomp &>> ${LOG}
+    lprint "Configured file." "done"
+
+    # Patch file
+    sed -i 's/ -shared / -Wl,--as-needed\0/g' libtool &>> ${LOG}
+
+    # Compile and Install file
+    lprint "Compiling file...." "...."
+    make ${MAKEFLAGS} &>> ${LOG}
+    make install ${MAKEFLAGS} &>> ${LOG}
+    lprint "Compiled file." "...."
 }
 
 #---------------------------#
 # ----- Main Function ----- #
 #---------------------------#
 function main() {
+    # --- Parse Arguments --- #
     case "${TARGET}" in
         "x86_64-musl" )
             export BARCH="x86_64"
@@ -121,30 +176,59 @@ function main() {
             export XTARGET="${BARCH}-linux-musl"
             ;;
         "clean" )
-            #rm -r !(gentoolchain.sh)
+            lprint "Cleaning Toolchain...." "...."
+            set +e
+            rm -r ${ROOT_DIR}/{bin,include,lib,lib64,root,share,*-linux-*,build} &> /dev/null
+            lprint "Toolchain Cleaned." "done"
+            rm ${LOG}
+            exit
             ;;
         * | "-h" | "--help" )
-            lprint "${EXECUTE} [OPTION]"
-            lprint "Briko Build System - gentoolchain.sh"
-            lprint ""
-            lprint "This script is used to generate the toolchain, which is used by"
-            lprint "briko.sh in order to cross compile packages to another platform."
-            lprint "[OPTION]:"
-            lprint "        Supported Architecture:            x86_64-musl, i686-musl"
-            lprint "        clean:                             Cleans up the Toolchain"
-            lprint ""
-            lprint "Example:"
-            lprint "        '$ ${EXECUTE} x86_84-musl'  Generates a x86_64-musl toolchain"
-            lprint "        '$ ${EXECUTE} clean'        Cleans up the toolchain"
-            lprint ""
-            lprint "Developed by Alexander Barris (AwlsomeAlex)"
-            lprint "Licensed under the ISC License"
-            lprint "Want the source code? 'vi gentoolchain.sh'"
-            lprint "No penguins were harmed in the making of this toolchain"
-            lprint ""
+            echo "${EXECUTE} [OPTION]"
+            echo "Briko Build System - gentoolchain.sh"
+            echo ""
+            echo "This script is used to generate the toolchain, which is used by"
+            echo "briko.sh in order to cross compile packages to another platform."
+            echo "[OPTION]:"
+            echo "        Supported Architecture:            x86_64-musl, i686-musl"
+            echo "        clean:                             Cleans up the Toolchain"
+            echo ""
+            echo "Example:"
+            echo "        '$ ${EXECUTE} x86_84-musl'  Generates a x86_64-musl toolchain"
+            echo "        '$ ${EXECUTE} clean'        Cleans up the toolchain"
+            echo ""
+            echo "Developed by Alexander Barris (AwlsomeAlex)"
+            echo "Licensed under the ISC License"
+            echo "Want the source code? 'vi gentoolchain.sh'"
+            echo "No penguins were harmed in the making of this toolchain"
             exit
             ;;
     esac
+
+    # --- Create Build Directory --- #
+    if [[ -d ${BUILD_DIR} ]]; then
+        lprint "Toolchain already looks built. Please clean with '${EXECUTE} clean'." "fail"
+    fi
+    mkdir ${BUILD_DIR}
+
+    # --- Populate Log --- #
+    echo "--------------------------------------------------------" >> ${LOG}
+    echo "gentoolchain.sh Log File" >> ${LOG}
+    echo "--------------------------------------------------------" >> ${LOG}
+    echo "Generated on $(date)" >> ${LOG}
+    echo "--------------------------------------------------------" >> ${LOG}
+    echo "Host Architecture: ${XHOST}" >> ${LOG}
+    echo "Target Architecture: ${XTARGET}" >> ${LOG}
+    echo "Host GCC Version: $(gcc --version | grep gcc)" >> ${LOG}
+    echo "Host Linux Kernel: $(uname -r)" >> ${LOG}
+
+    # --- Build Packages --- #
+    lfile
+
+    # --- Record Finish Time --- #
+    echo "--------------------------------------------------------" >> ${LOG}
+    echo "Finished successfully at $(date)" >> ${LOG}
+    echo "--------------------------------------------------------" >> ${LOG}
 }
 
 # --- Arguments --- #
@@ -152,4 +236,4 @@ EXECUTE=$0
 TARGET=$1
 
 # --- Execute --- #
-main
+time main
