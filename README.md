@@ -12,7 +12,7 @@ StelaLinux allows for a lot of customization: from packages included with each b
 ## Building StelaLinux:
 #### Dependencies (Debian-based Distributions)<br>
 Tested on Ubuntu 19.10 MATE<br>
-`sudo apt install build-essential m4 bison flex texinfo bc pv flex rsync unzip libssl-dev libelf-dev`
+`sudo apt install build-essential m4 bison bsdtar flex texinfo bc pv flex rsync unzip libssl-dev libelf-dev`
 
 #### Dependencies (Fedora-based Distributions)<br>
 Tested on Fedora 31 Workstation and Server Edition<br>

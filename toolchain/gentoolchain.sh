@@ -63,9 +63,21 @@ NO_BLINK='\033[25m' # No Blink
 # ----- Download Versions & Checksums ----- #
 #-------------------------------------------#
 
-# --- File --- #
+# --- file --- #
 FILE_VER="5.38"
 FILE_CHKSUM="593c2ffc2ab349c5aea0f55fedfe4d681737b6b62376a9b3ad1e77b2cc19fa34"
+
+# --- gettext-tiny --- #
+GETTEXT_VER="0.3.2"
+GETTEXT_CHKSUM="a9a72cfa21853f7d249592a3c6f6d36f5117028e24573d092f9184ab72bbe187"
+
+# --- m4 --- #
+M4_VER="1.4.18"
+M4_CHKSUM="f2c1e86ca0a404ff281631bdc8377638992744b175afb806e25871a24a934e07"
+
+# --- bison --- #
+BISON_VER="3.5.4"
+BISON_CHKSUM="4c17e99881978fa32c05933c5262457fa5b2b611668454f8dc2a695cd6b3720c"
 
 #------------------------------#
 # ----- Helper Functions ----- #
@@ -130,7 +142,7 @@ function lget() {
     lprint "${archive} Downloaded." "done"
     (cd ${BUILD_DIR} && echo "${sum}  ${archive}" | sha256sum -c -) > /dev/null && lprint "Good Checksum: ${archive}" "done" || lprint "Bad Checksum: ${archive}: ${sum}" "fail"
     lprint "Extracting ${archive}...." "...."
-    pv ${BUILD_DIR}/${archive} | tar -xzf - -C ${BUILD_DIR}/
+    pv ${BUILD_DIR}/${archive} | bsdtar xf - -C ${BUILD_DIR}/
     lprint "Extracted ${archive}." "done"
 }
 
@@ -138,8 +150,8 @@ function lget() {
 # ----- Build Functions ----- #
 #-----------------------------#
 
-# lfile(): Builds file
-function lfile() {
+# kfile(): Builds file
+function kfile() {
     # Download and Check file
     lget "http://ftp.astron.com/pub/file/file-${FILE_VER}.tar.gz" "${FILE_CHKSUM}"
     cd ${BUILD_DIR}/file-${FILE_VER}
@@ -161,6 +173,63 @@ function lfile() {
     lprint "Compiled file." "...."
 }
 
+# kgettext(): Builds gettext-tiny
+function kgettext() {
+    # Download and Check gettext-tiny
+    lget "http://ftp.barfooze.de/pub/sabotage/tarballs/gettext-tiny-${GETTEXT_VER}.tar.xz" "${GETTEXT_CHKSUM}"
+    cd ${BUILD_DIR}/gettext-tiny-${GETTEXT_VER}
+
+    # Patch gettext-tiny
+    sed -i 's,#!/bin/sh,#!/bin/bash,g' src/autopoint.in &>> ${LOG}
+
+    # Compile and Install gettext-tiny
+    lprint "Compiling gettext-tiny...." "...."
+    make -j1 prefix="${ROOT_DIR}" install &>> ${LOG}
+    lprint "Compiled gettext-tiny." "done"
+}
+
+# km4(): Builds m4
+function km4() {
+    # Download and Check m4
+    lget "https://ftp.gnu.org/gnu/m4/m4-${M4_VER}.tar.xz" "${M4_CHKSUM}"
+    cd ${BUILD_DIR}/m4-${M4_VER}
+
+    # Patch m4
+    sed -i 's/IO_ftrylockfile/IO_EOF_SEEN/' lib/*.c &>> ${LOG}
+	echo "#define _IO_IN_BACKUP 0x100" >> lib/stdio-impl.h
+
+    # Configure m4
+    lprint "Configuring m4...." "...."
+    ./configure \
+        --prefix="${ROOT_DIR}" &>> ${LOG}
+    lprint "Configured m4" "done"
+
+    # Compile and Install m4
+    lprint "Compiling m4...." "...."
+    make ${MAKEFLAGS} &>> ${LOG}
+    make install ${MAKEFLAGS} &>> ${LOG}
+    lprint "Compiled m4." "done"
+}
+
+# kbison(): Builds bison
+function kbison() {
+    # Download and Check bison
+    lget "https://ftp.gnu.org/gnu/bison/bison-${BISON_VER}.tar.xz" "${BISON_CHKSUM}"
+    cd ${BUILD_DIR}/bison-${BISON_VER}
+
+    # Configure bison
+    lprint "Configuring bison...." "...."
+    ./configure \
+        --prefix="${ROOT_DIR}" &>> ${LOG}
+    lprint "Configured bison." "done"
+
+    # Compile and Install bison
+    lprint "Compiling bison...." "...."
+    make ${MAKEFLAGS} &>> ${LOG}
+    make install ${MAKEFILES} &>> ${LOG}
+    lprint "Compiled bison." "done"
+}
+
 #---------------------------#
 # ----- Main Function ----- #
 #---------------------------#
@@ -178,7 +247,7 @@ function main() {
         "clean" )
             lprint "Cleaning Toolchain...." "...."
             set +e
-            rm -r ${ROOT_DIR}/{bin,include,lib,lib64,root,share,*-linux-*,build} &> /dev/null
+            rm -rf ${ROOT_DIR}/{bin,include,lib,lib64,root,share,*-linux-*,build} &> /dev/null
             lprint "Toolchain Cleaned." "done"
             rm ${LOG}
             exit
@@ -223,7 +292,10 @@ function main() {
     echo "Host Linux Kernel: $(uname -r)" >> ${LOG}
 
     # --- Build Packages --- #
-    lfile
+    kfile
+    kgettext
+    km4
+    kbison
 
     # --- Record Finish Time --- #
     echo "--------------------------------------------------------" >> ${LOG}
