@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 #############################################
-#       briko.sh - Briko Build Script       #
+#       briko.sh - Briko Build System       #
 #-------------------------------------------#
 # Created by Alexander Barris (AwlsomeAlex) #
 #      Licensed under the ISC License       #
@@ -10,8 +10,6 @@ set -e
 # All Rights Reserved
 # Licensed under the ISC License
 # https://www.isc.org/licenses/
-#############################################
-# Toolchain Implementation by AtaraxiaLinux #
 #############################################
 
 #------------------------------------#
