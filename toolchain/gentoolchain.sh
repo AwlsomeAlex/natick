@@ -390,9 +390,9 @@ function kbinutils() {
     fi
     mkdir build
     cd build
-
-    ../configure \	
-        --prefix="${ROOT_DIR}" \
+  
+    ../configure \
+		--prefix="${ROOT_DIR}" \
 		--target=${XTARGET} ${archconfig} ${hashconfig} \
 		--with-bugurl="https://github.com/awlsomealex/stelalinux/issues" \
 		--with-sysroot="${ROOT_DIR}/sysroot" \
@@ -410,7 +410,7 @@ function kbinutils() {
 		--disable-multilib \
 		--disable-nls \
 		--disable-werror &>> ${LOG}
-    
+
     make MAKEINFO="true" configure-host ${MAKEFLAGS} &>> ${LOG}
     lprint "Configured binutils." "done"
 
@@ -466,6 +466,9 @@ function main() {
             exit
             ;;
     esac
+    export BUILDFLAGS="--build=$XHOST --host=$XTARGET"
+    export TOOLFLAGS="--build=$XHOST --host=$XTARGET --target=$XTARGET"
+    export PERLFLAGS="--target=$XTARGET"
 
     # --- Create Build Directory --- #
     if [[ -d ${BUILD_DIR} ]]; then
