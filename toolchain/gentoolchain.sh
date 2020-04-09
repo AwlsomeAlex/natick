@@ -79,6 +79,18 @@ M4_CHKSUM="f2c1e86ca0a404ff281631bdc8377638992744b175afb806e25871a24a934e07"
 BISON_VER="3.5.4"
 BISON_CHKSUM="4c17e99881978fa32c05933c5262457fa5b2b611668454f8dc2a695cd6b3720c"
 
+# --- flex --- #
+FLEX_VER="2.6.4"
+FLEX_CHKSUM="e87aae032bf07c26f85ac0ed3250998c37621d95f8bd748b31f15b33c45ee995"
+
+# --- bc --- #
+BC_VER="2.6.0"
+BC_CHKSUM="2b9f08ee9db9ca8b1d3c159a5af5fed981fcd98899630add72d327083673eb80"
+
+# --- ncurses --- #
+NCURSES_VER="6.2"
+NCURSES_CHKSUM="30306e0c76e0f9f1f0de987cf1c82a5c21e1ce6568b9227f7da5b71cbea86c9d"
+
 #------------------------------#
 # ----- Helper Functions ----- #
 #------------------------------#
@@ -138,7 +150,7 @@ function lget() {
 
     echo "--------------------------------------------------------" >> ${LOG}
     lprint "Downloading ${archive}...." "...."
-    (cd ${BUILD_DIR} && curl -O ${url})
+    (cd ${BUILD_DIR} && curl -LJO ${url})
     lprint "${archive} Downloaded." "done"
     (cd ${BUILD_DIR} && echo "${sum}  ${archive}" | sha256sum -c -) > /dev/null && lprint "Good Checksum: ${archive}" "done" || lprint "Bad Checksum: ${archive}: ${sum}" "fail"
     lprint "Extracting ${archive}...." "...."
@@ -170,7 +182,7 @@ function kfile() {
     lprint "Compiling file...." "...."
     make ${MAKEFLAGS} &>> ${LOG}
     make install ${MAKEFLAGS} &>> ${LOG}
-    lprint "Compiled file." "...."
+    lprint "Compiled file." "done"
 }
 
 # kgettext(): Builds gettext-tiny
@@ -228,6 +240,69 @@ function kbison() {
     make ${MAKEFLAGS} &>> ${LOG}
     make install ${MAKEFILES} &>> ${LOG}
     lprint "Compiled bison." "done"
+}
+
+# kflex(): Builds flex
+function kflex() {
+    # Download and Check flex
+    lget "https://github.com/westes/flex/releases/download/v${FLEX_VER}/flex-${FLEX_VER}.tar.gz" "${FLEX_CHKSUM}"
+    cd ${BUILD_DIR}/flex-${FLEX_VER}
+
+    # Patch flex
+    sed -i "/math.h/a #include <malloc.h>" src/flexdef.h &>> ${LOG}
+
+    # Configure flex
+    lprint "Configuring flex...." "...."
+    ./configure \
+        --prefix="${ROOT_DIR}" &>> ${LOG}
+    lprint "Configured flex." "done"
+
+    # Compile and Install flex
+    lprint "Compiling flex...." "...."
+    make ${MAKEFLAGS} &>> ${LOG}
+    make install ${MAKEFLAGS} &>> ${LOG}
+    ln -sf flex ${ROOT_DIR}/bin/lex &>> ${LOG}
+    lprint "Compiled flex." "done"
+}
+
+# kbc(): Builds bc
+function kbc() {
+    # Download and Check bc
+    lget "https://github.com/gavinhoward/bc/releases/download/${BC_VER}/bc-${BC_VER}.tar.xz" "${BC_CHKSUM}"
+    cd ${BUILD_DIR}/bc-${BC_VER}
+
+    # Configure bc
+    lprint "Configuring bc...." "...."
+    PREFIX='' ./configure.sh \
+        --disable-nls &>> ${LOG}
+    lprint "Configured bc." "done"
+
+    # Compile and Install bc
+    lprint "Compiling bc...." "...."
+    make PREFIX='' ${MAKEFLAGS} &>> ${LOG}
+    make PREFIX='' DESTDIR=${ROOT_DIR} install ${MAKEFLAGS} &>> ${LOG}
+    lprint "Compiled bc." "done"
+}
+
+# kncurses(): Builds ncurses
+function kncurses() {
+    # Download and Check ncurses
+    lget "http://ftp.gnu.org/pub/gnu/ncurses/ncurses-${NCURSES_VER}.tar.gz" "${NCURSES_CHKSUM}"
+    cd ${BUILD_DIR}/ncurses-${NCURSES_VER}
+
+    # Configure ncurses
+    lprint "Configuring ncurses...." "...."
+    ./configure \
+        --prefix="${ROOT_DIR}" \
+        --without-debug &>> ${LOG}
+    lprint "Configured ncurses." "done"
+
+    # Compile and Install ncurses
+    lprint "Compiling ncurses...." "...."
+    make -C include &>> ${LOG}
+    make -C progs tic &>> ${LOG}
+    cp progs/tic ${ROOT_DIR}/bin
+    lprint "Compiled ncurses" "done"
 }
 
 #---------------------------#
@@ -296,6 +371,9 @@ function main() {
     kgettext
     km4
     kbison
+    kflex
+    kbc
+    kncurses
 
     # --- Record Finish Time --- #
     echo "--------------------------------------------------------" >> ${LOG}
