@@ -113,6 +113,26 @@ BINUTILS_VER="2.34"
 BINUTILS_LINK="https://ftp.gnu.org/gnu/binutils/binutils-${BINUTILS_VER}.tar.xz"
 BINUTILS_CHKSUM="f00b0e8803dc9bab1e2165bd568528135be734df3fabf8d0161828cd56028952"
 
+# --- gmp --- #
+GMP_VER="6.2.0"
+GMP_LINK="https://ftp.gnu.org/gnu/gmp/gmp-${GMP_VER}.tar.xz"
+GMP_CHKSUM="258e6cd51b3fbdfc185c716d55f82c08aff57df0c6fbd143cf6ed561267a1526"
+
+# ---mpfr --- #
+MPFR_VER="4.0.2"
+MPFR_LINK="https://ftp.gnu.org/gnu/mpfr/mpfr-${MPFR_VER}.tar.xz"
+MPFR_CHKSUM="1d3be708604eae0e42d578ba93b390c2a145f17743a744d8f3f8c2ad5855a38a"
+
+# --- mpc --- #
+MPC_VER="1.1.0"
+MPC_LINK="https://ftp.gnu.org/gnu/mpc/mpc-${MPC_VER}.tar.gz"
+MPC_CHKSUM="6985c538143c1208dcb1ac42cedad6ff52e267b47e5f970183a3e75125b43c2e"
+
+# --- isl --- #
+ISL_VER="0.22.1"
+ISL_LINK="http://isl.gforge.inria.fr/isl-${ISL_VER}.tar.xz"
+ISL_CHKSUM="28658ce0f0bdb95b51fd2eb15df24211c53284f6ca2ac5e897acc3169e55b60f"
+
 #------------------------------#
 # ----- Helper Functions ----- #
 #------------------------------#
@@ -423,6 +443,15 @@ function kbinutils() {
     lprint "Compiled binutils." "done"
 }
 
+# kgccextras(): Downloads GCC Extras
+function kgccextras() {
+    # Download and Check gmp, mpfr, mpc and isl
+    lget "${GMP_LINK}" "${GMP_CHKSUM}"
+    lget "${MPFR_LINK}" "${MPFR_CHKSUM}"
+    lget "${MPC_LINK}" "${MPC_CHKSUM}"
+    lget "${ISL_LINK}" "${ISL_CHKSUM}"
+}
+
 #---------------------------#
 # ----- Main Function ----- #
 #---------------------------#
@@ -498,6 +527,7 @@ function main() {
     kgperf
     kheaders
     kbinutils
+    kgccextras
 
     # --- Record Finish Time --- #
     echo "--------------------------------------------------------" >> ${LOG}
