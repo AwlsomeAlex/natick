@@ -65,31 +65,53 @@ NO_BLINK='\033[25m' # No Blink
 
 # --- file --- #
 FILE_VER="5.38"
+FILE_LINK="http://ftp.astron.com/pub/file/file-${FILE_VER}.tar.gz"
 FILE_CHKSUM="593c2ffc2ab349c5aea0f55fedfe4d681737b6b62376a9b3ad1e77b2cc19fa34"
 
 # --- gettext-tiny --- #
 GETTEXT_VER="0.3.2"
+GETTEXT_LINK="http://ftp.barfooze.de/pub/sabotage/tarballs/gettext-tiny-${GETTEXT_VER}.tar.xz"
 GETTEXT_CHKSUM="a9a72cfa21853f7d249592a3c6f6d36f5117028e24573d092f9184ab72bbe187"
 
 # --- m4 --- #
 M4_VER="1.4.18"
+M4_LINK="https://ftp.gnu.org/gnu/m4/m4-${M4_VER}.tar.xz"
 M4_CHKSUM="f2c1e86ca0a404ff281631bdc8377638992744b175afb806e25871a24a934e07"
 
 # --- bison --- #
 BISON_VER="3.5.4"
+BISON_LINK="https://ftp.gnu.org/gnu/bison/bison-${BISON_VER}.tar.xz"
 BISON_CHKSUM="4c17e99881978fa32c05933c5262457fa5b2b611668454f8dc2a695cd6b3720c"
 
 # --- flex --- #
 FLEX_VER="2.6.4"
+FLEX_LINK="https://github.com/westes/flex/releases/download/v${FLEX_VER}/flex-${FLEX_VER}.tar.gz"
 FLEX_CHKSUM="e87aae032bf07c26f85ac0ed3250998c37621d95f8bd748b31f15b33c45ee995"
 
 # --- bc --- #
 BC_VER="2.6.0"
+BC_LINK="https://github.com/gavinhoward/bc/releases/download/${BC_VER}/bc-${BC_VER}.tar.xz"
 BC_CHKSUM="2b9f08ee9db9ca8b1d3c159a5af5fed981fcd98899630add72d327083673eb80"
 
 # --- ncurses --- #
 NCURSES_VER="6.2"
+NCURSES_LINK="http://ftp.gnu.org/pub/gnu/ncurses/ncurses-${NCURSES_VER}.tar.gz"
 NCURSES_CHKSUM="30306e0c76e0f9f1f0de987cf1c82a5c21e1ce6568b9227f7da5b71cbea86c9d"
+
+# --- gperf --- #
+GPERF_VER="3.1"
+GPERF_LINK="https://ftp.gnu.org/gnu/gperf/gperf-${GPERF_VER}.tar.gz"
+GPERF_CHKSUM="588546b945bba4b70b6a3a616e80b4ab466e3f33024a352fc2198112cdbb3ae2"
+
+# --- linux --- #
+LINUX_VER="5.6.3"
+LINUX_LINK="https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-${LINUX_VER}.tar.xz"
+LINUX_CHKSUM="1d13689abbcab59250a8231a5871747be25a1d2fe431cf263395de35780c50aa"
+
+# --- binutils --- #
+BINUTILS_VER="2.34"
+BINUTILS_LINK="https://ftp.gnu.org/gnu/binutils/binutils-${BINUTILS_VER}.tar.xz"
+BINUTILS_CHKSUM="f00b0e8803dc9bab1e2165bd568528135be734df3fabf8d0161828cd56028952"
 
 #------------------------------#
 # ----- Helper Functions ----- #
@@ -165,7 +187,7 @@ function lget() {
 # kfile(): Builds file
 function kfile() {
     # Download and Check file
-    lget "http://ftp.astron.com/pub/file/file-${FILE_VER}.tar.gz" "${FILE_CHKSUM}"
+    lget "${FILE_LINK}" "${FILE_CHKSUM}"
     cd ${BUILD_DIR}/file-${FILE_VER}
 
     # Configure file
@@ -188,7 +210,7 @@ function kfile() {
 # kgettext(): Builds gettext-tiny
 function kgettext() {
     # Download and Check gettext-tiny
-    lget "http://ftp.barfooze.de/pub/sabotage/tarballs/gettext-tiny-${GETTEXT_VER}.tar.xz" "${GETTEXT_CHKSUM}"
+    lget "${GETTEXT_LINK}" "${GETTEXT_CHKSUM}"
     cd ${BUILD_DIR}/gettext-tiny-${GETTEXT_VER}
 
     # Patch gettext-tiny
@@ -203,7 +225,7 @@ function kgettext() {
 # km4(): Builds m4
 function km4() {
     # Download and Check m4
-    lget "https://ftp.gnu.org/gnu/m4/m4-${M4_VER}.tar.xz" "${M4_CHKSUM}"
+    lget "${M4_LINK}" "${M4_CHKSUM}"
     cd ${BUILD_DIR}/m4-${M4_VER}
 
     # Patch m4
@@ -226,7 +248,7 @@ function km4() {
 # kbison(): Builds bison
 function kbison() {
     # Download and Check bison
-    lget "https://ftp.gnu.org/gnu/bison/bison-${BISON_VER}.tar.xz" "${BISON_CHKSUM}"
+    lget "${BISON_LINK}" "${BISON_CHKSUM}"
     cd ${BUILD_DIR}/bison-${BISON_VER}
 
     # Configure bison
@@ -245,7 +267,7 @@ function kbison() {
 # kflex(): Builds flex
 function kflex() {
     # Download and Check flex
-    lget "https://github.com/westes/flex/releases/download/v${FLEX_VER}/flex-${FLEX_VER}.tar.gz" "${FLEX_CHKSUM}"
+    lget "${FLEX_LINK}" "${FLEX_CHKSUM}"
     cd ${BUILD_DIR}/flex-${FLEX_VER}
 
     # Patch flex
@@ -268,7 +290,7 @@ function kflex() {
 # kbc(): Builds bc
 function kbc() {
     # Download and Check bc
-    lget "https://github.com/gavinhoward/bc/releases/download/${BC_VER}/bc-${BC_VER}.tar.xz" "${BC_CHKSUM}"
+    lget "${BC_LINK}" "${BC_CHKSUM}"
     cd ${BUILD_DIR}/bc-${BC_VER}
 
     # Configure bc
@@ -287,7 +309,7 @@ function kbc() {
 # kncurses(): Builds ncurses
 function kncurses() {
     # Download and Check ncurses
-    lget "http://ftp.gnu.org/pub/gnu/ncurses/ncurses-${NCURSES_VER}.tar.gz" "${NCURSES_CHKSUM}"
+    lget "${NCURSES_LINK}" "${NCURSES_CHKSUM}"
     cd ${BUILD_DIR}/ncurses-${NCURSES_VER}
 
     # Configure ncurses
@@ -303,6 +325,102 @@ function kncurses() {
     make -C progs tic &>> ${LOG}
     cp progs/tic ${ROOT_DIR}/bin
     lprint "Compiled ncurses" "done"
+}
+
+# kgperf(): Builds gperf
+function kgperf() {
+    # Download and Check gperf
+    lget "${GPERF_LINK}" "${GPERF_CHKSUM}"
+    cd ${BUILD_DIR}/gperf-${GPERF_VER}
+
+    # Configure gperf
+    lprint "Configuring gperf...." "...."
+    ./configure \
+        --prefix="${ROOT_DIR}" &>> ${LOG}
+    lprint "Configured gperf." "done"
+
+    # Compile and Install gperf
+    lprint "Compiling gperf...." "...."
+    make ${MAKEFLAGS} &>> ${LOG}
+    make install ${MAKEFLAGS} &>> ${LOG}
+    lprint "Compiled gperf." "done"
+}
+
+# kheaders(): Builds Linux Kernel Headers
+function kheaders() {
+    # Download and Check linux
+    lget "${LINUX_LINK}" "${LINUX_CHKSUM}"
+    cd ${BUILD_DIR}/linux-${LINUX_VER}
+
+    # Configure Linux Kernel
+    lprint "Configuring linux...." "...."
+    case ${BARCH} in
+        x86_64)
+            export XKARCH="x86_64"
+            echo "64-bit Kernel Selected" >> ${LOG}
+            ;;
+        i686)
+            export XKARCH="i386"
+            echo "32-bit Kernel Selected" >> ${LOG}
+            ;;
+    esac
+    export SUBKARCH="x86"
+    echo "x86 Architecture Build" >> ${LOG}
+    make mrproper ${MAKEFLAGS} &>> ${LOG}
+    lprint "Configured linux." "done"
+
+    # Compile and Install linux headers
+    lprint "Compiling linux headers...." "...."
+    make ARCH=${XKARCH} INSTALL_HDR_PATH="${ROOT_DIR}" headers_install ${MAKEFLAGS} &>> ${LOG}
+    lprint "Compiled linux headers." "done"
+}
+
+# kbinutils(): Builds binutils
+function kbinutils() {
+    # Download and Check binutils
+    lget "${BINUTILS_LINK}" "${BINUTILS_CHKSUM}"
+    cd ${BUILD_DIR}/binutils-${BINUTILS_VER}
+
+    # Configure binutils
+    lprint "Configuring binutils...." "...."
+    hashconfig="--enable-default-hash-style=gnu"
+    if [[ ${BARCH} == "x86_64" ]]; then
+        archconfig="--enable-targets=x86_64-pep"
+        echo "Enabled pep for x86_64 target" >> ${LOG}
+    fi
+    mkdir build
+    cd build
+
+    ../configure \	
+        --prefix="${ROOT_DIR}" \
+		--target=${XTARGET} ${archconfig} ${hashconfig} \
+		--with-bugurl="https://github.com/awlsomealex/stelalinux/issues" \
+		--with-sysroot="${ROOT_DIR}/sysroot" \
+		--with-pic \
+		--with-system-zlib \
+		--enable-64-bit-bfd \
+		--enable-deterministic-archives \
+		--enable-gold \
+		--enable-ld=default \
+		--enable-lto \
+		--enable-plugins \
+		--enable-relro \
+		--enable-threads \
+		--disable-compressed-debug-sections \
+		--disable-multilib \
+		--disable-nls \
+		--disable-werror &>> ${LOG}
+    
+    make MAKEINFO="true" configure-host ${MAKEFLAGS} &>> ${LOG}
+    lprint "Configured binutils." "done"
+
+    # Compile and Install binutils
+    lprint "Compiling binutils...." "...."
+    make MAKEINFO="true" ${MAKEFLAGS} &>> ${LOG}
+    make MAKEINFO="true" install ${MAKEFLAGS} &>> ${LOG}
+    rm -rf ${ROOT_DIR}/bin/${XTARGET}-ld
+    ln -sf ${XTARGET}-ld.bfd ${ROOT_DIR}/bin/${XTARGET}-ld
+    lprint "Compiled binutils." "done"
 }
 
 #---------------------------#
@@ -374,6 +492,9 @@ function main() {
     kflex
     kbc
     kncurses
+    kgperf
+    kheaders
+    kbinutils
 
     # --- Record Finish Time --- #
     echo "--------------------------------------------------------" >> ${LOG}
