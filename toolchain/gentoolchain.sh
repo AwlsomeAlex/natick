@@ -141,6 +141,11 @@ GCC_VER="9.3.0"
 GCC_LINK="http://ftp.gnu.org/gnu/gcc/gcc-${GCC_VER}/gcc-${GCC_VER}.tar.xz"
 GCC_CHKSUM="71e197867611f6054aa1119b13a0c0abac12834765fe2d81f35ac57f84f742d1"
 
+# --- musl --- #
+MUSL_VER="1.2.0"
+MUSL_LINK="http://musl.libc.org/releases/musl-${MUSL_VER}.tar.gz"
+MUSL_CHKSUM="c6de7b191139142d3f9a7b5b702c9cae1b5ee6e7f57e582da9328629408fd4e8"
+
 #------------------------------#
 # ----- Helper Functions ----- #
 #------------------------------#
@@ -570,6 +575,61 @@ function kgccstatic() {
     lprint "Built gcc-static." "done"
 }
 
+# kmusl(): Builds musl
+function kmusl() {
+    # Download and Check musl
+    lget "${MUSL_LINK}" "${MUSL_CHKSUM}"
+    cd ${BUILD_DIR}/musl-${MUSL_VER}
+
+    # Set Cross Compiler Variables (needed for musl)
+    export CROSS_COMPILE="${XTARGET}-"
+    export CC="${XTARGET}-gcc"
+    export CXX="${XTARGET}-g++"
+    export AR="${XTARGET}-ar"
+    export AS="${XTARGET}-as"
+    export RANLIB="${XTARGET}-ranlib"
+    export LD="${XTARGET}-ld"
+    export STRIP="${XTARGET}-strip"
+    export PKG_CONFIG_PATH="${SYS_DIR}/usr/lib/pkgconfig:${SYS_DIR}/usr/share/pkgconfig"
+    export PKG_CONFIG_SYSROOT="${SYS_DIR}"
+
+    # Test Package
+    ${CROSS_COMPILE}cc $CFLAGS -c "${EXTRAS_DIR}"/musl/__stack_chk_fail_local.c -o __stack_chk_fail_local.o &>> ${LOG}
+    ${CROSS_COMPILE}ar r libssp_nonshared.a __stack_chk_fail_local.o &>> ${LOG}
+
+    # Configure musl
+    lprint "Configuring musl...." "...."
+    ./configure $TOOLFLAGS \
+        --prefix=/usr \
+        --libdir=/usr/lib \
+        --syslibdir=/usr/lib \
+        --enable-optimize=size &>> ${LOG}
+    lprint "Configured musl." "done"
+
+    # Compile and Install musl
+    lprint "Compiling musl...." "...."
+    make DESTDIR=${SYS_DIR} ${MAKEFLAGS} &>> ${LOG}
+    make DESTDIR=${SYS_DIR} install ${MAKEFLAGS} &>> ${LOG}
+    cp libssp_nonshared.a ${SYS_DIR}/usr/lib                    # Copy libssp
+    mkdir -p ${SYS_DIR}/usr/bin
+    ln -sf ../lib/libc.so ${SYS_DIR}/usr/bin/ldd                # Symlink ldd
+    cp ${EXTRAS_DIR}/musl/ldconfig ${SYS_DIR}/usr/bin/ldconfig  # Create dummy ldconfig 
+    chmod +x ${SYS_DIR}/usr/bin/ldconfig
+    lprint "Compiled musl." "done"
+
+    # Unset Cross Compiler Variables
+    unset CROSS_COMPILE
+    unset CC
+    unset CXX
+    unset AR
+    unset AS
+    unset RANLIB
+    unset LD
+    unset STRIP
+    unset PKG_CONFIG_PATH
+    unset PKG_CONFIG_SYSROOT_DIR
+}
+
 
 #---------------------------#
 # ----- Main Function ----- #
@@ -638,10 +698,11 @@ function main() {
         lprint "Toolchain already looks built. Please clean with '${EXECUTE} clean'." "fail"
     fi
 
-    # --- Create Build Directory --- #
+    # --- Create Build Directories --- #
     if [[ ! -d ${BUILD_DIR} ]]; then 
         mkdir ${BUILD_DIR}
     fi
+    mkdir ${SYS_DIR}
 
     # --- Populate Log --- #
     echo "--------------------------------------------------------" >> ${LOG}

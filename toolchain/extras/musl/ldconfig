@@ -1,0 +1,3 @@
+#!/bin/sh
+echo "adjusting libs..."
+true
