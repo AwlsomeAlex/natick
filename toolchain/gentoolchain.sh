@@ -28,6 +28,8 @@ set -e
 
 export ROOT_DIR="$(pwd)"                # Script Root Directory
 export BUILD_DIR="${ROOT_DIR}/build"    # Build Directory (Sources and Work)
+export SYS_DIR="${ROOT_DIR}/sysroot"    # Fake sysroot for Toolchain (MIGHT NEED FIX)
+export EXTRAS_DIR="${ROOT_DIR}/extras"  # Folder full of patches and extra files
 export LOG="${ROOT_DIR}/log.txt"        # gentoolchain Log File
 
 #----------------------------------#
@@ -133,6 +135,11 @@ ISL_VER="0.22.1"
 ISL_LINK="http://isl.gforge.inria.fr/isl-${ISL_VER}.tar.xz"
 ISL_CHKSUM="28658ce0f0bdb95b51fd2eb15df24211c53284f6ca2ac5e897acc3169e55b60f"
 
+# --- gcc --- #
+GCC_VER="9.3.0"
+GCC_LINK="http://ftp.gnu.org/gnu/gcc/gcc-${GCC_VER}/gcc-${GCC_VER}.tar.xz"
+GCC_CHKSUM="71e197867611f6054aa1119b13a0c0abac12834765fe2d81f35ac57f84f742d1"
+
 #------------------------------#
 # ----- Helper Functions ----- #
 #------------------------------#
@@ -191,9 +198,13 @@ function lget() {
     local archive=${url##*/}
 
     echo "--------------------------------------------------------" >> ${LOG}
-    lprint "Downloading ${archive}...." "...."
-    (cd ${BUILD_DIR} && curl -LJO ${url})
-    lprint "${archive} Downloaded." "done"
+    if [[ -f ${BUILD_DIR}/${archive} ]]; then
+        lprint "${archive} already downloaded." "done"
+    else
+        lprint "Downloading ${archive}...." "...."
+        (cd ${BUILD_DIR} && curl -LJO ${url})
+        lprint "${archive} Downloaded." "done"
+    fi
     (cd ${BUILD_DIR} && echo "${sum}  ${archive}" | sha256sum -c -) > /dev/null && lprint "Good Checksum: ${archive}" "done" || lprint "Bad Checksum: ${archive}: ${sum}" "fail"
     lprint "Extracting ${archive}...." "...."
     pv ${BUILD_DIR}/${archive} | bsdtar xf - -C ${BUILD_DIR}/
@@ -412,24 +423,24 @@ function kbinutils() {
     cd build
   
     ../configure \
-		--prefix="${ROOT_DIR}" \
-		--target=${XTARGET} ${archconfig} ${hashconfig} \
-		--with-bugurl="https://github.com/awlsomealex/stelalinux/issues" \
-		--with-sysroot="${ROOT_DIR}/sysroot" \
-		--with-pic \
-		--with-system-zlib \
-		--enable-64-bit-bfd \
-		--enable-deterministic-archives \
-		--enable-gold \
-		--enable-ld=default \
-		--enable-lto \
-		--enable-plugins \
-		--enable-relro \
-		--enable-threads \
-		--disable-compressed-debug-sections \
-		--disable-multilib \
-		--disable-nls \
-		--disable-werror &>> ${LOG}
+        --prefix="${ROOT_DIR}" \
+        --target=${XTARGET} ${archconfig} ${hashconfig} \
+        --with-bugurl="https://github.com/awlsomealex/stelalinux/issues" \
+        --with-sysroot="${SYS_DIR}" \
+        --with-pic \
+        --with-system-zlib \
+        --enable-64-bit-bfd \
+        --enable-deterministic-archives \
+        --enable-gold \
+        --enable-ld=default \
+        --enable-lto \
+        --enable-plugins \
+        --enable-relro \
+        --enable-threads \
+        --disable-compressed-debug-sections \
+        --disable-multilib \
+        --disable-nls \
+    --disable-werror &>> ${LOG}
 
     make MAKEINFO="true" configure-host ${MAKEFLAGS} &>> ${LOG}
     lprint "Configured binutils." "done"
@@ -452,6 +463,113 @@ function kgccextras() {
     lget "${ISL_LINK}" "${ISL_CHKSUM}"
 }
 
+# kgccstatic(): Builds GCC-Static
+function kgccstatic() {
+    # Download and Check GCC
+    lget "${GCC_LINK}" "${GCC_CHKSUM}"
+    cp -r ${BUILD_DIR}/gcc-${GCC_VER} ${BUILD_DIR}/gcc-static-${GCC_VER}
+    cd ${BUILD_DIR}/gcc-static-${GCC_VER}
+
+    # Pre-Configure Operations
+    lprint "Configuring gcc-static...." "...."
+    case ${BARCH} in                                                    # Set GCC Flags
+        x86_64)
+            export GCCOPTS="--with-arch=x86-64 --with-tune=generic"
+            ;;
+        i686)
+            export GCCOPTS="--with-arch=i686 --with-tune=generic"
+            ;;
+        i586)
+            export GCCOPTS="--with-arch=i586 --with-tune=generic"
+            ;;
+    esac
+    hashconfig="--with-linker-hash-style=gnu"                           # Set Hash Style
+    export CFLAGS_FOR_BUILD=" "                                         # Clear Build Flags
+    export FFLAGS_FOR_BUILD=" "
+    export CXXFLAGS_FOR_BUILD=" "
+    export LDFLAGS_FOR_BUILD=" "
+    export CFLAGS_FOR_TARGET=" "
+	export FFLAGS_FOR_TARGET=" "
+	export CXXFLAGS_FOR_TARGET=" "
+	export LDFLAGS_FOR_TARGET=" "
+    sed -i 's@\./fixinc\.sh@-c true@' gcc/Makefile.in                   # Patch Makefile
+    # GCC Patches for MUSL
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0001-Use-musl-s-libssp_nonshared.a.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0002-POSIX-memalign.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0003-Define-musl-ldso-for-s390.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0004-microblaze-pr65649.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0005-define-128-long-double-for-some-musl-targets.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0006-add-support-for-m68k-musl.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0007-add-support-for-static-pie.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0008-cpu-indicator.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0009-fix-tls-model.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0010-libgcc-always-build-gcceh.a.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0011-fix-support-for-Ada.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0003-gcc-poison-system-directories.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/security.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/gcc-pure64.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/gcc-pure64-mips.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/gcc-pure64-riscv.patch &>> ${LOG}
+    cp -a ${BUILD_DIR}/gmp-${GMP_VER} gmp                               # Copy utilities to GCC
+    cp -a ${BUILD_DIR}/mpfr-${MPFR_VER} mpfr
+    cp -a ${BUILD_DIR}/mpc-${MPC_VER} mpc
+    cp -a ${BUILD_DIR}/isl-${ISL_VER} isl
+    mkdir build
+    cd build
+
+    # Configure GCC Static
+    AR=ar \
+    ../configure \
+        --prefix="${ROOT_DIR}" \
+        --libdir="${ROOT_DIR}/lib" \
+        --libexecdir="${ROOT_DIR}/lib" \
+        --build=${XHOST} \
+        --host=${XHOST} \
+        --target=${XTARGET} ${GCCOPTS} ${hashconfig} \
+        --with-pkgversion="StelaLinux Toolchain Static Compiler" \
+        --with-bugurl="https://github.com/awlsomealex/stelalinux/issues" \
+        --with-sysroot="${SYS_DIR}" \
+        --with-isl \
+        --with-system-zlib \
+        --with-newlib \
+        --without-headers \
+        --enable-checking=release \
+        --enable-clocale=generic \
+        --enable-default-pie \
+        --enable-default-ssp \
+        --enable-languages=c \
+        --enable-linker-build-id \
+        --enable-lto \
+        --enable-plugins \
+        --disable-decimal-float \
+        --disable-gnu-indirect-function \
+        --disable-libatomic \
+        --disable-libcilkrts \
+        --disable-libgomp \
+        --disable-libitm \
+        --disable-libmudflap \
+        --disable-libquadmath \
+        --disable-libsanitizer \
+        --disable-libssp \
+        --disable-libstdcxx \
+        --disable-libvtv \
+        --disable-multilib \
+        --disable-nls \
+        --disable-shared \
+        --disable-symvers \
+        --disable-threads \
+        --disable-werror &>> ${LOG}
+    lprint "Configued gcc-static." "done"   
+
+    # Compile and Install gcc-static
+    lprint "Building gcc-static...." "...."
+    make all-gcc all-target-libgcc ${MAKEFLAGS} &>> ${LOG}
+    make -j1 install-gcc install-target-libgcc &>> ${LOG}
+    ln -sf ${XTARGET}-gcc ${ROOT_DIR}/bin/${XTARGET}-cc
+    lprint "Built gcc-static." "done"
+}
+
+
 #---------------------------#
 # ----- Main Function ----- #
 #---------------------------#
@@ -469,13 +587,21 @@ function main() {
         "clean" )
             lprint "Cleaning Toolchain...." "...."
             set +e
-            rm -rf ${ROOT_DIR}/{bin,include,lib,lib64,root,share,*-linux-*,build} &> /dev/null
+            rm -rf ${ROOT_DIR}/{bin,include,lib,lib64,root,share,*-linux-*} &> /dev/null
+            if [[ ${FLAG} == "--keep-archives" ]]; then
+                if [[ -d ${BUILD_DIR} ]]; then
+                    cd ${BUILD_DIR} &> /dev/null
+                    find -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} \; &> /dev/null
+                fi
+            else
+                rm -rf ${ROOT_DIR}/build &> /dev/null
+            fi
             lprint "Toolchain Cleaned." "done"
             rm ${LOG}
             exit
             ;;
         * | "-h" | "--help" )
-            echo "${EXECUTE} [OPTION]"
+            echo "${EXECUTE} [OPTION] [flag]"
             echo "Briko Build System - gentoolchain.sh"
             echo ""
             echo "This script is used to generate the toolchain, which is used by"
@@ -483,6 +609,8 @@ function main() {
             echo "[OPTION]:"
             echo "        Supported Architecture:            x86_64-musl, i686-musl"
             echo "        clean:                             Cleans up the Toolchain"
+            echo "[flag]:"
+            echo "        (clean) --keep-archives:           Don't clean downloaded archives"
             echo ""
             echo "Example:"
             echo "        '$ ${EXECUTE} x86_84-musl'  Generates a x86_64-musl toolchain"
@@ -499,11 +627,20 @@ function main() {
     export TOOLFLAGS="--build=$XHOST --host=$XTARGET --target=$XTARGET"
     export PERLFLAGS="--target=$XTARGET"
 
-    # --- Create Build Directory --- #
-    if [[ -d ${BUILD_DIR} ]]; then
+    # --- Check for Extras Dir --- #
+    if [[ ! -d ${EXTRAS_DIR} ]]; then
+        lprint "Extras Directory not found." "fail"
+    fi
+
+    # --- Check if built --- #
+    if [[ -d ${BUILD_DIR}/bin ]]; then
         lprint "Toolchain already looks built. Please clean with '${EXECUTE} clean'." "fail"
     fi
-    mkdir ${BUILD_DIR}
+
+    # --- Create Build Directory --- #
+    if [[ ! -d ${BUILD_DIR} ]]; then 
+        mkdir ${BUILD_DIR}
+    fi
 
     # --- Populate Log --- #
     echo "--------------------------------------------------------" >> ${LOG}
@@ -528,6 +665,7 @@ function main() {
     kheaders
     kbinutils
     kgccextras
+    kgccstatic
 
     # --- Record Finish Time --- #
     echo "--------------------------------------------------------" >> ${LOG}
@@ -538,6 +676,7 @@ function main() {
 # --- Arguments --- #
 EXECUTE=$0
 TARGET=$1
+FLAG=$2
 
 # --- Execute --- #
 time main
