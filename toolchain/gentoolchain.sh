@@ -1,4 +1,5 @@
 #!/bin/bash
+# vim: tabstop=4 shiftwidth=4 expandtab
 set -e
 #############################################
 #    gentoolchain.sh - Briko Build System   #
@@ -440,7 +441,7 @@ function kbinutils() {
         --disable-compressed-debug-sections \
         --disable-multilib \
         --disable-nls \
-    --disable-werror &>> ${LOG}
+        --disable-werror &>> ${LOG}
 
     make MAKEINFO="true" configure-host ${MAKEFLAGS} &>> ${LOG}
     lprint "Configured binutils." "done"
@@ -489,9 +490,9 @@ function kgccstatic() {
     export CXXFLAGS_FOR_BUILD=" "
     export LDFLAGS_FOR_BUILD=" "
     export CFLAGS_FOR_TARGET=" "
-	export FFLAGS_FOR_TARGET=" "
-	export CXXFLAGS_FOR_TARGET=" "
-	export LDFLAGS_FOR_TARGET=" "
+    export FFLAGS_FOR_TARGET=" "
+    export CXXFLAGS_FOR_TARGET=" "
+    export LDFLAGS_FOR_TARGET=" "
     sed -i 's@\./fixinc\.sh@-c true@' gcc/Makefile.in                   # Patch Makefile
     # GCC Patches for MUSL
     patch -Np1 -i ${EXTRAS_DIR}/gcc/0001-Use-musl-s-libssp_nonshared.a.patch &>> ${LOG}

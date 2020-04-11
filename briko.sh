@@ -1,4 +1,5 @@
 #!/bin/bash
+# vim: tabstop=4 shiftwidth=4 expandtab
 set -e
 #############################################
 #       briko.sh - Briko Build System       #
