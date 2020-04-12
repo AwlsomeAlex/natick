@@ -146,6 +146,31 @@ MUSL_VER="1.2.0"
 MUSL_LINK="http://musl.libc.org/releases/musl-${MUSL_VER}.tar.gz"
 MUSL_CHKSUM="c6de7b191139142d3f9a7b5b702c9cae1b5ee6e7f57e582da9328629408fd4e8"
 
+# --- slibtool --- #
+SLIBTOOL_VER="2191ff0d40a2bd3db55873b38fd961f888c3cd5f"
+SLIBTOOL_LINK="https://github.com/midipix-project/slibtool/archive/${SLIBTOOL_VER}.tar.gz"
+SLIBTOOL_CHKSUM="45bce6aab9489286784e0cd7d8a83ddcebf79832ae7b6929eefe705974ca2917"
+
+# --- autoconf --- #
+AUTOCONF_VER="2.69"
+AUTOCONF_LINK="http://ftp.gnu.org/gnu/autoconf/autoconf-${AUTOCONF_VER}.tar.xz"
+AUTOCONF_CHKSUM="64ebcec9f8ac5b2487125a86a7760d2591ac9e1d3dbd59489633f9de62a57684"
+
+# --- automake --- #
+AUTOMAKE_VER="1.16.2"
+AUTOMAKE_LINK="http://ftp.gnu.org/gnu/automake/automake-${AUTOMAKE_VER}.tar.xz"
+AUTOMAKE_CHKSUM="ccc459de3d710e066ab9e12d2f119bd164a08c9341ca24ba22c9adaa179eedd0"
+
+# --- cracklib --- #
+CRACKLIB_VER="2.9.7"
+CRACKLIB_LINK="https://github.com/cracklib/cracklib/releases/download/v${CRACKLIB_VER}/cracklib-${CRACKLIB_VER}.tar.gz"
+CRACKLIB_CHKSUM="8b6fd202f3f1d8fa395d3b7a5d821227cfd8bb4a9a584a7ae30cf62cea6287dd"
+
+# --- pkgconf --- #
+PKGCONF_VER="1.6.3"
+PKGCONF_LINK="http://distfiles.dereferenced.org/pkgconf/pkgconf-${PKGCONF_VER}.tar.xz"
+PKGCONF_CHKSUM="61f0b31b0d5ea0e862b454a80c170f57bad47879c0c42bd8de89200ff62ea210"
+
 #------------------------------#
 # ----- Helper Functions ----- #
 #------------------------------#
@@ -630,6 +655,238 @@ function kmusl() {
     unset PKG_CONFIG_SYSROOT_DIR
 }
 
+# kgcc(): Builds gcc
+function kgcc() {
+    cd ${BUILD_DIR}/gcc-${GCC_VER}
+
+    # Pre-Configure Operations
+    lprint "Configuring gcc-static...." "...."
+    case ${BARCH} in                                                    # Set GCC Flags
+        x86_64)
+            export GCCOPTS="--with-arch=x86-64 --with-tune=generic"
+            ;;
+        i686)
+            export GCCOPTS="--with-arch=i686 --with-tune=generic"
+            ;;
+        i586)
+            export GCCOPTS="--with-arch=i586 --with-tune=generic"
+            ;;
+    esac
+    hashconfig="--with-linker-hash-style=gnu"                           # Set Hash Style
+    LANGS="c,c++,fortran,lto"                                           # GCC Compiler Languages
+    export CFLAGS_FOR_BUILD=" "                                         # Clear Build Flags
+    export FFLAGS_FOR_BUILD=" "
+    export CXXFLAGS_FOR_BUILD=" "
+    export LDFLAGS_FOR_BUILD=" "
+    export CFLAGS_FOR_TARGET=" "
+    export FFLAGS_FOR_TARGET=" "
+    export CXXFLAGS_FOR_TARGET=" "
+    export LDFLAGS_FOR_TARGET=" "
+    sed -i 's@\./fixinc\.sh@-c true@' gcc/Makefile.in                   # Patch Makefile
+    # GCC Patches for MUSL
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0001-Use-musl-s-libssp_nonshared.a.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0002-POSIX-memalign.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0003-Define-musl-ldso-for-s390.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0004-microblaze-pr65649.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0005-define-128-long-double-for-some-musl-targets.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0006-add-support-for-m68k-musl.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0007-add-support-for-static-pie.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0008-cpu-indicator.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0009-fix-tls-model.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0010-libgcc-always-build-gcceh.a.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0011-fix-support-for-Ada.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0003-gcc-poison-system-directories.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/security.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/gcc-pure64.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/gcc-pure64-mips.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/gcc-pure64-riscv.patch &>> ${LOG}
+    cp -a ${BUILD_DIR}/gmp-${GMP_VER} gmp                               # Copy utilities to GCC
+    cp -a ${BUILD_DIR}/mpfr-${MPFR_VER} mpfr
+    cp -a ${BUILD_DIR}/mpc-${MPC_VER} mpc
+    cp -a ${BUILD_DIR}/isl-${ISL_VER} isl
+    mkdir build
+    cd build
+
+    # Configure GCC
+    AR=ar \
+    ../configure \
+        --prefix="${ROOT_DIR}" \
+        --libdir="${ROOT_DIR}/lib" \
+        --libexecdir="${ROOT_DIR}/lib" \
+        --build=${XHOST} \
+        --host=${XHOST} \
+        --target=${XTARGET} ${GCCOPTS} ${hashconfig} \
+        --with-pkgversion="StelaLinux Toolchain Compiler" \
+        --with-bugurl="https://github.com/awlsomealex/stelalinux/issues" \
+        --with-sysroot="${SYS_DIR}" \
+        --with-isl \
+        --with-system-zlib \
+        --enable-__cxa_atexit \
+        --enable-checking=release \
+        --enable-clocale=generic \
+        --enable-default-pie \
+        --enable-default-ssp \
+        --enable-languages="${LANGS}" \
+        --enable-libstdcxx-time \
+        --enable-linker-build-id \
+        --enable-lto \
+        --enable-plugins \
+        --enable-shared \
+        --enable-threads=posix \
+        --enable-tls \
+        --disable-gnu-indirect-function \
+        --disable-libmudflap \
+        --disable-libsanitizer \
+        --disable-libssp \
+        --disable-libstdcxx-pch \
+        --disable-multilib \
+        --disable-nls \
+        --disable-symvers \
+        --disable-werror &>> ${LOG}
+    lprint "Configured gcc." "done"
+
+    # Compile and Install gcc
+    lprint "Building gcc...." "...."
+    make AS_FOR_TARGET="${XTARGET}-as" LD_FOR_TARGET="${XTARGET}-ld" ${MAKEFLAGS} &>> ${LOG}
+    make -j1 install &>> ${LOG}
+    ln -sf ${XTARGET}-gcc ${ROOT_DIR}/bin/${TARGET}-cc &>> ${LOG}
+    lprint "Built gcc." "done"
+}
+
+# kslibtool: Builds slibtool
+function kslibtool() {
+    # Download and Check slibtool
+    lget "${SLIBTOOL_LINK}" "${SLIBTOOL_CHKSUM}"
+    cd ${BUILD_DIR}/slibtool-${SLIBTOOL_VER}
+
+    # Configure slibtool
+    lprint "Configuring slibtool...." "...."
+    NATIVE_CC="${XTARGET}-gcc" \
+    NATIVE_CPP="${XTARGET}-cpp" \
+    NATIVE_CXX="${XTARGET}-g++" \
+    NATIVE_HOST="${XTARGET}" \
+    NATIVE_CFGHOST="${XTARGET}" \
+    ./configure \
+        --prefix="${ROOT_DIR}" \
+        --sbindir="${ROOT_DIR}/bin" &>> ${LOG}
+    lprint "Configured slibtool." "done"
+
+    # Compile and Install slibtool
+    lprint "Building slibtool...." "...."
+    make ${MAKEFLAGS} &>> ${LOG}
+    make install ${MAKEFLAGS} &>> ${LOG}
+    ln -sf slibtool ${ROOT_DIR}/bin/libtool &>> ${LOG}
+    lprint "Built slibtool." "done"
+
+    # Post-Installation Configuration
+    lprint "Modifying slibtool...." "...."
+    mkdir -p ${ROOT_DIR}/share/libtoolize/AC_CONFIG_AUX_DIR \
+        ${ROOT_DIR}/share/libtoolize/AC_CONFIG_MACRO_DIRS \
+        ${ROOT_DIR}/share/aclocal/ &>> ${LOG}
+    for macros in ltversion.m4 libtool.m4 ltargz.m4 ltdl.m4 ltoptions.m4 ltsugar.m4 lt~obsolete.m4; do
+        install -Dm0644 ${EXTRAS_DIR}/slibtool/${macros} ${ROOT_DIR}/share/aclocal/${macros} &>> ${LOG}
+        install -Dm0644 ${EXTRAS_DIR}/slibtool/${macros} ${ROOT_DIR}/share/libtoolize/AC_CONFIG_MACRO_DIRS/${macros} &>> ${LOG}
+    done
+    for aux in compile depcomp install-sh missing; do
+        install -Dm0755 ${EXTRAS_DIR}/slibtool/${aux} ${ROOT_DIR}/share/libtoolize/AC_CONFIG_AUX_DIR/${aux} &>> ${LOG}
+    done
+    install -Dm0755 ${EXTRAS_DIR}/slibtool/ltmain.sh ${ROOT_DIR}/share/libtoolize/AC_CONFIG_AUX_DIR/ltmain.sh &>> ${LOG}
+    install -Dm0755 ${EXTRAS_DIR}/slibtool/config.sub ${ROOT_DIR}/share/libtoolize/AC_CONFIG_AUX_DIR/config.sub &>> ${LOG}
+    install -Dm0755 ${EXTRAS_DIR}/slibtool/config.guess ${ROOT_DIR}/share/libtoolize/AC_CONFIG_AUX_DIR/config.guess &>> ${LOG}
+    install -Dm0755 ${EXTRAS_DIR}/slibtool/libtoolize ${ROOT_DIR}/bin/libtoolize &>> ${LOG}
+    sed -i "s,uncom_sysroot,${ROOT_DIR},g" ${ROOT_DIR}/bin/libtoolize &>> ${LOG}
+    lprint "Modified slibtool." "done"
+}
+
+# kautoconf(): Builds autoconf
+function kautoconf() {
+    # Downloads and Check autoconf
+    lget "${AUTOCONF_LINK}" "${AUTOCONF_CHKSUM}"
+    cd ${BUILD_DIR}/autoconf-${AUTOCONF_VER}
+
+    # Libtool and Perl patch and configure
+    lprint "Configuring autoconf...." "...."
+    patch -p1 -i ${EXTRAS_DIR}/autoconf/autoconf-2.69-libtool-compatibility.patch &>> ${LOG}
+    patch -p1 -i ${EXTRAS_DIR}/autoconf/autoconf-2.69-perl-5.22-autoscan.patch &>> ${LOG}
+    patch -p1 -i ${EXTRAS_DIR}/autoconf/autoconf-2.69-perl-5.28.patch &>> ${LOG}
+    ./configure \ 
+        --prefix="${ROOT_DIR}" \
+        --disable-nls &>> ${LOG}
+    lprint "Configured autoconf." "done"
+
+    # Compile and Install autoconf
+    lprint "Building autoconf...." "...."
+    make ${MAKEFLAGS} &>> ${LOG}
+    make install ${MAKEFLAGS} &>> ${LOG}
+    lprint "Built autoconf." "done"
+}
+
+# kautomake(): Builds automake
+function kautoconf() {
+    # Downloads and Check automake
+    lget "${AUTOMAKE_LINK}" "${AUTOMAKE_CHKSUM}"
+    cd ${BUILD_DIR}/automake-${AUTOMAKE_VER}
+
+    # Configure automake
+    lprint "Configuring automake...." "...."
+    ./configure \ 
+        --prefix="${ROOT_DIR}" \
+        --disable-nls &>> ${LOG}
+    lprint "Configured automake." "done"
+
+    # Compile and Install automake
+    lprint "Building automake...." "...."
+    make ${MAKEFLAGS} &>> ${LOG}
+    make install ${MAKEFLAGS} &>> ${LOG}
+    lprint "Built automake." "done"
+}
+
+# kcracklib): Builds cracklib
+function kcracklib() {
+    # Downloads and Check cracklib
+    lget "${CRACKLIB_LINK}" "${CRACKLIB_CHKSUM}"
+    cd ${BUILD_DIR}/cracklib-${CRACKLIB_VER}
+
+    # Configure cracklib
+    lprint "Configuring cracklib...." "...."
+    ./configure \ 
+        --prefix="${ROOT_DIR}" \
+        --sbindir="${ROOT_DIR}"/bin \
+        --without-python &>> ${LOG}
+    lprint "Configured cracklib." "done"
+
+    # Compile and Install cracklib
+    lprint "Building cracklib...." "...."
+    make ${MAKEFLAGS} &>> ${LOG}
+    make install ${MAKEFLAGS} &>> ${LOG}
+    lprint "Built cracklib." "done"
+}
+
+# kpkgconf(): Builds pkgconf
+function kpkgconf() {
+    # Download and Check pkgconf
+    lget "${PKGCONF_LINK}" "${PKGCONF_CHKSUM}"
+    cd ${BUILD_DIR}/pkgconf-${PKGCONF_VER}
+
+    # Configure pkgconf
+    lprint "Configuring pkgconf...." "...."
+    LDFLAGS="-static" \
+    ./configure \
+        --prefix="${ROOT_DIR}" \
+        --with-sysroot="${SYS_DIR}" \
+        --with-pkg-config-dir="${SYS_DIR}/usr/lib/pkgconfig:${SYS_DIR}/usr/share/pkgconfig" \
+        --with-system-libdir="${SYS_DIR}/usr/lib" \
+        --with-system-includedir="${SYS_DIR}/usr/include" &>> ${LOG}
+    lprint "Configured pkgconf." "done"
+
+    # Compile and Install pkgconf
+    lprint "Building pkgconf...." "...."
+    make ${MAKEFLAGS} &>> ${LOG}
+    make install ${MAKEFLAGS} &>> ${LOG}
+    ln -sf pkgconf ${ROOT_DIR}/bin/pkg-config &>> ${LOG}
+    ln -sf pkgconf ${ROOT_DIR}/bin/${XTARGET}-pkg-config &>> ${LOG}
+    ln -sf pkgconf ${ROOT_DIR}/bin/${XTARGET}-pkgconf &>> ${LOG}
+}
 
 #---------------------------#
 # ----- Main Function ----- #
@@ -648,7 +905,7 @@ function main() {
         "clean" )
             lprint "Cleaning Toolchain...." "...."
             set +e
-            rm -rf ${ROOT_DIR}/{bin,include,lib,lib64,root,share,*-linux-*} &> /dev/null
+            rm -rf ${ROOT_DIR}/{bin,include,lib,lib64,root,share,sysroot,*-linux-*} &> /dev/null
             if [[ ${FLAG} == "--keep-archives" ]]; then
                 if [[ -d ${BUILD_DIR} ]]; then
                     cd ${BUILD_DIR} &> /dev/null
@@ -728,6 +985,7 @@ function main() {
     kbinutils
     kgccextras
     kgccstatic
+    kmusl
 
     # --- Record Finish Time --- #
     echo "--------------------------------------------------------" >> ${LOG}
