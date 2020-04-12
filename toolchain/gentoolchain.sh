@@ -162,11 +162,6 @@ AUTOMAKE_VER="1.16.2"
 AUTOMAKE_LINK="http://ftp.gnu.org/gnu/automake/automake-${AUTOMAKE_VER}.tar.xz"
 AUTOMAKE_CHKSUM="ccc459de3d710e066ab9e12d2f119bd164a08c9341ca24ba22c9adaa179eedd0"
 
-# --- cracklib --- #
-CRACKLIB_VER="2.9.7"
-CRACKLIB_LINK="https://github.com/cracklib/cracklib/releases/download/v${CRACKLIB_VER}/cracklib-${CRACKLIB_VER}.tar.gz"
-CRACKLIB_CHKSUM="8b6fd202f3f1d8fa395d3b7a5d821227cfd8bb4a9a584a7ae30cf62cea6287dd"
-
 # --- pkgconf --- #
 PKGCONF_VER="1.6.3"
 PKGCONF_LINK="http://distfiles.dereferenced.org/pkgconf/pkgconf-${PKGCONF_VER}.tar.xz"
@@ -857,27 +852,6 @@ function kautomake() {
     lprint "Compiled automake." "done"
 }
 
-# kcracklib): Builds cracklib
-function kcracklib() {
-    # Downloads and Check cracklib
-    lget "${CRACKLIB_LINK}" "${CRACKLIB_CHKSUM}"
-    cd ${BUILD_DIR}/cracklib-${CRACKLIB_VER}
-
-    # Configure cracklib
-    lprint "Configuring cracklib...." "...."
-    ./configure \
-        --prefix="${ROOT_DIR}" \
-        --sbindir="${ROOT_DIR}"/bin \
-        --without-python &>> ${LOG}
-    lprint "Configured cracklib." "done"
-
-    # Compile and Install cracklib
-    lprint "Compiling cracklib...." "...."
-    make ${MAKEFLAGS} &>> ${LOG}
-    make install ${MAKEFLAGS} &>> ${LOG}
-    lprint "Compiled cracklib." "done"
-}
-
 # kpkgconf(): Builds pkgconf
 function kpkgconf() {
     # Download and Check pkgconf
@@ -1008,7 +982,6 @@ function main() {
     kslibtool
     kautoconf
     kautomake
-    kcracklib
     kpkgconf
 
     # --- Archive Untouched Sysroot --- #
