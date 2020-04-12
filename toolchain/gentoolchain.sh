@@ -45,6 +45,7 @@ export ORIGMAKE="$(which make)"         # Set Host Make (Figure it out systemlev
 
 # --- Platform Infomation --- #
 export XHOST="$(echo ${MACHTYPE} | sed -e 's/-[^-]*/-cross/')"
+export PATH="${ROOT_DIR}/bin:${PATH}"
 
 # --- Compiler Flags --- #
 export CFLAGS="-g0 -Os -s -fexcess-precision=fast -fomit-frame-pointer -Wl,--as-needed -pipe"
@@ -431,10 +432,11 @@ function kheaders() {
     make mrproper ${MAKEFLAGS} &>> ${LOG}
     lprint "Configured linux." "done"
 
-    # Compile and Install linux headers
-    lprint "Compiling linux headers...." "...."
-    make ARCH=${XKARCH} INSTALL_HDR_PATH="${ROOT_DIR}" headers_install ${MAKEFLAGS} &>> ${LOG}
-    lprint "Compiled linux headers." "done"
+    # Generate and Install linux headers
+    lprint "Generating linux headers...." "...."
+    make ARCH=${XKARCH} INSTALL_HDR_PATH="${SYS_DIR}" headers_install ${MAKEFLAGS} &>> ${LOG}
+    cp -r ${SYS_DIR}/* ${ROOT_DIR}
+    lprint "Generated linux headers." "done"
 }
 
 # kbinutils(): Builds binutils
@@ -593,11 +595,11 @@ function kgccstatic() {
     lprint "Configued gcc-static." "done"   
 
     # Compile and Install gcc-static
-    lprint "Building gcc-static...." "...."
+    lprint "Compiling gcc-static...." "...."
     make all-gcc all-target-libgcc ${MAKEFLAGS} &>> ${LOG}
     make -j1 install-gcc install-target-libgcc &>> ${LOG}
     ln -sf ${XTARGET}-gcc ${ROOT_DIR}/bin/${XTARGET}-cc
-    lprint "Built gcc-static." "done"
+    lprint "Compiled gcc-static." "done"
 }
 
 # kmusl(): Builds musl
@@ -660,7 +662,7 @@ function kgcc() {
     cd ${BUILD_DIR}/gcc-${GCC_VER}
 
     # Pre-Configure Operations
-    lprint "Configuring gcc-static...." "...."
+    lprint "Configuring gcc...." "...."
     case ${BARCH} in                                                    # Set GCC Flags
         x86_64)
             export GCCOPTS="--with-arch=x86-64 --with-tune=generic"
@@ -746,17 +748,28 @@ function kgcc() {
     lprint "Configured gcc." "done"
 
     # Compile and Install gcc
-    lprint "Building gcc...." "...."
+    lprint "Compiling gcc...." "...."
     make AS_FOR_TARGET="${XTARGET}-as" LD_FOR_TARGET="${XTARGET}-ld" ${MAKEFLAGS} &>> ${LOG}
     make -j1 install &>> ${LOG}
     ln -sf ${XTARGET}-gcc ${ROOT_DIR}/bin/${TARGET}-cc &>> ${LOG}
-    lprint "Built gcc." "done"
+    lprint "Compiled gcc." "done"
 }
 
 # kslibtool: Builds slibtool
 function kslibtool() {
-    # Download and Check slibtool
-    lget "${SLIBTOOL_LINK}" "${SLIBTOOL_CHKSUM}"
+    # Download and Check slibtool (It's a little special butterfly)
+    local slibtool_archive=slibtool-${SLIBTOOL_LINK##*/}
+    if [[ -f ${BUILD_DIR}/${slibtool_archive} ]]; then
+        lprint "${slibtool_archive} already downloaded." "done"
+    else
+        lprint "Downloading ${slibtool_archive}...." "...."
+        (cd ${BUILD_DIR} && curl -LJO ${SLIBTOOL_LINK})
+        lprint "Downloaded ${slibtool_archive}." "done"
+    fi
+    (cd ${BUILD_DIR} && echo "${SLIBTOOL_CHKSUM}  ${slibtool_archive}" | sha256sum -c -) > /dev/null && lprint "Good Checksum: ${slibtool_archive}" "done" || lprint "Bad Checksum: ${slibtool_archive}: ${SLIBTOOL_CHKSUM}" "fail"
+    lprint "Extracting ${slibtool_archive}...." "...."
+    pv ${BUILD_DIR}/${slibtool_archive} | bsdtar xf - -C ${BUILD_DIR}/
+    lprint "Extracted ${slibtool_archive}." "done"
     cd ${BUILD_DIR}/slibtool-${SLIBTOOL_VER}
 
     # Configure slibtool
@@ -772,11 +785,11 @@ function kslibtool() {
     lprint "Configured slibtool." "done"
 
     # Compile and Install slibtool
-    lprint "Building slibtool...." "...."
+    lprint "Compiling slibtool...." "...."
     make ${MAKEFLAGS} &>> ${LOG}
     make install ${MAKEFLAGS} &>> ${LOG}
     ln -sf slibtool ${ROOT_DIR}/bin/libtool &>> ${LOG}
-    lprint "Built slibtool." "done"
+    lprint "Compiled slibtool." "done"
 
     # Post-Installation Configuration
     lprint "Modifying slibtool...." "...."
@@ -809,36 +822,39 @@ function kautoconf() {
     patch -p1 -i ${EXTRAS_DIR}/autoconf/autoconf-2.69-libtool-compatibility.patch &>> ${LOG}
     patch -p1 -i ${EXTRAS_DIR}/autoconf/autoconf-2.69-perl-5.22-autoscan.patch &>> ${LOG}
     patch -p1 -i ${EXTRAS_DIR}/autoconf/autoconf-2.69-perl-5.28.patch &>> ${LOG}
-    ./configure \ 
+    cp ${EXTRAS_DIR}/slibtool/config.guess build-aux/config.guess
+    cp ${EXTRAS_DIR}/slibtool/config.sub build-aux/config.sub
+    echo ${ROOT_DIR}
+    ./configure \
         --prefix="${ROOT_DIR}" \
         --disable-nls &>> ${LOG}
     lprint "Configured autoconf." "done"
 
     # Compile and Install autoconf
-    lprint "Building autoconf...." "...."
+    lprint "Compiling autoconf...." "...."
     make ${MAKEFLAGS} &>> ${LOG}
     make install ${MAKEFLAGS} &>> ${LOG}
-    lprint "Built autoconf." "done"
+    lprint "Compiled autoconf." "done"
 }
 
 # kautomake(): Builds automake
-function kautoconf() {
+function kautomake() {
     # Downloads and Check automake
     lget "${AUTOMAKE_LINK}" "${AUTOMAKE_CHKSUM}"
     cd ${BUILD_DIR}/automake-${AUTOMAKE_VER}
 
     # Configure automake
     lprint "Configuring automake...." "...."
-    ./configure \ 
+    ./configure \
         --prefix="${ROOT_DIR}" \
         --disable-nls &>> ${LOG}
     lprint "Configured automake." "done"
 
     # Compile and Install automake
-    lprint "Building automake...." "...."
+    lprint "Compiling automake...." "...."
     make ${MAKEFLAGS} &>> ${LOG}
     make install ${MAKEFLAGS} &>> ${LOG}
-    lprint "Built automake." "done"
+    lprint "Compiled automake." "done"
 }
 
 # kcracklib): Builds cracklib
@@ -849,17 +865,17 @@ function kcracklib() {
 
     # Configure cracklib
     lprint "Configuring cracklib...." "...."
-    ./configure \ 
+    ./configure \
         --prefix="${ROOT_DIR}" \
         --sbindir="${ROOT_DIR}"/bin \
         --without-python &>> ${LOG}
     lprint "Configured cracklib." "done"
 
     # Compile and Install cracklib
-    lprint "Building cracklib...." "...."
+    lprint "Compiling cracklib...." "...."
     make ${MAKEFLAGS} &>> ${LOG}
     make install ${MAKEFLAGS} &>> ${LOG}
-    lprint "Built cracklib." "done"
+    lprint "Compiled cracklib." "done"
 }
 
 # kpkgconf(): Builds pkgconf
@@ -880,12 +896,13 @@ function kpkgconf() {
     lprint "Configured pkgconf." "done"
 
     # Compile and Install pkgconf
-    lprint "Building pkgconf...." "...."
+    lprint "Compiling pkgconf...." "...."
     make ${MAKEFLAGS} &>> ${LOG}
     make install ${MAKEFLAGS} &>> ${LOG}
     ln -sf pkgconf ${ROOT_DIR}/bin/pkg-config &>> ${LOG}
     ln -sf pkgconf ${ROOT_DIR}/bin/${XTARGET}-pkg-config &>> ${LOG}
     ln -sf pkgconf ${ROOT_DIR}/bin/${XTARGET}-pkgconf &>> ${LOG}
+    lprint "Compiled pkgconf." "done"
 }
 
 #---------------------------#
@@ -906,6 +923,7 @@ function main() {
             lprint "Cleaning Toolchain...." "...."
             set +e
             rm -rf ${ROOT_DIR}/{bin,include,lib,lib64,root,share,sysroot,*-linux-*} &> /dev/null
+            rm ${ROOT_DIR}/sysroot.tar.xz &> /dev/null
             if [[ ${FLAG} == "--keep-archives" ]]; then
                 if [[ -d ${BUILD_DIR} ]]; then
                     cd ${BUILD_DIR} &> /dev/null
@@ -986,11 +1004,22 @@ function main() {
     kgccextras
     kgccstatic
     kmusl
+    kgcc
+    kslibtool
+    kautoconf
+    kautomake
+    kcracklib
+    kpkgconf
+
+    # --- Archive Untouched Sysroot --- #
+    lprint "Archiving sysroot...." "...."
+    tar -cJf - ./sysroot/ | pv > sysroot.tar.xz
+    lprint "Archived sysroot." "done"
 
     # --- Record Finish Time --- #
-    echo "--------------------------------------------------------" >> ${LOG}
-    echo "Finished successfully at $(date)" >> ${LOG}
-    echo "--------------------------------------------------------" >> ${LOG}
+    lprint "--------------------------------------------------------"
+    lprint "Finished successfully at $(date)"
+    lprint "--------------------------------------------------------"
 }
 
 # --- Arguments --- #
