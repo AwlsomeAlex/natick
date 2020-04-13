@@ -26,7 +26,7 @@ PKGS=("linux" "nova" "busybox" "musl" "syslinux")
 
 # --- StelaLinux Target Platform --- #
 export BARCH=x86_64                 # Tier 1 Support
-#export BARCH=i686                  # Tier 2 Support
+#export BARCH=i686                  # Tier 1 Support
 
 # --- Directory Information --- #
 export STELA="$(pwd)"               # Project Root
@@ -41,9 +41,8 @@ export RDIR="${STELA}/packages"     # Source Package Repository
 # Unless you know what you are doing....
 
 # --- Directory Variables --- #
-export SRC_DIR="${STELA}/source"    # StelaLinux Source Archive Directory
-export WRK_DIR="${STELA}/work"      # StelaLinux Work Directory
-export FIN_DIR="${STELA}/final"     # StelaLinux RootFS Directory
+export BUILD_DIR="${STELA}/build"   # briko Source and Work Directory
+export LOG="${STELA}/log.txt"       # briko Log File
 
 # --- Color Codes --- #
 NC='\033[0m'        # No Color
@@ -60,6 +59,7 @@ NO_BLINK='\033[25m' # No Blink
 
 # --- Toolchain Directory Variables --- #
 export TROOT="${STELA}/toolchain"   # Toolchain Root
+export SYS_DIR="${TROOT}/sysroot"   # Toolchain sysroot
 
 # --- Compiler Information --- #
 export HOSTCC="gcc"                 # Set Host C Compiler (Linux uses gcc)
@@ -82,7 +82,7 @@ export MAKEFLAGS="-j${NUM_JOBS}"
 export BUILDFLAGS="--build=${XHOST} --host=${XTARGET}"
 export TOOLFLAGS="--build=${XHOST} --host=${XTARGET} --target=${XTARGET}"
 export PERLFLAGS="--target=${XTARGET}"
-export PKG_CONFIG_PATH="${FIN_DIR}/usr/lib/pkgconfig:${FIN_DIR}/usr/share/pkgconfig"
+export PKG_CONFIG_PATH="${SYS_DIR}/usr/lib/pkgconfig:${SYS_DIR}/usr/share/pkgconfig"
 export PKG_CONFIG_SYSROOT="${FIN_DIR}"
 
 # --- Executable Names --- #
@@ -108,18 +108,27 @@ function lprint() {
     case ${flag} in
         "....")
             echo -e "${BLUE}[....] ${NC}${message}"
+            echo "[....] ${message}" >> ${LOG}
             ;;
         "done")
             echo -e "${GREEN}[DONE] ${NC}${message}"
+            echo "[DONE] ${message}" >> ${LOG}
             ;;
         "warn")
             echo -e "${ORANGE}[WARN] ${NC}${message}"
+            echo "[WARN] ${message}" >> ${LOG}
             ;;
         "fail")
             echo -e "${RED}[FAIL] ${NC}${message}"
+            echo "[FAIL] ${message}" >> ${LOG}
+            exit
             ;;
+        "")
+            echo -e "${message}"
+            echo "${message}" >> ${LOG}
         *)
             echo -e "${RED}[FAIL] ${ORANGE}lprint: ${NC}Invalid flag: ${flag}"
+            echo "[FAIL] lprint: Invalid flag: ${flag}" >> ${LOG}
             exit
             ;;
     esac
@@ -127,13 +136,13 @@ function lprint() {
 
 # ltitle(): Displays Script Title
 function ltitle() {
-    lprint "+=============================+"
-    lprint "|      briko Build Script     |"
-    lprint "+-----------------------------+"
-    lprint "| Created by Alexander Barris |"
-    lprint "|         ISC License         |"
-    lprint "+=============================+"
-    lprint ""
+    echo "+===============================+"
+    echo "| briko.sh - Briko Build System |"
+    echo "+-------------------------------+"
+    echo "|  Created by Alexander Barris  |"
+    echo "|          ISC License          |"
+    echo "+===============================+"
+    echo ""
 }
 
 # lget($1: url | $2: sum): Downloads and Extracts a File
@@ -142,20 +151,17 @@ function lget() {
     local sum=$2
     local archive=${url##*/}
 
-    if [[ -f ${SRC_DIR}/${archive} ]]; then
-        lprint "${archive} already exists. Skipping...." "done"
+    echo "--------------------------------------------------------" >> ${LOG}
+    if [[ -f ${BUILD_DIR}/${archive} ]]; then
+        lprint "${archive} already downloaded." "done"
     else
         lprint "Downloading ${archive}...." "...."
-        (cd ${SRC_DIR} && curl -O ${url})
-        lprint "${archive} Downloaded." "done"
+        (cd ${BUILD_DIR} && curl -LJO ${url})
+        lprint "Downloaded ${archive}." "done"
     fi
-    (cd ${SRC_DIR} && echo "${sum}  ${archive}" | sha256sum -c -) || lprint "Bad Checksum: ${archive}: ${sum}" "fail" && exit 1
+    (cd ${BUILD_DIR} && echo "${sum}  ${archive}" | sha256sum -c -) > /dev/null && lprint "Good Checksum: ${archive}" "done" || lprint "Bad Checksum: ${archive}: ${sum}" "fail"
     lprint "Extracting ${archive}...." "...."
-    if [[ ${archive} == *".bz2" ]] || [[ ${archive} == *".xz" ]] || [[ ${archive} == *".gz" ]]; then
-        pv ${SRC_DIR}/${archive} | tar -xf - -C ${work_dir}/
-    elif [[ ${archive} == *".zip" ]]; then
-        unzip -o ${SRC_DIR}/${archive} -d ${work_dir}/
-    fi
+    pv ${BUILD_DIR}/${archive} | bsdtar xf - -C ${work_dir}/
     lprint "Extracted ${archive}." "done"
 }
 
@@ -163,7 +169,7 @@ function lget() {
 function linstall() {
     local pkg=$1
     lprint "Installing ${pkg} to RootFS...." "...."
-    cp -r --remove-destination ${pkg} $FIN_DIR/
+    cp -r --remove-destination ${pkg} ${SYS_DIR}/
     lprint "Installed ${pkg} to RootFS." "done"
 }
 
@@ -173,34 +179,77 @@ function linstall() {
 
 # tclean(): Cleans briko Build Environment
 function tclean() {
+    set +e
+    # --- Local Variables --- #
+    local flag=$1
     ltitle
-    lprint "Cleaning briko Build Environment...." "...."
-    rm -r ${SRC_DIR} ${WRK_DIR} ${FIN_DIR}
-    rm -r ${TROOT}
-    rm ${STELA}/*.iso ${STELA}/*.txz
-    lprint "Cleaned briko Build Environment." "done"
+    
+    # --- Checks --- #
+    case ${flag} in
+        "work")
+            lprint "Cleaning briko's built packages...." "...."
+            cd ${BUILD_DIR} &> /dev/null
+            find -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} \; &> /dev/null
+            rm -rf ${SYS_DIR}
+            lprint "Cleaned briko's built packages." "done"
+            lprint "Extracting archived sysroot...." "...."
+            pv ${TROOT}/sysroot.tar.xz | bsdtar xf - -C ${TROOT}/
+            lprint "Extracted archived sysroot." "done"
+            ;;
+        "full")
+            lprint "Cleaning briko...." "...."
+            rm -rf ${BUILD_DIR} &> /dev/null
+            rm -rf ${SYS_DIR} &> /dev/null
+            lprint "Cleaned briko." "done"
+            lprint "Extracting archived sysroot...." "...."
+            pv ${TROOT}/sysroot.tar.xz | bsdtar xf - -C ${TROOT}/
+            lprint "Extracted archived sysroot." "done"
+            ;;
+        "all")
+            lprint "Cleaning briko Build System...." "...."
+            rm -rf ${BUILD_DIR} &> /dev/null
+            ${TROOT}/gentoolchain.sh clean
+            lprint "Cleaned briko Build System." "done"
+            ;;
+        *)
+            lprint "tclean: Invalid flag: ${flag}" "fail"
+            ;;
+    esac
 }
 
-# ttool(): Builds StelaLinux Toolchain
+# ttool($1 flag): Builds StelaLinux Toolchain
 function ttool() {
+    # --- Local Variables --- #
+    local flag=$1
     ltitle
-    if [[ -d ${TROOT} ]]; then
+    
+    # --- Check for Existing Toolchain --- #
+    if [[ -d ${TROOT}/bin ]]; then
         lprint "Toolchain already exists." "warn"
         read -p "Overwrite? [Y/n]: " opt
         if [[ ${opt} != 'Y' ]]; then
             lprint "Adiaux."
             exit
+        else
+            if [[ ${flag} == "--keep-archives" ]]; then
+                ${TROOT}/gentoolchain.sh clean --keep-archives
+            else
+                ${TROOT}/gentoolchain.sh clean
+            fi
         fi
     fi
+
+    # --- Build Toolchain --- #
+    ${TROOT}/gentoolchain.sh ${BARCH}-musl
 }
 
-# tbuild($1: pkg): Builds a package with/without Toolchain
+# tbuild($1: pkg): Builds a package with toolchain
 function tbuild() {
 
     # --- Local Variables --- #
     local pkg=$1
     local repo_dir="${RDIR}/${pkg}"
-    local work_dir="${WRK_DIR}/${pkg}"
+    local work_dir="${BUILD_DIR}/${pkg}"
     local fs="${work_dir}/${pkg}.fs"
 
     # --- Check Package Repo --- #
@@ -211,33 +260,6 @@ function tbuild() {
 
     # --- Source Build Script --- #
     source ${repo_dir}/StelaKonstrui
-
-    # --- Set Build Flags --- #
-    if [[ ${pkg_type} == "toolchain" ]]; then
-        export PATH=${HOSTPATH}
-        unset CROSS_COMPILE
-        unset CC
-        unset CXX
-        unset AR
-        unset AS
-        unset RANLIB
-        unset LD
-        unset STRIP
-        unset PKG_CONFIG_PATH
-        unset PKG_CONFIG_PATH_SYSROOT
-    else
-        export PATH="${TROOT}/bin:${PATH}"
-        export CROSS_COMPILE="${XTARGET}-"
-        export CC="${CROSS_COMPILE}gcc"
-        export CXX="${CROSS_COMPILE}g++"
-        export AR="${CROSS_COMPILE}ar"
-        export AS="${CROSS_COMPILE}as"
-        export RANLIB="${CROSS_COMPILE}ranlib"
-        export LD="${CROSS_COMPILE}ld"
-        export STRIP="${CROSS_COMPILE}strip"
-        export PKG_CONFIG_PATH="$FIN_DIR/usr/lib/pkgconfig:$FIN_DIR/usr/share/pkgconfig"
-        export PKG_CONFIG_SYSROOT="$FIN_DIR"
-    fi
 
     # --- Check Package Dependency --- #
     for dep in "${pkg_deps[@]}"; do
@@ -270,15 +292,16 @@ function tbuild() {
             lprint "Copied ${file} to work directory." "done"
         fi
     done
+    
+    # --- Specify Work Directory --- #
+    export dir=${work_dir}/${pkg}-*
 
     # --- Build Package --- #
     cd ${dir}
-    lprint "Building ${pkg}...." "...."
-    konstruu
-    lprint "Built ${pkg}" "done"
+    lprint "Compiling ${pkg}...." "...."
+    konstruu &>> ${LOG}
+    lprint "Compiled ${pkg}" "done"
 
     # --- Install Package --- #
-    if [[ ${pkg_type} != "toolchain" ]]; then
-        linstall ${work_dir}/${pkg}.fs
-    fi
+    linstall ${work_dir}/${pkg}.fs
 }
