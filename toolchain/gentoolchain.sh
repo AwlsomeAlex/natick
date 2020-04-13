@@ -986,6 +986,7 @@ function main() {
 
     # --- Archive Untouched Sysroot --- #
     lprint "Archiving sysroot...." "...."
+    cd ${ROOT_DIR}
     tar -cJf - ./sysroot/ | pv > sysroot.tar.xz
     lprint "Archived sysroot." "done"
 
