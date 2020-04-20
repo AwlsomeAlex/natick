@@ -1002,4 +1002,4 @@ TARGET=$1
 FLAG=$2
 
 # --- Execute --- #
-time main
+main

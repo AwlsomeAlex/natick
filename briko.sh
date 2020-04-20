@@ -209,7 +209,7 @@ function tclean() {
         "all")
             lprint "Cleaning briko Build System...." "...."
             rm -rf ${BUILD_DIR} &> /dev/null
-            ${TROOT}/gentoolchain.sh clean
+            (cd ${TROOT} && ./gentoolchain.sh clean)
             lprint "Cleaned briko Build System." "done"
             ;;
         *)
@@ -220,10 +220,20 @@ function tclean() {
 
 # ttool($1 flag): Builds StelaLinux Toolchain
 function ttool() {
-    # --- Local Variables --- #
-    local flag=$1
     ltitle
-    
+
+    # --- Unset Cross Compiler Flags --- #
+    unset CROSS_COMPILE
+    unset CC
+    unset CXX
+    unset AR
+    unset AS
+    unset RANLIB
+    unset LD
+    unset STRIP
+    unset PKG_CONFIG_PATH
+    unset PKG_CONFIG_SYSROOT
+
     # --- Check for Existing Toolchain --- #
     if [[ -d ${TROOT}/bin ]]; then
         lprint "Toolchain already exists." "warn"
@@ -232,12 +242,12 @@ function ttool() {
             lprint "Adiaux."
             exit
         else
-            ${TROOT}/gentoolchain.sh clean --keep-archives
+            (cd ${TROOT} && ./gentoolchain.sh clean --keep-archives)
         fi
     fi
 
     # --- Build Toolchain --- #
-    ${TROOT}/gentoolchain.sh ${BARCH}-musl
+    (cd ${TROOT} && ./gentoolchain.sh ${BARCH}-musl)
 }
 
 # tbuild($1: pkg): Builds a package with toolchain
