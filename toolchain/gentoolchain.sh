@@ -1,5 +1,5 @@
 #!/bin/bash
-# vim: tabstop=4 shiftwidth=4 expandtab
+# vim: tabstop=4: shiftwidth=4: expandtab:
 set -e
 #############################################
 #    gentoolchain.sh - Briko Build System   #

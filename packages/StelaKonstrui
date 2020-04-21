@@ -1,3 +1,4 @@
+# vim: tabstop=4: shiftwidth=4: expandtab: set filetype=bash:
 ################################
 # briko Build Script - Example # 
 ################################
@@ -15,7 +16,6 @@
 
 pkg_name=example            # Package's name goes here
 pkg_version=0.0.1           # Package's version goes here
-pkg_type=                   # Package's special identification goes here (toolchain)
 pkg_src=("www.google.com")  # Package's source tarball links go here
 pkg_checksum=("xxxxx")      # Downloaded file's checksum goes here
 

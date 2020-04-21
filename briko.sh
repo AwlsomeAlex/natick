@@ -1,5 +1,5 @@
 #!/bin/bash
-# vim: tabstop=4 shiftwidth=4 expandtab
+# vim: tabstop=4: shiftwidth=4: expandtab:
 set -e
 #############################################
 #       briko.sh - Briko Build System       #
@@ -25,8 +25,8 @@ export BUILD_NUMBER="vGIT"
 PKGS=("linux" "nova" "busybox" "musl" "syslinux")
 
 # --- StelaLinux Target Platform --- #
-export BARCH=x86_64                 # Tier 1 Support
-#export BARCH=i686                  # Tier 1 Support
+#export BARCH=x86_64                 # Tier 1 Support
+export BARCH=i686                  # Tier 1 Support
 
 # --- Directory Information --- #
 export STELA="$(pwd)"               # Project Root
@@ -170,7 +170,7 @@ function lget() {
 function linstall() {
     local pkg=$1
     lprint "Installing ${pkg} to RootFS...." "...."
-    cp -r --remove-destination ${pkg} ${SYS_DIR}/
+    cp -r --remove-destination ${pkg}/. ${SYS_DIR}/
     lprint "Installed ${pkg} to RootFS." "done"
 }
 
@@ -183,7 +183,6 @@ function tclean() {
     set +e
     # --- Local Variables --- #
     local flag=$1
-    ltitle
     
     # --- Checks --- #
     case ${flag} in
@@ -211,6 +210,7 @@ function tclean() {
             rm -rf ${BUILD_DIR} &> /dev/null
             (cd ${TROOT} && ./gentoolchain.sh clean)
             lprint "Cleaned briko Build System." "done"
+            rm -r ${LOG}
             ;;
         *)
             lprint "tclean: Invalid flag: ${flag}" "fail"
@@ -220,8 +220,6 @@ function tclean() {
 
 # ttool($1 flag): Builds StelaLinux Toolchain
 function ttool() {
-    ltitle
-
     # --- Unset Cross Compiler Flags --- #
     unset CROSS_COMPILE
     unset CC
@@ -290,6 +288,9 @@ function tbuild() {
             lprint "Removing ${pkg}'s work directory...." "...."
             rm -r ${work_dir}
             lprint "Removed ${pkg}'s work directory." "done"
+        else
+            lprint "Adiaux."
+            exit
         fi
     fi
     mkdir -p ${fs}
@@ -311,7 +312,7 @@ function tbuild() {
     # --- Build Package --- #
     cd ${dir}
     lprint "Compiling ${pkg}...." "...."
-    konstruu &>> ${LOG}
+    konstruu
     lprint "Compiled ${pkg}" "done"
 
     # --- Install Package --- #
@@ -375,5 +376,6 @@ ARGUMENT=$2
 FLAG=$3
 
 # ----- Execution ----- #
+ltitle
 main
 
