@@ -1,0 +1,59 @@
+# vim: tabstop=4: shiftwidth=4: expandtab: set filetype=bash:
+################################
+# briko Build Script - busybox # 
+################################
+# Copyright (C) 2020 Alexander Barris <awlsomealex at protonmail dot com>
+# All Rights Reserved
+# Licensed under ISC License 
+################################
+
+# Name:         busybox
+# Description:  The all-powerful Linux Kernel
+# URL:          https://kernel.org
+# License:      GNU GPLv2
+# Maintainer:   AwlsomeAlex
+# Section:      kerno
+
+pkg_name=busybox
+pkg_version=1.31.1
+pkg_src=("https://www.busybox.net/downloads/busybox-${pkg_version}.tar.bz2")
+pkg_checksum=("d0f940a72f648943c1f2211e0e3117387c31d765137d92bd8284a3fb9752a998")
+pkg_deps=()
+
+konstruu() {
+    # BusyBox Architecture
+    case ${BARCH} in
+        x86_64)
+            export XKARCH="x86_64"
+            ;;
+        i686|i586)
+            export XKARCH="i386"
+            ;;
+    esac
+
+    # Prepare BusyBox Configuration
+    make ARCH=${XKARCH} CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS" defconfig ${MAKEFLAGS} &>> ${LOG}
+
+    # Turn on Static Linking
+    sed -i "s|.*CONFIG_STATIC.*|CONFIG_STATIC=y|" .config &>> ${LOG}
+
+    # Prepare Directory
+    mkdir -p ${fs}/usr/bin
+
+    # Compile BusyBox
+    make ARCH=${XKARCH} CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS" ${MAKEFLAGS} &>> ${LOG}
+    make ARCH=${XKARCH} CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS" busybox.links ${MAKEFLAGS} &>> ${LOG}
+
+    # Install to (fs)/usr/bin and Fix Permissions
+    install -D busybox ${fs}/usr/bin/busybox &>> ${LOG}
+    install -D ${EXTRAS}/busybox/stela.sh ${fs}/usr/bin/stela &>> ${LOG}
+    chmod 0755 ${fs}/usr/bin/busybox
+    chmod 0755 ${fs}/usr/bin/stela
+
+    # Create Symlinks (Thanks protonesso)
+    for applet in `cat busybox.links|sed 's|^.*/||'`; do ln -sf busybox $fs/usr/bin/$applet || true; done
+    
+    # Populate stela build information
+    sed -i "s/BUILD_NAME=NULL/BUILD_NAME='$BUILD_NAME'/" $fs/usr/bin/stela &>> ${LOG}
+    sed -i "s/BUILD_NUMBER=NULL/BUILD_NUMBER='$BUILD_NUMBER'/" $fs/usr/bin/stela &>> ${LOG}
+}

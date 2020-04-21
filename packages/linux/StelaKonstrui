@@ -18,6 +18,7 @@ pkg_name=linux
 pkg_version=5.6.5
 pkg_src=("https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-${pkg_version}.tar.xz")
 pkg_checksum=("f79bd3dbcbe1e7afba256d59b4ca21da12d2c5b4189804dffb2a49fd2b9b52e6")
+pkg_deps=()
 
 konstruu() {
     # Kernel Architecture

@@ -31,6 +31,7 @@ export BARCH=i686                  # Tier 1 Support
 # --- Directory Information --- #
 export STELA="$(pwd)"               # Project Root
 export RDIR="${STELA}/packages"     # Source Package Repository
+export EDIR="${STELA}/extras" # Extra files for some packages 
 
 #############################################################
 #-----------------------------------------------------------#
