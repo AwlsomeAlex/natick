@@ -429,7 +429,8 @@ function kheaders() {
 
     # Generate and Install linux headers
     lprint "Generating linux headers...." "...."
-    make ARCH=${XKARCH} INSTALL_HDR_PATH="${SYS_DIR}" headers_install ${MAKEFLAGS} &>> ${LOG}
+    mkdir -p ${SYS_DIR}/usr
+    make ARCH=${XKARCH} INSTALL_HDR_PATH="${SYS_DIR}/usr" headers_install ${MAKEFLAGS} &>> ${LOG}
     cp -r ${SYS_DIR}/* ${ROOT_DIR}
     lprint "Generated linux headers." "done"
 }

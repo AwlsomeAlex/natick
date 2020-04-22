@@ -25,8 +25,8 @@ export BUILD_NUMBER="vGIT"
 PKGS=("linux" "nova" "busybox" "musl" "syslinux")
 
 # --- StelaLinux Target Platform --- #
-#export BARCH=x86_64                 # Tier 1 Support
-export BARCH=i686                  # Tier 1 Support
+export BARCH=x86_64                 # Tier 1 Support
+#export BARCH=i686                  # Tier 1 Support
 
 # --- Directory Information --- #
 export STELA="$(pwd)"               # Project Root
@@ -84,7 +84,7 @@ export BUILDFLAGS="--build=${XHOST} --host=${XTARGET}"
 export TOOLFLAGS="--build=${XHOST} --host=${XTARGET} --target=${XTARGET}"
 export PERLFLAGS="--target=${XTARGET}"
 export PKG_CONFIG_PATH="${SYS_DIR}/usr/lib/pkgconfig:${SYS_DIR}/usr/share/pkgconfig"
-export PKG_CONFIG_SYSROOT="${FIN_DIR}"
+export PKG_CONFIG_SYSROOT="${SYS_DIR}"
 
 # --- Executable Names --- #
 export PATH="${TROOT}/bin:${PATH}"    # Toolchain PATH
