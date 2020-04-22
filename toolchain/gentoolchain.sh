@@ -406,9 +406,14 @@ function kgperf() {
 
 # kheaders(): Builds Linux Kernel Headers
 function kheaders() {
+    # Set Linux Headers build directory
+    local linux_dir=${BUILD_DIR}/linux.fs
+
     # Download and Check linux
     lget "${LINUX_LINK}" "${LINUX_CHKSUM}"
+    mkdir -p ${linux_dir}
     cd ${BUILD_DIR}/linux-${LINUX_VER}
+    
 
     # Configure Linux Kernel
     lprint "Configuring linux...." "...."
@@ -429,9 +434,10 @@ function kheaders() {
 
     # Generate and Install linux headers
     lprint "Generating linux headers...." "...."
-    mkdir -p ${SYS_DIR}/usr
-    make ARCH=${XKARCH} INSTALL_HDR_PATH="${SYS_DIR}/usr" headers_install ${MAKEFLAGS} &>> ${LOG}
-    cp -r ${SYS_DIR}/* ${ROOT_DIR}
+    mkdir -p ${linux_dir}/usr
+    make ARCH=${XKARCH} INSTALL_HDR_PATH="${linux_dir}/usr" headers_install ${MAKEFLAGS} &>> ${LOG}
+    cp -r ${linux_dir}/* ${SYS_DIR} 
+    #cp -r ${SYS_DIR}/* ${ROOT_DIR}
     lprint "Generated linux headers." "done"
 }
 
@@ -600,8 +606,12 @@ function kgccstatic() {
 
 # kmusl(): Builds musl
 function kmusl() {
+    # Set musl build directory
+    musl_dir=${BUILD_DIR}/musl.fs
+
     # Download and Check musl
     lget "${MUSL_LINK}" "${MUSL_CHKSUM}"
+    mkdir -p ${musl_dir}
     cd ${BUILD_DIR}/musl-${MUSL_VER}
 
     # Set Cross Compiler Variables (needed for musl)
@@ -631,13 +641,14 @@ function kmusl() {
 
     # Compile and Install musl
     lprint "Compiling musl...." "...."
-    make DESTDIR=${SYS_DIR} ${MAKEFLAGS} &>> ${LOG}
-    make DESTDIR=${SYS_DIR} install ${MAKEFLAGS} &>> ${LOG}
-    cp libssp_nonshared.a ${SYS_DIR}/usr/lib                    # Copy libssp
-    mkdir -p ${SYS_DIR}/usr/bin
-    ln -sf ../lib/libc.so ${SYS_DIR}/usr/bin/ldd                # Symlink ldd
-    cp ${EXTRAS_DIR}/musl/ldconfig ${SYS_DIR}/usr/bin/ldconfig  # Create dummy ldconfig 
-    chmod +x ${SYS_DIR}/usr/bin/ldconfig
+    make DESTDIR=${musl_dir} ${MAKEFLAGS} &>> ${LOG}
+    make DESTDIR=${musl_dir} install ${MAKEFLAGS} &>> ${LOG}
+    cp libssp_nonshared.a ${musl_dir}/usr/lib                    # Copy libssp
+    mkdir -p ${musl_dir}/usr/bin
+    ln -sf ../lib/libc.so ${musl_dir}/usr/bin/ldd                # Symlink ldd
+    cp ${EXTRAS_DIR}/musl/ldconfig ${musl_dir}/usr/bin/ldconfig  # Create dummy ldconfig 
+    chmod +x ${musl_dir}/usr/bin/ldconfig
+    cp -r ${musl_dir}/* ${SYS_DIR}
     lprint "Compiled musl." "done"
 
     # Unset Cross Compiler Variables
@@ -966,6 +977,7 @@ function main() {
     echo "Host Linux Kernel: $(uname -r)" >> ${LOG}
 
     # --- Build Packages --- #
+    lprint "Building ${BARCH}-musl Toolchain...." "...."
     kfile
     kgettext
     km4
@@ -984,6 +996,7 @@ function main() {
     kautoconf
     kautomake
     kpkgconf
+    lprint "Built ${BARCH}-musl Toolchain." "done"
 
     # --- Archive Untouched Sysroot --- #
     lprint "Archiving sysroot...." "...."

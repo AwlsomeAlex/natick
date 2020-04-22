@@ -1,0 +1,34 @@
+# vim: tabstop=4: shiftwidth=4: expandtab: set filetype=bash:
+#################################
+# briko Build Script - syslinux # 
+#################################
+# Copyright (C) 2020 Alexander Barris <awlsomealex at protonmail dot com>
+# All Rights Reserved
+# Licensed under ISC License 
+#############################
+
+# Name:         syslinux
+# Description:  Syslinux Bootloader
+# URL:          https://wiki.syslinux.org/wiki/index.php
+# License:      GNU GPLv2
+# Maintainer:   AwlsomeAlex
+# Section:      kerno
+
+pkg_name=syslinux
+pkg_version=6.03
+pkg_src=("https://mirrors.edge.kernel.org/pub/linux/utils/boot/syslinux/6.xx/syslinux-${pkg_version}.tar.xz")
+pkg_checksum=("26d3986d2bea109d5dc0e4f8c4822a459276cf021125e8c9f23c3cca5d8c850e")
+pkg_deps=()
+
+konstruu() {
+    # Create Boot Directories
+    mkdir -p ${fs}/boot/isolinux
+    mkdir -p ${fs}/boot/syslinux
+
+    # Move files into (fs)
+    cp ${EDIR}/syslinux/isohdpfx.bin ${fs}/boot/isolinux
+    cp ${EDIR}/syslinux/isolinux.cfg ${fs}/boot/isolinux
+    cp ${EDIR}/syslinux/syslinux.cfg ${fs}/boot/syslinux
+    cp bios/core/isolinux.bin ${fs}/boot/isolinux
+    cp bios/com32/elflink/ldlinux/ldlinux.c32 ${fs}/boot/isolinux
+}

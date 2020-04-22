@@ -46,7 +46,7 @@ konstruu() {
 
     # Install to (fs)/usr/bin and Fix Permissions
     install -D busybox ${fs}/usr/bin/busybox &>> ${LOG}
-    install -D ${EXTRAS}/busybox/stela.sh ${fs}/usr/bin/stela &>> ${LOG}
+    install -D ${EDIR}/busybox/stela.sh ${fs}/usr/bin/stela &>> ${LOG}
     chmod 0755 ${fs}/usr/bin/busybox
     chmod 0755 ${fs}/usr/bin/stela
 
