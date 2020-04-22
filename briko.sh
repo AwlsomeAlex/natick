@@ -43,6 +43,8 @@ export EDIR="${STELA}/extras"       # Extra files for some packages
 
 # --- Directory Variables --- #
 export BDIR="${STELA}/build"        # briko Source and Work Directory
+export IDIR="${BDIR}/initramfs"     # InitramFS Directory
+export IMDIR="${BDIR}/image"        # Image Directory
 export LOG="${STELA}/log.txt"       # briko Log File
 
 # --- Color Codes --- #
@@ -222,6 +224,7 @@ function tclean() {
             (cd ${TROOT} && ./gentoolchain.sh clean)
             lprint "Cleaned briko Build System." "done"
             rm -r ${LOG}
+            rm ${STELA}/StelaLinux-${BUILD_NUMBER}-${BARCH}.iso
             ;;
         *)
             lprint "tclean: Invalid flag: ${flag}" "fail"
@@ -292,10 +295,10 @@ function tbuild() {
     done
 
     # --- Prepare Work Directory --- #
-    if [ -d ${work_dir} ]; then
+    if [[ -d ${work_dir} ]]; then
         lprint "${pkg}'s work directory already exists." "warn"
         read -p "Rebuild Package? [Y/n]: " opt
-        if [ ${opt} == 'Y' ]; then
+        if [[ ${opt} == 'Y' ]]; then
             lprint "Removing ${pkg}'s work directory...." "...."
             rm -r ${work_dir}
             lprint "Removed ${pkg}'s work directory." "done"
@@ -330,6 +333,119 @@ function tbuild() {
     linstall ${work_dir}/${pkg}.fs
 }
 
+# tinitramfs(): Generates the StelaLinux InitramFS
+function tinitramfs() {
+    # --- Check/Create InitramFS Directory --- #
+    if [[ -d ${IDIR} ]]; then
+        lprint "InitramFS already exists." "warn"
+        read -p "Overwrite? [Y/n]: " opt
+        if [[ ${opt} == 'Y' ]]; then
+            lprint "Removing InitramFS...." "...."
+            rm -r ${IDIR}
+            lprint "Removed InitramFS." "done"
+        else
+            lprint "Adiaux."
+            exit
+        fi
+    fi
+    lprint "Creating InitramFS Hierarchy...." "...."
+    mkdir -p ${IDIR}/fs/{boot,dev,etc,mnt/root,proc,root,sys,tmp,usr/{bin,lib,sbin,share,include},run}
+    (cd ${IDIR}/fs && ln -s usr/bin bin && ln -s usr/sbin && ln -s /usr/lib lib) &>> ${LOG}
+    lprint "Created InitramFS Hierarchy." "done"
+
+    # --- Copy and Strip Packages to InitramFS --- #
+    for p in "${PKGS[@]}"; do
+        if [[ ${p} == "musl" ]] || [[ ${p} == "linux-headers" ]]; then
+            lprint "Copying ${p} to InitramFS...." "...."
+            cp -r --remove-destination ${TROOT}/build/${p}.fs/* ${IDIR}/fs
+            lprint "Copied ${p} to InitramFS." "done"
+        else
+            if [[ ! -d ${BDIR}/${p}/${p}.fs ]]; then
+                lprint "Package ${p} not built. Please build with '${EXECUTE} build ${p}'." "fail"
+            fi
+            lprint "Copying ${p} to InitramFS...." "...."
+            cp -r --remove-destination ${BDIR}/${p}/${p}.fs/* ${IDIR}/fs
+            lprint "Copied ${p} to InitramFS." "done"
+        fi
+    done
+    lprint "Stripping InitramFS...." "...."
+    set +e
+    ${XTARGET}-strip -g \
+        ${IDIR}/fs/usr/bin/* \
+        ${IDIR}/fs/usr/sbin/* \
+        ${IDIR}/fs/usr/lib/* \
+        2>/dev/null
+    lprint "Stripped InitramFS." "done"
+    set -e
+
+    # --- Generate InitramFS --- #
+    lprint "Generating InitramFS...." "...."
+    cd ${IDIR}/fs
+    find . | cpio -R root:root -H newc -o | xz -9 --check=none > ../initramfs.cpio.xz
+    lprint "Generated InitramFS." "done"
+}
+
+# timage(): Generate bootable StelaLinux LiveCD
+function timage() {
+    # --- Check/Create Image Directory --- #
+    if [[ -d ${IMDIR} ]]; then
+        lprint "Image Directory already exists." "warn"
+        read -p "Overwrite? [Y/n]: " opt
+        if [[ ${opt} == 'Y' ]]; then
+            lprint "Removing Image Directory...." "...."
+            rm -r ${IMDIR}
+            lprint "Removed Image Directory." "done"
+        else
+            lprint "Adiaux."
+            exit
+        fi
+    fi
+    mkdir -p ${IMDIR}/{stela,boot}
+
+    # --- Check/Copy InitramFS, Boot stuff, and Kernel --- #
+    if [[ ! -f ${IDIR}/initramfs.cpio.xz ]]; then
+        lprint "InitramFS not generated. Please generare with '${EXECUTE} initramfs'." "fail"
+    fi
+    lprint "Copying Files to Image...." "...."
+    cp ${IDIR}/initramfs.cpio.xz ${IMDIR}/stela/initramfs.xz &>> ${LOG}
+    cp ${BDIR}/linux/linux.fs/boot/kernel.xz ${IMDIR}/stela/kernel.xz &>> ${LOG}
+    cp -r ${BDIR}/syslinux/syslinux.fs/boot/* ${IMDIR}/boot/ &>> ${LOG}
+    lprint "Copied Files to Image." "done"
+
+    # --- Generate Disk Image --- #
+    lprint "Generating Disk Image...." "...."
+    cd ${IMDIR}
+    xorriso -as mkisofs \
+        -isohybrid-mbr boot/isolinux/isohdpfx.bin \
+        -c boot/isolinux/boot.cat \
+        -b boot/isolinux/isolinux.bin \
+        -no-emul-boot \
+        -boot-load-size 4 \
+        -boot-info-table \
+        -o ${STELA}/StelaLinux-${BUILD_NUMBER}-${BARCH}.iso \
+        . &>> ${LOG}
+    lprint "Generated Disk Image." "done"
+}
+
+# tqemu(): Launch QEMU Emulator with LiveCD
+function tqemu() {
+    # --- Check for Image --- #
+    if [[ ! -f ${STELA}/StelaLinux-${BUILD_NUMBER}-${BARCH}.iso ]]; then
+        lprint "No StelaLinux LiveCD Found." "done"
+    fi
+    
+    # --- Start QEMU (if installed) --- #
+    lprint "Starting QEMU...." "...."
+    if [[ ${BARCH} == "x86_64" ]] && [[ $(which qemu-system-x86_64) != "" ]]; then
+        qemu-system-x86_64 -enable-kvm -m 1G -cdrom ${STELA}/StelaLinux-${BUILD_NUMBER}-${BARCH}.iso -serial stdio -boot d
+    elif [[ ${BARCH} == "i686" ]] && [[ $(which qemu-system-i386) != "" ]]; then
+        qemu-system-i386 -enable-kvm -m 1G -cdrom ${STELA}/StelaLinux-${BUILD_NUMBER}-${BARCH}.iso -serial stdio -boot d
+    else
+        lprint "QEMU is not installed." "fail"
+    fi
+    lprint "QEMU ran successfully." "done"
+}
+
 # tall(): Automates building of defined packages and toolchain
 function tall() {
     if [[ ! -d ${TDIR}/sysroot ]]; then
@@ -340,6 +456,8 @@ function tall() {
             tbuild ${p}
         fi
     done
+    tinitramfs
+    timage
 }
 
 # tusage(): Shows briko.sh usage
@@ -351,9 +469,12 @@ function tusage() {
     echo "generated by gentoolchain.sh. These package are specific to"
     echo "StelaLinux and the target architecture."
     echo "[OPTION]:"
-    echo "      all:        Compiles Toolchain and defined packages"
+    echo "      all:        Compiles everything and packs into StelaLinux ISO"
     echo "      toolchain:  Builds toolchain required to compile packages"
     echo "      build:      Builds a StelaLinux package"
+    echo "      initramfs:  Generate StelaLinux InitramFS"
+    echo "      image:      Generate Bootable StelaLinux LiveCD"
+    echo "      qemu:       Run StelaLinux LiveCD on QEMU"
     echo "      clean:      Cleans the Briko Build System (MUST BE DONE BEFORE COMMITS)"
     echo "      help:       Shows this dialog"
     echo ""
@@ -388,6 +509,18 @@ function main() {
             ;;
         build )
             time tbuild ${ARGUMENT}
+            ltime
+            ;;
+        initramfs )
+            time tinitramfs
+            ltime
+            ;;
+        image )
+            time timage
+            ltime
+            ;;
+        qemu )
+            tqemu
             ltime
             ;;
         clean )
