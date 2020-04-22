@@ -222,9 +222,9 @@ function tclean() {
             lprint "Cleaning briko Build System...." "...."
             rm -rf ${BDIR} &> /dev/null
             (cd ${TROOT} && ./gentoolchain.sh clean)
+            rm ${STELA}/StelaLinux-${BUILD_NUMBER}-${BARCH}.iso &> /dev/null
             lprint "Cleaned briko Build System." "done"
             rm -r ${LOG}
-            rm ${STELA}/StelaLinux-${BUILD_NUMBER}-${BARCH}.iso
             ;;
         *)
             lprint "tclean: Invalid flag: ${flag}" "fail"

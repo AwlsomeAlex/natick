@@ -16,7 +16,8 @@
 
 pkg_name=syslinux
 pkg_version=6.03
-pkg_src=("https://mirrors.edge.kernel.org/pub/linux/utils/boot/syslinux/6.xx/syslinux-${pkg_version}.tar.xz")
+#pkg_src=("https://mirrors.edge.kernel.org/pub/linux/utils/boot/syslinux/6.xx/syslinux-${pkg_version}.tar.xz")
+pkg_src=("https://mirror.math.princeton.edu/pub/kernel/linux/utils/boot/syslinux/6.xx/syslinux-${pkg_version}.tar.xz") # My Closest Mirror to NJ
 pkg_checksum=("26d3986d2bea109d5dc0e4f8c4822a459276cf021125e8c9f23c3cca5d8c850e")
 pkg_deps=()
 

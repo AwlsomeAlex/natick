@@ -15,9 +15,9 @@
 # Section:      kerno
 
 pkg_name=muroinit
-pkg_version="0.1-alpha1"
+pkg_version="0.1-beta1"
 pkg_src=("https://github.com/AwlsomeAlex/muroinit/archive/v${pkg_version}.tar.gz")
-pkg_checksum=("5c6e15daa6533ef1a1f58acf530d1ae7fabf6c8c7cb49a7c917b7ad5c5c74cf8")
+pkg_checksum=("4754a0987080d234d7c42ecd60e6e39a9f7be165d5d083e4fe3de9857eef6ab5")
 pkg_deps=()
 
 konstruu() {
