@@ -25,8 +25,8 @@ export BUILD_NUMBER="vGIT"
 PKGS=("linux" "muroinit" "busybox" "musl" "syslinux")
 
 # --- StelaLinux Target Platform --- #
-#export BARCH=x86_64                 # Tier 1 Support
-export BARCH=i686                  # Tier 1 Support
+export BARCH=x86_64                 # Tier 1 Support
+#export BARCH=i686                  # Tier 1 Support
 
 # --- Directory Information --- #
 export STELA="$(pwd)"               # Project Root
@@ -42,7 +42,7 @@ export EDIR="${STELA}/extras"       # Extra files for some packages
 # Unless you know what you are doing....
 
 # --- Directory Variables --- #
-export BUILD_DIR="${STELA}/build"   # briko Source and Work Directory
+export BDIR="${STELA}/build"        # briko Source and Work Directory
 export LOG="${STELA}/log.txt"       # briko Log File
 
 # --- Color Codes --- #
@@ -60,7 +60,7 @@ NO_BLINK='\033[25m' # No Blink
 
 # --- Toolchain Directory Variables --- #
 export TROOT="${STELA}/toolchain"   # Toolchain Root
-export SYS_DIR="${TROOT}/sysroot"   # Toolchain sysroot
+export SDIR="${TROOT}/sysroot"   # Toolchain sysroot
 
 # --- Compiler Information --- #
 export HOSTCC="gcc"                 # Set Host C Compiler (Linux uses gcc)
@@ -83,8 +83,8 @@ export MAKEFLAGS="-j${NUM_JOBS}"
 export BUILDFLAGS="--build=${XHOST} --host=${XTARGET}"
 export TOOLFLAGS="--build=${XHOST} --host=${XTARGET} --target=${XTARGET}"
 export PERLFLAGS="--target=${XTARGET}"
-export PKG_CONFIG_PATH="${SYS_DIR}/usr/lib/pkgconfig:${SYS_DIR}/usr/share/pkgconfig"
-export PKG_CONFIG_SYSROOT="${SYS_DIR}"
+export PKG_CONFIG_PATH="${SDIR}/usr/lib/pkgconfig:${SDIR}/usr/share/pkgconfig"
+export PKG_CONFIG_SYSROOT="${SDIR}"
 
 # --- Executable Names --- #
 export PATH="${TROOT}/bin:${PATH}"    # Toolchain PATH
@@ -154,19 +154,19 @@ function lget() {
     local archive=${url##*/}
 
     echo "--------------------------------------------------------" >> ${LOG}
-    if [[ -f ${BUILD_DIR}/${archive} ]]; then
+    if [[ -f ${BDIR}/${archive} ]]; then
         lprint "${archive} already downloaded." "done"
     else
         lprint "Downloading ${archive}...." "...."
-        (cd ${BUILD_DIR} && curl -LJO ${url})
+        (cd ${BDIR} && curl -LJO ${url})
         lprint "Downloaded ${archive}." "done"
     fi
     if [[ ${url} == *github* ]]; then
         archive="${pkg_name}-${pkg_version}.tar.gz"
     fi
-    (cd ${BUILD_DIR} && echo "${sum}  ${archive}" | sha256sum -c -) > /dev/null && lprint "Good Checksum: ${archive}" "done" || lprint "Bad Checksum: ${archive}: ${sum}" "fail"
+    (cd ${BDIR} && echo "${sum}  ${archive}" | sha256sum -c -) > /dev/null && lprint "Good Checksum: ${archive}" "done" || lprint "Bad Checksum: ${archive}: ${sum}" "fail"
     lprint "Extracting ${archive}...." "...."
-    pv ${BUILD_DIR}/${archive} | bsdtar xf - -C ${work_dir}/
+    pv ${BDIR}/${archive} | bsdtar xf - -C ${work_dir}/
     lprint "Extracted ${archive}." "done"
 }
 
@@ -174,8 +174,15 @@ function lget() {
 function linstall() {
     local pkg=$1
     lprint "Installing ${pkg} to RootFS...." "...."
-    cp -r --remove-destination ${pkg}/. ${SYS_DIR}/
+    cp -r --remove-destination ${pkg}/. ${SDIR}/
     lprint "Installed ${pkg} to RootFS." "done"
+}
+
+# ltime(): Displays finished time
+function ltime() {
+    lprint "--------------------------------------------------------"
+    lprint "Finished successfully at $(date)"
+    lprint "--------------------------------------------------------"
 }
 
 #-----------------------------#
@@ -192,9 +199,9 @@ function tclean() {
     case ${flag} in
         "work")
             lprint "Cleaning briko's built packages...." "...."
-            cd ${BUILD_DIR} &> /dev/null
+            cd ${BDIR} &> /dev/null
             find -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} \; &> /dev/null
-            rm -rf ${SYS_DIR}
+            rm -rf ${SDIR}
             lprint "Cleaned briko's built packages." "done"
             lprint "Extracting archived sysroot...." "...."
             pv ${TROOT}/sysroot.tar.xz | bsdtar xf - -C ${TROOT}/
@@ -202,8 +209,8 @@ function tclean() {
             ;;
         "full")
             lprint "Cleaning briko...." "...."
-            rm -rf ${BUILD_DIR} &> /dev/null
-            rm -rf ${SYS_DIR} &> /dev/null
+            rm -rf ${BDIR} &> /dev/null
+            rm -rf ${SDIR} &> /dev/null
             lprint "Cleaned briko." "done"
             lprint "Extracting archived sysroot...." "...."
             pv ${TROOT}/sysroot.tar.xz | bsdtar xf - -C ${TROOT}/
@@ -211,7 +218,7 @@ function tclean() {
             ;;
         "all")
             lprint "Cleaning briko Build System...." "...."
-            rm -rf ${BUILD_DIR} &> /dev/null
+            rm -rf ${BDIR} &> /dev/null
             (cd ${TROOT} && ./gentoolchain.sh clean)
             lprint "Cleaned briko Build System." "done"
             rm -r ${LOG}
@@ -258,7 +265,7 @@ function tbuild() {
     # --- Local Variables --- #
     local pkg=$1
     local repo_dir="${RDIR}/${pkg}"
-    local work_dir="${BUILD_DIR}/${pkg}"
+    local work_dir="${BDIR}/${pkg}"
     local fs="${work_dir}/${pkg}.fs"
 
     # --- Check for toolchain --- #
@@ -329,7 +336,7 @@ function tall() {
         ttool
     fi
     for p in "${PKGS[@]}"; do
-        if [[ ! -d ${BUILD_DIR}/${p}/${p}.fs ]] && [[ ${p} != "musl" ]] && [[ ${p} != "linux-headers" ]]; then
+        if [[ ! -d ${BDIR}/${p}/${p}.fs ]] && [[ ${p} != "musl" ]] && [[ ${p} != "linux-headers" ]]; then
             tbuild ${p}
         fi
     done
@@ -373,15 +380,18 @@ function main() {
     case "${OPTION}" in
         all )
             time tall
+            ltime
             ;;
         toolchain )
             time ttool
+            ltime
             ;;
         build )
             time tbuild ${ARGUMENT}
+            ltime
             ;;
         clean )
-            time tclean ${ARGUMENT}
+            tclean ${ARGUMENT}
             ;;
         * )
             tusage
@@ -398,8 +408,3 @@ FLAG=$3
 # ----- Execution ----- #
 ltitle
 main
-
-# --- Record Finish Time --- #
-echo "--------------------------------------------------------"
-echo "Finished successfully at $(date)"
-echo "--------------------------------------------------------"
