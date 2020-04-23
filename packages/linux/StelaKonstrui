@@ -15,10 +15,10 @@
 # Section:      kerno
 
 pkg_name=linux
-pkg_version=5.6.6
+pkg_version=5.6.7
 pkg_src=("https://mirror.math.princeton.edu/pub/kernel/linux/kernel/v5.x/linux-${pkg_version}.tar.xz") # My Closest Mirror in NJ
 #pkg_src=("https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-${pkg_version}.tar.xz")
-pkg_checksum=("6484ced005e4be5696d6ab0438a9674b9eac89831b4019822f1b0155e7a66bd4")
+pkg_checksum=("23a0420f29eacb66d71f86f64fbd35a1b6ff617d520e3e05f3e1f537d46692ca")
 pkg_deps=()
 
 konstruu() {
