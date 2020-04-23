@@ -1,0 +1,37 @@
+# vim: tabstop=4: shiftwidth=4: expandtab: set filetype=bash:
+##################################
+# briko Build Script - zulujdk 8 # 
+##################################
+# Copyright (C) 2020 Alexander Barris <awlsomealex at protonmail dot com>
+# All Rights Reserved
+# Licensed under ISC License 
+##################################
+
+# Name:         zulujdk-8
+# Description:  Zulu Community builds of OpenJDK 8 (musl libc)
+# URL:          https://www.azul.com/downloads/zulu-community
+# License:      GNU GPLv2 w/ Classpath Exception
+# Maintainer:   AwlsomeAlex
+# Section:      kerno
+
+pkg_name=zulujdk-8
+pkg_version=8.46.0.19
+pkg_java=8.0.252
+pkg_src=("https://cdn.azul.com/zulu/bin/zulu${pkg_version}-ca-jdk${pkg_java}-linux_musl_x64.tar.gz")
+pkg_checksum=("306ec531eed55c119321dcd9ae7664a110d98955afc571d5d19ad6b69172a705")
+pkg_deps=("zlib")
+
+konstruu() {
+    # Architecture Check
+    if [[ ${BARCH} != "x86_64" ]]; then
+        lprint "Architecture ${BARCH} not supported by ZuluJDK 8" "fail"
+    fi
+
+    # Make Directories and move ZuluJDK
+    mkdir -p ${fs}/opt/jvm/zulu-${pkg_java}-${pkg_version}
+    mv * ${fs}/opt/jvm/zulu-${pkg_java}-${pkg_version}
+
+    # Symlink Java 8 to /opt/jvm/default
+    cd ${fs}/opt/jvm
+    ln -s /opt/jvm/zulu-${pkg_java}-${pkg_version} default
+}
