@@ -1,0 +1,53 @@
+# vim: tabstop=4: shiftwidth=4: expandtab: set filetype=bash:
+##################################
+# briko Build Script - e2fsprogs # 
+##################################
+# Copyright (C) 2020 Alexander Barris <awlsomealex at protonmail dot com>
+# All Rights Reserved
+# Licensed under ISC License 
+##################################
+
+# Name:         e2fsprogs
+# Description:  ext2/3/4 filesystem utilties
+# URL:          http://e2fsprogs.sourceforge.net/
+# License:      GNU GPLv2, GNU LGPLv2, MIT
+# Maintainer:   AwlsomeAlex
+# Section:      kerno
+
+pkg_name=e2fsprogs
+pkg_version=1.45.6
+pkg_src=("https://sourceforge.net/projects/e2fsprogs/files/e2fsprogs/v${pkg_version}/e2fsprogs-${pkg_version}.tar.gz")
+pkg_checksum=("5f64ac50a2b60b8e67c5b382bb137dec39344017103caffc3a61554424f2d693")
+pkg_deps=("util-linux")
+
+konstruu() {
+    # Patch Stuff
+    sed -i '/init\.d/s|^|#|' misc/Makefile.in
+    for i in misc/fsck.c misc/mke2fs.c e2fsck/unix.c; do
+        sed -i 's@sbin@bin@g' ${i}
+    done
+
+    # Configure e2fsprogs
+    ./configure ${BUILDFLAGS} \
+        --prefix=/usr \
+        --with-root-prefix="" \
+        --libdir=/usr/lib \
+        --sbindir=/usr/bin \
+        --enable-elf-shlibs \
+        --disable-fsck \
+        --disable-libblkid \
+        --disable-libuuid \
+        --disable-nls \
+        --disable-uuidd &>> ${LOG}
+
+    # Compile and Install e2fsprogs
+    make ${MAKEFLAGS} &>> ${LOG}
+    make -j1 MKDIR_P="install -d" DESTDIR=${fs} install install-libs &>> ${LOG}
+
+    # Some Changes (Ataraxia)
+    # https://github.com/ataraxialinux/ataraxia/blob/master/packages/e2fsprogs/KagamiBuild
+    sed -i -e 's/^AWK=.*/AWK=awk/' ${fs}/usr/bin/compile_et
+    sed -i -e 's/^AWK=.*/AWK=awk/' ${fs}/usr/bin/mk_cmds
+    sed -i -e 's#^SS_DIR=.*#SS_DIR="/share/ss"#' ${fs}/usr/bin/mk_cmds
+    sed -i -e 's#^ET_DIR=.*#ET_DIR="/share/et"#' ${fs}/usr/bin/compile_et
+}

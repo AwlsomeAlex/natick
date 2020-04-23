@@ -1,0 +1,60 @@
+# vim: tabstop=4: shiftwidth=4: expandtab: set filetype=bash:
+###################################
+# briko Build Script - util-linux # 
+###################################
+# Copyright (C) 2020 Alexander Barris <awlsomealex at protonmail dot com>
+# All Rights Reserved
+# Licensed under ISC License 
+###################################
+
+# Name:         util-linux
+# Description:  Miscellaneous system utilities for Linux
+# URL:          https://github.com/karelzak/util-linux
+# License:      GNU GPLv2
+# Maintainer:   AwlsomeAlex
+# Section:      kerno
+
+pkg_name=util-linux
+pkg_version=2.35.1
+pkg_release=2.35
+pkg_src=("https://www.kernel.org/pub/linux/utils/util-linux/v${pkg_release}/util-linux-${pkg_version}.tar.xz")
+pkg_checksum=("d9de3edd287366cd908e77677514b9387b22bc7b88f45b83e1922c3597f1d7f9")
+pkg_deps=("ncurses")
+
+konstruu() {
+    # Make Directories
+    mkdir -p ${fs}/usr/{bin,lib}
+
+    # Configure util-linux
+    ADJTIME_PATH=/var/lib/hwclock/adjtime \
+        ./configure ${BUILDFLAGS} \
+            --prefix=${fs}/usr \
+            --libdir=${fs}/usr/lib \
+            --bindir=${fs}/usr/bin \
+            --sbindir=${fs}/usr/bin \
+            --localstatedir=/var \
+            --disable-chfn-chsh \
+            --enable-fs-paths-default=/usr/bin \
+            --enable-usrdir-path \
+            --disable-login \
+            --disable-nologin \
+            --disable-su \
+            --disable-setpriv \
+            --disable-runuser \
+            --disable-pylibmount \
+            --disable-static \
+            --disable-makeinstall-chown \
+            --without-python \
+            --without-systemd \
+            --without-systemdsystemunitdir &>> ${LOG}
+
+    # Compile and Install to (FS)
+    make ${MAKEFLAGS} &>> ${LOG}
+    make install ${MAKEFLAGS} &>> ${LOG}
+
+    # Post-compile stuff (Touch this up....)
+    cd ${fs}
+    mkdir -p var/lib/hwclock
+    mv usr/sbin/* usr/bin
+    rm -rf usr/sbin
+}

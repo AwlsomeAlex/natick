@@ -1,0 +1,71 @@
+# vim: tabstop=4: shiftwidth=4: expandtab: set filetype=bash:
+################################
+# briko Build Script - ncurses # 
+################################
+# Copyright (C) 2020 Alexander Barris <awlsomealex at protonmail dot com>
+# All Rights Reserved
+# Licensed under ISC License 
+################################
+
+# Name:         ncurses
+# Description:  System V Release 4.0 curses emulation library
+# URL:          https://invisible-island.net/ncurses/ncurses.html
+# License:      MIT License
+# Maintainer:   AwlsomeAlex
+# Section:      kerno
+
+pkg_name=ncurses
+pkg_version=6.2
+pkg_src=("https://invisible-mirror.net/archives/ncurses/ncurses-${pkg_version}.tar.gz")
+pkg_checksum=("0f1b981261efba83cea948f2870da8e38678d36bd4e1a9c50c68c66ae75650c4")
+pkg_deps=()
+
+konstruu() {
+    # Set HostCC
+    if [[ -n "${HOSTCC}" ]]; then
+        local BUILDFLAGS="${BUILDFLAGS} --with-build-cc=${HOSTCC}"
+    else
+        local BUILDFLAGS="${BUILDFLAGS}"
+    fi
+    echo "BUILDFLAGS: ${BUILDFLAGS}" &>> ${LOG}
+
+    # Configure Ncurses
+    ./configure ${BUILDFLAGS} \
+        --prefix=/usr \
+        --mandir=/usr/share/man \
+        --with-default-terminfo-dir=/usr/share/terminfo \
+        --with-pkg-config-libdir=/usr/lib/pkgconfig \
+        --with-terminfo-dirs="/etc/terminfo:/usr/share/terminfo" \
+        --with-normal \
+        --with-shared \
+        --without-ada \
+        --without-debug \
+        --without-tests \
+        --enable-overwrite \
+        --enable-pc-files \
+        --enable-widec \
+        --disable-rpath-hack \
+        --disable-stripping &>> ${LOG}
+
+    # Compile and Install to (FS)
+    make ${MAKEFLAGS} &>> ${LOG}
+    make -j1 DESTDIR=${fs} install &>> ${LOG}
+
+    # Symlink Libraries (Thanks Ataraxia)
+    # https://github.com/ataraxialinux/ataraxia/blob/master/packages/ncurses/KagamiBuild
+    for lib in ncurses form panel menu; do
+        echo "INPUT(-l${lib}w)" > ${fs}/usr/lib/lib${lib}.so
+        echo "INPUT(-l${lib}w)" > ${fs}/usr/lib/lib${lib}.a
+        ln -sf ${lib}w.pc ${fs}/usr/lib/pkgconfig/${lib}.pc &>> ${LOG}
+    done
+    for lib in tic tinfo; do
+        echo "INPUT(libncursesw.so.${pkg_version})" > ${fs}/usr/lib/lib${lib}.so
+        ln -sf libncursesw.so.${pkg_version} ${fs}/usr/lib/lib${lib}.so.${pkg_version} &>> ${LOG}
+    done
+    echo "INPUT(-lncursesw)" > ${fs}/usr/lib/libcursesw.so
+    ln -sf libncurses.so ${fs}/usr/lib/libcurses.so &>> ${LOG}
+    ln -sf ncursesw6-config ${fs}/usr/bin/ncurses6-config
+
+    # We don't use ncurses binaries....
+    rm -rf ${fs}/usr/bin
+}

@@ -1,0 +1,55 @@
+# vim: tabstop=4: shiftwidth=4: expandtab: set filetype=bash:
+############################
+# briko Build Script - vim # 
+############################
+# Copyright (C) 2020 Alexander Barris <awlsomealex at protonmail dot com>
+# All Rights Reserved
+# Licensed under ISC License 
+############################
+
+# Name:         vim
+# Description:  Vim - The ubiquitous text editor
+# URL:          https://www.vim.org/
+# License:      VIM License
+# Maintainer:   AwlsomeAlex
+# Section:      kerno
+
+pkg_name=vim
+pkg_version=8.2.0627
+pkg_src=("https://github.com/vim/vim/archive/v${pkg_version}.tar.gz")
+pkg_checksum=("aa1f1f693bce06fbe36ab2484d948af6a3a260a2131467eee6beb0ae8c4369fc")
+pkg_deps=("ncurses")
+
+konstruu() {
+    # Cross Compiler Flags
+    export vim_cv_toupper_broken=no
+    export vim_cv_terminfo=yes
+    export vim_cv_tgetent=zero
+    export vim_cv_tty_group=world
+    export vim_cv_tty_mode=0620
+    export vim_cv_getcwd_broken=no
+    export vim_cv_stat_ignores_slash=yes
+    export vim_cv_memmove_handles_overlap=yes
+
+    # Configure vim
+    ./configure ${BUILDFLAGS} \
+        --prefix=/usr \
+        --localstatedir=/var/lib/vim \
+        --with-compiledby='StelaLinux' \
+        --with-features=huge \
+        --with-tlib=ncursesw \
+        --without-x \
+        --enable-multibyte \
+        --disable-nls \
+        --disable-gui &>> ${LOG}
+
+    # Compile and Install to (FS)
+    make ${MAKEFLAGS} &>> ${LOG}
+    make DESTDIR=${fs} install ${MAKEFLAGS} &>> ${LOG}
+
+    # Copy vimrc to (FS)/etc
+    cp ${EDIR}/vim/vimrc ${fs}/etc/vimrc
+
+    # Symlink vim to (FS)/usr/bin/vi
+    ln -sf vim ${fs}/usr/bin/vi &>> ${LOG}
+}

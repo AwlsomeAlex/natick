@@ -1,0 +1,10 @@
+colorscheme torte
+filetype plugin indent on
+set tabstop=4
+set shiftwidth=4
+set expandtab
+set number
+set nocompatible
+set backspace=2
+set mouse=r
+syntax on

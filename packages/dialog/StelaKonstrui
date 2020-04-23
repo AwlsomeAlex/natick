@@ -1,0 +1,32 @@
+# vim: tabstop=4: shiftwidth=4: expandtab: set filetype=bash:
+###############################
+# briko Build Script - dialog # 
+###############################
+# Copyright (C) 2020 Alexander Barris <awlsomealex at protonmail dot com>
+# All Rights Reserved
+# Licensed under ISC License 
+###############################
+
+# Name:         dialog
+# Description:  A tool to display dialog boxes from shell script
+# URL:          https://invisible-island.net/dialog/
+# License:      GNU LGPLv2.1
+# Maintainer:   AwlsomeAlex
+# Section:      kerno
+
+pkg_name=dialog
+pkg_version=1.3-20200327
+pkg_src=("https://invisible-mirror.net/archives/dialog/dialog-${pkg_version/+/-}.tgz")
+pkg_checksum=("6db35f07202c08d5614390f8c3c275885491ecc2ccfb0a9949db06b8450ef6eb")
+pkg_deps=("ncurses")
+
+konstruu() {
+    # Configure dialog
+    ./configure ${BUILDFLAGS} \
+        --prefix=/usr \
+        --with-ncursesw &>> ${LOG}
+
+    # Compile and Install to (FS)
+    make ${MAKEFLAGS} &>> ${LOG}
+    make DESTDIR=${fs} install ${MAKEFLAGS} &>> ${LOG}
+}
