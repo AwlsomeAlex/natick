@@ -1,0 +1,37 @@
+# vim: tabstop=4: shiftwidth=4: expandtab: set filetype=bash:
+#############################
+# briko Build Script - file # 
+#############################
+# Copyright (C) 2020 Alexander Barris <awlsomealex at protonmail dot com>
+# All Rights Reserved
+# Licensed under ISC License 
+#############################
+
+# Name:         file
+# Description:  File type identification utility
+# URL:          https://www.darwinsys.com/file
+# License:      custom license
+# Maintainer:   AwlsomeAlex
+# Section:      kerno
+
+pkg_name=file
+pkg_version=5.38
+pkg_src=("http://ftp.astron.com/pub/file/file-${pkg_version}.tar.gz")
+pkg_checksum=("593c2ffc2ab349c5aea0f55fedfe4d681737b6b62376a9b3ad1e77b2cc19fa34")
+pkg_deps=("zlib")
+
+konstruu() {
+    # Configure file
+    ./configure ${BUILDFLAGS} \
+        --prefix=/usr \
+        --datadir=/usr/share/file \
+        --enable-fsect-man5 \
+        --disable-libseccomp &>> ${LOG}
+
+    # Modify libtool
+    sed -i 's/ -shared / -Wl,--as-needed\0/g' libtool
+
+    # Compile and Install to (FS)
+    make ${MAKEFLAGS} &>> ${LOG}
+    make DESTDIR=${fs} install ${MAKEFLAGS} &>> ${LOG}
+}
