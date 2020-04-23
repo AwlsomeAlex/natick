@@ -321,7 +321,11 @@ function tbuild() {
     done
     
     # --- Specify Work Directory --- #
-    export dir=${work_dir}/${pkg}-*
+    if [[ ${PACKAGE} == *zulu* ]]; then
+        export dir=${work_dir}/zulu*
+    else
+        export dir=${work_dir}/${pkg}-*
+    fi
 
     # --- Build Package --- #
     cd ${dir}
