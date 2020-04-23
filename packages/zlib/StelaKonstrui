@@ -1,0 +1,35 @@
+# vim: tabstop=4: shiftwidth=4: expandtab: set filetype=bash:
+#############################
+# briko Build Script - zlib # 
+#############################
+# Copyright (C) 2020 Alexander Barris <awlsomealex at protonmail dot com>
+# All Rights Reserved
+# Licensed under ISC License 
+#############################
+
+# Name:         zlib
+# Description:  Compression library implementing deflate compression method
+# URL:          https://www.zlib.net
+# License:      zLib License
+# Maintainer:   AwlsomeAlex
+# Section:      kerno
+
+pkg_name=zlib
+pkg_version=1.2.11
+pkg_src=("https://zlib.net/zlib-${pkg_version}.tar.xz")
+pkg_checksum=("4ff941449631ace0d4d203e3483be9dbc9da454084111f97ea0a2114e19bf066")
+pkg_deps=("")
+
+konstruu() {
+    # Export CHOST
+    export CHOST="${XTARGET}"
+    echo "CHOST: ${CHOST}" &>> ${LOG}
+
+    # Configure zlib
+    ./configure \
+        --prefix=/usr &>> ${LOG}
+
+    # Compile and Install zlib
+    make ${MAKEFLAGS} &>> ${LOG}
+    make DESTDIR=${fs} install &>> ${LOG}
+}
