@@ -1,0 +1,37 @@
+# vim: tabstop=4: shiftwidth=4: expandtab: set filetype=bash:
+###################################
+# briko Build Script - zulujdk 11 # 
+###################################
+# Copyright (C) 2020 Alexander Barris <awlsomealex at protonmail dot com>
+# All Rights Reserved
+# Licensed under ISC License 
+###################################
+
+# Name:         zulujdk-11
+# Description:  Zulu Community builds of OpenJDK 11 (musl libc)
+# URL:          https://www.azul.com/downloads/zulu-community
+# License:      GNU GPLv2 w/ Classpath Exception
+# Maintainer:   AwlsomeAlex
+# Section:      kerno
+
+pkg_name=zulujdk-11
+pkg_version=11.39.15
+pkg_java=11.0.7
+pkg_src=("https://cdn.azul.com/zulu/bin/zulu${pkg_version}-ca-jdk${pkg_java}-linux_musl_x64.tar.gz")
+pkg_checksum=("0de7ac5afede2ddeda399f10c9f9df83f91c9b60481ecf304aa5785ed50f36ce")
+pkg_deps=("zlib")
+
+konstruu() {
+    # Architecture Check
+    if [[ ${BARCH} != "x86_64" ]]; then
+        lprint "Architecture ${BARCH} not supported by ZuluJDK 11" "fail"
+    fi
+
+    # Make Directories and move ZuluJDK
+    mkdir -p ${fs}/opt/jvm/zulu-${pkg_java}-${pkg_version}
+    mv * ${fs}/opt/jvm/zulu-${pkg_java}-${pkg_version}
+
+    # Symlink Java 11 to /opt/jvm/default
+    cd ${fs}/opt/jvm
+    ln -s /opt/jvm/zulu-${pkg_java}-${pkg_version} default
+}
