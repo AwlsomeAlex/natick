@@ -31,6 +31,9 @@ konstruu() {
     export vim_cv_stat_ignores_slash=yes
     export vim_cv_memmove_handles_overlap=yes
 
+    # Create directory
+    mkdir ${fs}/etc
+
     # Configure vim
     ./configure ${BUILDFLAGS} \
         --prefix=/usr \

@@ -22,7 +22,8 @@ export BUILD_NAME="Alpha Build"
 export BUILD_NUMBER="vGIT"
 
 # --- Package List --- #
-PKGS=("linux" "muroinit" "busybox" "musl" "syslinux")
+#PKGS=("linux" "muroinit" "busybox" "musl" "syslinux")
+PKGS=("linux" "muroinit" "busybox" "musl" "syslinux" "ncurses" "vim" "dialog" "util-linux" "e2fsprogs" "zlib" "zulujdk-8")
 
 # --- StelaLinux Target Platform --- #
 export BARCH=x86_64                 # Tier 1 Support
@@ -287,7 +288,7 @@ function tbuild() {
 
     # --- Check Package Dependency --- #
     for dep in "${pkg_deps[@]}"; do
-        if [[ ! -d ${WRK_DIR}/${dep}/${dep}.fs ]]; then
+        if [[ ! -d ${BDIR}/${dep}/${dep}.fs ]]; then
             lprint "Dependency ${dep} unmet for ${pkg}." "fail"
             echo "Please build with ${EXECUTE} build ${dep}"
             exit
@@ -321,8 +322,8 @@ function tbuild() {
     done
     
     # --- Specify Work Directory --- #
-    if [[ ${PACKAGE} == *zulu* ]]; then
-        export dir=${work_dir}/zulu*
+    if [[ ${pkg} == *zulu* ]]; then
+        export dir=${work_dir}/zulu${pkg_version}*
     else
         export dir=${work_dir}/${pkg}-*
     fi
@@ -452,7 +453,7 @@ function tqemu() {
 
 # tall(): Automates building of defined packages and toolchain
 function tall() {
-    if [[ ! -d ${TDIR}/sysroot ]]; then
+    if [[ ! -d ${SDIR} ]]; then
         ttool
     fi
     for p in "${PKGS[@]}"; do

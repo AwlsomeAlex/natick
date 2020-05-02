@@ -18,7 +18,7 @@ pkg_name=zlib
 pkg_version=1.2.11
 pkg_src=("https://zlib.net/zlib-${pkg_version}.tar.xz")
 pkg_checksum=("4ff941449631ace0d4d203e3483be9dbc9da454084111f97ea0a2114e19bf066")
-pkg_deps=("")
+pkg_deps=()
 
 konstruu() {
     # Export CHOST
