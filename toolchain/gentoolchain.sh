@@ -329,9 +329,6 @@ function kflex() {
     lget "${FLEX_LINK}" "${FLEX_CHKSUM}"
     cd ${BUILD_DIR}/flex-${FLEX_VER}
 
-    # Patch flex
-    sed -i "/math.h/a #include <malloc.h>" src/flexdef.h &>> ${LOG}
-
     # Configure flex
     lprint "Configuring flex...." "...."
     ./configure \
