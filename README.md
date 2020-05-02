@@ -51,4 +51,4 @@ StelaLinux is now licensed under the permissive ISC License.
 * [Ivandavidov](https://github.com/ivandavidov) ([MLL](https://github.com/ivandavidov/minimal))
 * [Linux From Scratch Project](http://www.linuxfromscratch.org/)
 * [protonesso](https://github.com/protonesso) ([Ataraxia](https://github.com/ataraxialinux/ataraxia))
-* [firasuke](https://github.com/firasuke) ([glaucus linux](https://github.com/glaucuslinux/glaucus))
+* [firasuke](https://github.com/firasuke) ([glaucus](https://www.glaucuslinux.org/))
