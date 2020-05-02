@@ -380,6 +380,8 @@ function kncurses() {
     make -C include &>> ${LOG}
     make -C progs tic &>> ${LOG}
     cp progs/tic ${ROOT_DIR}/bin
+    chmod +x misc/ncurses-config
+    cp misc/ncurses-config ${ROOT_DIR}/bin/${XTARGET}-ncursesw6-config
     lprint "Compiled ncurses" "done"
 }
 
