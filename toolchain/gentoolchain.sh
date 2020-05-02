@@ -574,7 +574,7 @@ function kgccstatic() {
         --enable-languages=c \
         --enable-linker-build-id \
         --enable-lto \
-        --enable-plugins \
+        --enable-plugin \
         --disable-decimal-float \
         --disable-gnu-indirect-function \
         --disable-libatomic \
@@ -738,7 +738,7 @@ function kgcc() {
         --enable-libstdcxx-time \
         --enable-linker-build-id \
         --enable-lto \
-        --enable-plugins \
+        --enable-plugin \
         --enable-shared \
         --enable-threads=posix \
         --enable-tls \
