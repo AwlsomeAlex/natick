@@ -93,9 +93,9 @@ FLEX_LINK="https://github.com/westes/flex/releases/download/v${FLEX_VER}/flex-${
 FLEX_CHKSUM="e87aae032bf07c26f85ac0ed3250998c37621d95f8bd748b31f15b33c45ee995"
 
 # --- bc --- #
-BC_VER="2.6.0"
+BC_VER="2.7.0"
 BC_LINK="https://github.com/gavinhoward/bc/releases/download/${BC_VER}/bc-${BC_VER}.tar.xz"
-BC_CHKSUM="2b9f08ee9db9ca8b1d3c159a5af5fed981fcd98899630add72d327083673eb80"
+BC_CHKSUM="192d0e3e51777f71e861a9d015c7c06b52f862cadf152ae2110bafbbb0d44093"
 
 # --- ncurses --- #
 NCURSES_VER="6.2"
