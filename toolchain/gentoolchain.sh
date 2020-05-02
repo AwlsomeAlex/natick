@@ -463,6 +463,7 @@ function kbinutils() {
         --target=${XTARGET} ${archconfig} ${hashconfig} \
         --with-bugurl="https://github.com/awlsomealex/stelalinux/issues" \
         --with-sysroot="${SYS_DIR}" \
+        --with-lib-path="${SYS_DIR}/usr/lib" \
         --with-pic \
         --with-system-zlib \
         --enable-64-bit-bfd \
