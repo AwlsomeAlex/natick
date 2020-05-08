@@ -23,7 +23,8 @@ export BUILD_NUMBER="vGIT"
 
 # --- Package List --- #
 #PKGS=("linux" "muroinit" "busybox" "musl" "syslinux")
-PKGS=("linux" "muroinit" "busybox" "musl" "syslinux" "ncurses" "vim" "dialog" "util-linux" "e2fsprogs" "zlib" "zulujdk-8")
+PKGS=("linux" "muroinit" "busybox" "musl" "syslinux" "ncurses" "vim" "dialog" "util-linux" "e2fsprogs" "zlib")
+#PKGS=("linux" "muroinit" "busybox" "musl" "syslinux" "ncurses" "vim" "dialog" "util-linux" "e2fsprogs" "zlib" "zulujdk-8")
 
 # --- StelaLinux Target Platform --- #
 export BARCH=x86_64                 # Tier 1 Support
@@ -453,14 +454,31 @@ function tqemu() {
 
 # tall(): Automates building of defined packages and toolchain
 function tall() {
+    # Generate Toolchain
     if [[ ! -d ${SDIR} ]]; then
         ttool
     fi
+
+    # Reset Compiler Flags
+    export CROSS_COMPILE="${XTARGET}-"
+    export CC="${CROSS_COMPILE}gcc"
+    export CXX="${CROSS_COMPILE}g++"
+    export AR="${CROSS_COMPILE}ar"
+    export AS="${CROSS_COMPILE}as"
+    export RANLIB="${CROSS_COMPILE}ranlib"
+    export LD="${CROSS_COMPILE}ld"
+    export STRIP="${CROSS_COMPILE}strip"
+    export PKG_CONFIG_PATH="${SDIR}/usr/lib/pkgconfig:${SDIR}/usr/share/pkgconfig"
+    export PKG_CONFIG_SYSROOT="${SDIR}"
+    
+    # Compile Packages
     for p in "${PKGS[@]}"; do
         if [[ ! -d ${BDIR}/${p}/${p}.fs ]] && [[ ${p} != "musl" ]] && [[ ${p} != "linux-headers" ]]; then
             tbuild ${p}
         fi
     done
+
+    # Generate InitramFS and Image
     tinitramfs
     timage
 }
