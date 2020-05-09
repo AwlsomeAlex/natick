@@ -139,9 +139,9 @@ ISL_LINK="http://isl.gforge.inria.fr/isl-${ISL_VER}.tar.xz"
 ISL_CHKSUM="28658ce0f0bdb95b51fd2eb15df24211c53284f6ca2ac5e897acc3169e55b60f"
 
 # --- gcc --- #
-GCC_VER="9.3.0"
+GCC_VER="10.1.0"
 GCC_LINK="http://ftp.gnu.org/gnu/gcc/gcc-${GCC_VER}/gcc-${GCC_VER}.tar.xz"
-GCC_CHKSUM="71e197867611f6054aa1119b13a0c0abac12834765fe2d81f35ac57f84f742d1"
+GCC_CHKSUM="b6898a23844b656f1b68691c5c012036c2e694ac4b53a8918d4712ad876e7ea2"
 
 # --- musl --- #
 MUSL_VER="1.2.0"
@@ -528,25 +528,22 @@ function kgccstatic() {
     export FFLAGS_FOR_TARGET=" "
     export CXXFLAGS_FOR_TARGET=" "
     export LDFLAGS_FOR_TARGET=" "
-    sed -i 's@\./fixinc\.sh@-c true@' gcc/Makefile.in                   # Patch Makefile
+    # Sed Patches
+    sed -i 's@\./fixinc\.sh@-c true@' gcc/Makefile.in
+    sed -i '/m64=/s/lib64/lib/' gcc/config/i386/t-linux64
     # GCC Patches for MUSL
     patch -Np1 -i ${EXTRAS_DIR}/gcc/0001-Use-musl-s-libssp_nonshared.a.patch &>> ${LOG}
-    patch -Np1 -i ${EXTRAS_DIR}/gcc/0002-POSIX-memalign.patch &>> ${LOG}
-    patch -Np1 -i ${EXTRAS_DIR}/gcc/0003-Define-musl-ldso-for-s390.patch &>> ${LOG}
-    patch -Np1 -i ${EXTRAS_DIR}/gcc/0004-microblaze-pr65649.patch &>> ${LOG}
-    patch -Np1 -i ${EXTRAS_DIR}/gcc/0005-define-128-long-double-for-some-musl-targets.patch &>> ${LOG}
-    patch -Np1 -i ${EXTRAS_DIR}/gcc/0006-add-support-for-m68k-musl.patch &>> ${LOG}
-    patch -Np1 -i ${EXTRAS_DIR}/gcc/0007-add-support-for-static-pie.patch &>> ${LOG}
-    patch -Np1 -i ${EXTRAS_DIR}/gcc/0008-cpu-indicator.patch &>> ${LOG}
-    patch -Np1 -i ${EXTRAS_DIR}/gcc/0009-fix-tls-model.patch &>> ${LOG}
-    patch -Np1 -i ${EXTRAS_DIR}/gcc/0010-libgcc-always-build-gcceh.a.patch &>> ${LOG}
-    patch -Np1 -i ${EXTRAS_DIR}/gcc/0011-fix-support-for-Ada.patch &>> ${LOG}
-    patch -Np1 -i ${EXTRAS_DIR}/gcc/0003-gcc-poison-system-directories.patch &>> ${LOG}
-    patch -Np1 -i ${EXTRAS_DIR}/gcc/security.patch &>> ${LOG}
-    patch -Np1 -i ${EXTRAS_DIR}/gcc/gcc-pure64.patch &>> ${LOG}
-    patch -Np1 -i ${EXTRAS_DIR}/gcc/gcc-pure64-mips.patch &>> ${LOG}
-    patch -Np1 -i ${EXTRAS_DIR}/gcc/gcc-pure64-riscv.patch &>> ${LOG}
-    cp -a ${BUILD_DIR}/gmp-${GMP_VER} gmp                               # Copy utilities to GCC
+	patch -Np1 -i ${EXTRAS_DIR}/gcc/0002-POSIX-memalign.patch &>> ${LOG}
+	patch -Np1 -i ${EXTRAS_DIR}/gcc/0003-Support-for-static-PIE.patch &>> ${LOG}
+	patch -Np1 -i ${EXTRAS_DIR}/gcc/0004-fix-libstdc-futex-time64.patch &>> ${LOG}
+	patch -Np1 -i ${EXTRAS_DIR}/gcc/0005-security-features-for-Ataraxia-Linux.patch &>> ${LOG}
+	patch -Np1 -i ${EXTRAS_DIR}/gcc/0006-support-for-fortify-headers-on-musl.patch &>> ${LOG}
+	patch -Np1 -i ${EXTRAS_DIR}/gcc/0007-a.patch &>> ${LOG}
+	patch -Np1 -i ${EXTRAS_DIR}/gcc/0008-as-needed-gold.patch &>> ${LOG}
+	patch -Np1 -i ${EXTRAS_DIR}/gcc/0009-support-for-system-position-directories.patch &>> ${LOG}
+	patch -Np1 -i ${EXTRAS_DIR}/gcc/Enable-CET-in-cross-compiler-if-possible.patch &>> ${LOG}
+    # Copy utilities to GCC
+    cp -a ${BUILD_DIR}/gmp-${GMP_VER} gmp
     cp -a ${BUILD_DIR}/mpfr-${MPFR_VER} mpfr
     cp -a ${BUILD_DIR}/mpc-${MPC_VER} mpc
     cp -a ${BUILD_DIR}/isl-${ISL_VER} isl
@@ -566,8 +563,8 @@ function kgccstatic() {
         --with-bugurl="https://github.com/awlsomealex/stelalinux/issues" \
         --with-sysroot="${SYS_DIR}" \
         --with-isl \
-        --with-system-zlib \
         --with-newlib \
+        --with-system-zlib \
         --without-headers \
         --enable-checking=release \
         --enable-clocale=generic \
@@ -578,12 +575,9 @@ function kgccstatic() {
         --enable-lto \
         --enable-plugin \
         --disable-decimal-float \
-        --disable-gnu-indirect-function \
         --disable-libatomic \
-        --disable-libcilkrts \
         --disable-libgomp \
         --disable-libitm \
-        --disable-libmudflap \
         --disable-libquadmath \
         --disable-libsanitizer \
         --disable-libssp \
@@ -692,25 +686,22 @@ function kgcc() {
     export FFLAGS_FOR_TARGET=" "
     export CXXFLAGS_FOR_TARGET=" "
     export LDFLAGS_FOR_TARGET=" "
-    sed -i 's@\./fixinc\.sh@-c true@' gcc/Makefile.in                   # Patch Makefile
+    # Sed Patches
+    sed -i 's@\./fixinc\.sh@-c true@' gcc/Makefile.in
+    sed -i '/m64=/s/lib64/lib/' gcc/config/i386/t-linux64
     # GCC Patches for MUSL
     patch -Np1 -i ${EXTRAS_DIR}/gcc/0001-Use-musl-s-libssp_nonshared.a.patch &>> ${LOG}
-    patch -Np1 -i ${EXTRAS_DIR}/gcc/0002-POSIX-memalign.patch &>> ${LOG}
-    patch -Np1 -i ${EXTRAS_DIR}/gcc/0003-Define-musl-ldso-for-s390.patch &>> ${LOG}
-    patch -Np1 -i ${EXTRAS_DIR}/gcc/0004-microblaze-pr65649.patch &>> ${LOG}
-    patch -Np1 -i ${EXTRAS_DIR}/gcc/0005-define-128-long-double-for-some-musl-targets.patch &>> ${LOG}
-    patch -Np1 -i ${EXTRAS_DIR}/gcc/0006-add-support-for-m68k-musl.patch &>> ${LOG}
-    patch -Np1 -i ${EXTRAS_DIR}/gcc/0007-add-support-for-static-pie.patch &>> ${LOG}
-    patch -Np1 -i ${EXTRAS_DIR}/gcc/0008-cpu-indicator.patch &>> ${LOG}
-    patch -Np1 -i ${EXTRAS_DIR}/gcc/0009-fix-tls-model.patch &>> ${LOG}
-    patch -Np1 -i ${EXTRAS_DIR}/gcc/0010-libgcc-always-build-gcceh.a.patch &>> ${LOG}
-    patch -Np1 -i ${EXTRAS_DIR}/gcc/0011-fix-support-for-Ada.patch &>> ${LOG}
-    patch -Np1 -i ${EXTRAS_DIR}/gcc/0003-gcc-poison-system-directories.patch &>> ${LOG}
-    patch -Np1 -i ${EXTRAS_DIR}/gcc/security.patch &>> ${LOG}
-    patch -Np1 -i ${EXTRAS_DIR}/gcc/gcc-pure64.patch &>> ${LOG}
-    patch -Np1 -i ${EXTRAS_DIR}/gcc/gcc-pure64-mips.patch &>> ${LOG}
-    patch -Np1 -i ${EXTRAS_DIR}/gcc/gcc-pure64-riscv.patch &>> ${LOG}
-    cp -a ${BUILD_DIR}/gmp-${GMP_VER} gmp                               # Copy utilities to GCC
+	patch -Np1 -i ${EXTRAS_DIR}/gcc/0002-POSIX-memalign.patch &>> ${LOG}
+	patch -Np1 -i ${EXTRAS_DIR}/gcc/0003-Support-for-static-PIE.patch &>> ${LOG}
+	patch -Np1 -i ${EXTRAS_DIR}/gcc/0004-fix-libstdc-futex-time64.patch &>> ${LOG}
+	patch -Np1 -i ${EXTRAS_DIR}/gcc/0005-security-features-for-Ataraxia-Linux.patch &>> ${LOG}
+	patch -Np1 -i ${EXTRAS_DIR}/gcc/0006-support-for-fortify-headers-on-musl.patch &>> ${LOG}
+	patch -Np1 -i ${EXTRAS_DIR}/gcc/0007-a.patch &>> ${LOG}
+	patch -Np1 -i ${EXTRAS_DIR}/gcc/0008-as-needed-gold.patch &>> ${LOG}
+	patch -Np1 -i ${EXTRAS_DIR}/gcc/0009-support-for-system-position-directories.patch &>> ${LOG}
+	patch -Np1 -i ${EXTRAS_DIR}/gcc/Enable-CET-in-cross-compiler-if-possible.patch &>> ${LOG}
+    # Copy utilities to GCC
+    cp -a ${BUILD_DIR}/gmp-${GMP_VER} gmp
     cp -a ${BUILD_DIR}/mpfr-${MPFR_VER} mpfr
     cp -a ${BUILD_DIR}/mpc-${MPC_VER} mpc
     cp -a ${BUILD_DIR}/isl-${ISL_VER} isl
@@ -744,8 +735,6 @@ function kgcc() {
         --enable-shared \
         --enable-threads=posix \
         --enable-tls \
-        --disable-gnu-indirect-function \
-        --disable-libmudflap \
         --disable-libsanitizer \
         --disable-libssp \
         --disable-libstdcxx-pch \
