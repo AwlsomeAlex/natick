@@ -27,8 +27,8 @@ PKGS=("linux" "muroinit" "busybox" "musl" "syslinux" "ncurses" "vim" "dialog" "u
 #PKGS=("linux" "muroinit" "busybox" "musl" "syslinux" "ncurses" "vim" "dialog" "util-linux" "e2fsprogs" "zlib" "zulujdk-8")
 
 # --- StelaLinux Target Platform --- #
-#export BARCH=x86_64                 # Tier 1 Support
-export BARCH=i686                   # Tier 1 Support
+export BARCH=x86_64                 # Tier 1 Support
+#export BARCH=i686                   # Tier 1 Support
 
 # --- Directory Information --- #
 export STELA="$(pwd)"               # Project Root
