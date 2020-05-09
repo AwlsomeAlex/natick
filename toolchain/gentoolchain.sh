@@ -83,9 +83,9 @@ M4_LINK="https://ftp.gnu.org/gnu/m4/m4-${M4_VER}.tar.xz"
 M4_CHKSUM="f2c1e86ca0a404ff281631bdc8377638992744b175afb806e25871a24a934e07"
 
 # --- bison --- #
-BISON_VER="3.5.4"
+BISON_VER="3.6"
 BISON_LINK="https://ftp.gnu.org/gnu/bison/bison-${BISON_VER}.tar.xz"
-BISON_CHKSUM="4c17e99881978fa32c05933c5262457fa5b2b611668454f8dc2a695cd6b3720c"
+BISON_CHKSUM="e16f26baa2ebff141333e452c3cc5d8ea26bda6d2cd8b0b7a5604faa3a4ad47b"
 
 # --- flex --- #
 FLEX_VER="2.6.4"
