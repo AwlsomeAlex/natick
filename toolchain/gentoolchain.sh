@@ -510,13 +510,13 @@ function kgccstatic() {
     lprint "Configuring gcc-static...." "...."
     case ${BARCH} in                                                    # Set GCC Flags
         x86_64)
-            export GCCOPTS="--with-arch=x86-64 --with-tune=generic"
+            export GCCOPTS="--with-arch=x86-64 --with-tune=generic --enable-cet=auto"
             ;;
         i686)
-            export GCCOPTS="--with-arch=i686 --with-tune=generic"
+            export GCCOPTS="--with-arch=i686 --with-tune=generic --enable-cet=auto"
             ;;
         i586)
-            export GCCOPTS="--with-arch=i586 --with-tune=generic"
+            export GCCOPTS="--with-arch=i586 --with-tune=generic --enable-cet=auto"
             ;;
     esac
     hashconfig="--with-linker-hash-style=gnu"                           # Set Hash Style
@@ -533,15 +533,15 @@ function kgccstatic() {
     sed -i '/m64=/s/lib64/lib/' gcc/config/i386/t-linux64
     # GCC Patches for MUSL
     patch -Np1 -i ${EXTRAS_DIR}/gcc/0001-Use-musl-s-libssp_nonshared.a.patch &>> ${LOG}
-	patch -Np1 -i ${EXTRAS_DIR}/gcc/0002-POSIX-memalign.patch &>> ${LOG}
-	patch -Np1 -i ${EXTRAS_DIR}/gcc/0003-Support-for-static-PIE.patch &>> ${LOG}
-	patch -Np1 -i ${EXTRAS_DIR}/gcc/0004-fix-libstdc-futex-time64.patch &>> ${LOG}
-	patch -Np1 -i ${EXTRAS_DIR}/gcc/0005-security-features-for-Ataraxia-Linux.patch &>> ${LOG}
-	patch -Np1 -i ${EXTRAS_DIR}/gcc/0006-support-for-fortify-headers-on-musl.patch &>> ${LOG}
-	patch -Np1 -i ${EXTRAS_DIR}/gcc/0007-a.patch &>> ${LOG}
-	patch -Np1 -i ${EXTRAS_DIR}/gcc/0008-as-needed-gold.patch &>> ${LOG}
-	patch -Np1 -i ${EXTRAS_DIR}/gcc/0009-support-for-system-position-directories.patch &>> ${LOG}
-	patch -Np1 -i ${EXTRAS_DIR}/gcc/Enable-CET-in-cross-compiler-if-possible.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0002-POSIX-memalign.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0003-Support-for-static-PIE.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0004-fix-libstdc-futex-time64.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0005-security-features-for-Ataraxia-Linux.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0006-support-for-fortify-headers-on-musl.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0007-a.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0008-as-needed-gold.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0009-support-for-system-position-directories.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/Enable-CET-in-cross-compiler-if-possible.patch &>> ${LOG}
     # Copy utilities to GCC
     cp -a ${BUILD_DIR}/gmp-${GMP_VER} gmp
     cp -a ${BUILD_DIR}/mpfr-${MPFR_VER} mpfr
@@ -667,13 +667,13 @@ function kgcc() {
     lprint "Configuring gcc...." "...."
     case ${BARCH} in                                                    # Set GCC Flags
         x86_64)
-            export GCCOPTS="--with-arch=x86-64 --with-tune=generic"
+            export GCCOPTS="--with-arch=x86-64 --with-tune=generic --enable-cet=auto"
             ;;
         i686)
-            export GCCOPTS="--with-arch=i686 --with-tune=generic"
+            export GCCOPTS="--with-arch=i686 --with-tune=generic --enable-cet=auto"
             ;;
         i586)
-            export GCCOPTS="--with-arch=i586 --with-tune=generic"
+            export GCCOPTS="--with-arch=i586 --with-tune=generic --enable-cet=auto"
             ;;
     esac
     hashconfig="--with-linker-hash-style=gnu"                           # Set Hash Style
@@ -691,15 +691,15 @@ function kgcc() {
     sed -i '/m64=/s/lib64/lib/' gcc/config/i386/t-linux64
     # GCC Patches for MUSL
     patch -Np1 -i ${EXTRAS_DIR}/gcc/0001-Use-musl-s-libssp_nonshared.a.patch &>> ${LOG}
-	patch -Np1 -i ${EXTRAS_DIR}/gcc/0002-POSIX-memalign.patch &>> ${LOG}
-	patch -Np1 -i ${EXTRAS_DIR}/gcc/0003-Support-for-static-PIE.patch &>> ${LOG}
-	patch -Np1 -i ${EXTRAS_DIR}/gcc/0004-fix-libstdc-futex-time64.patch &>> ${LOG}
-	patch -Np1 -i ${EXTRAS_DIR}/gcc/0005-security-features-for-Ataraxia-Linux.patch &>> ${LOG}
-	patch -Np1 -i ${EXTRAS_DIR}/gcc/0006-support-for-fortify-headers-on-musl.patch &>> ${LOG}
-	patch -Np1 -i ${EXTRAS_DIR}/gcc/0007-a.patch &>> ${LOG}
-	patch -Np1 -i ${EXTRAS_DIR}/gcc/0008-as-needed-gold.patch &>> ${LOG}
-	patch -Np1 -i ${EXTRAS_DIR}/gcc/0009-support-for-system-position-directories.patch &>> ${LOG}
-	patch -Np1 -i ${EXTRAS_DIR}/gcc/Enable-CET-in-cross-compiler-if-possible.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0002-POSIX-memalign.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0003-Support-for-static-PIE.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0004-fix-libstdc-futex-time64.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0005-security-features-for-Ataraxia-Linux.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0006-support-for-fortify-headers-on-musl.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0007-a.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0008-as-needed-gold.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/0009-support-for-system-position-directories.patch &>> ${LOG}
+    patch -Np1 -i ${EXTRAS_DIR}/gcc/Enable-CET-in-cross-compiler-if-possible.patch &>> ${LOG}
     # Copy utilities to GCC
     cp -a ${BUILD_DIR}/gmp-${GMP_VER} gmp
     cp -a ${BUILD_DIR}/mpfr-${MPFR_VER} mpfr
@@ -727,7 +727,7 @@ function kgcc() {
         --enable-clocale=generic \
         --enable-default-pie \
         --enable-default-ssp \
-        --enable-languages="${LANGS}" \
+        --enable-languages=${LANGS} \
         --enable-libstdcxx-time \
         --enable-linker-build-id \
         --enable-lto \
@@ -746,7 +746,7 @@ function kgcc() {
 
     # Compile and Install gcc
     lprint "Compiling gcc...." "...."
-    make AS_FOR_TARGET="${XTARGET}-as" LD_FOR_TARGET="${XTARGET}-ld" ${MAKEFLAGS} &>> ${LOG}
+    make AS_FOR_TARGET="${XTARGET}-as" LD_FOR_TARGET="${XTARGET}-ld" &>> ${LOG}
     make -j1 install &>> ${LOG}
     ln -sf ${XTARGET}-gcc ${ROOT_DIR}/bin/${TARGET}-cc &>> ${LOG}
     lprint "Compiled gcc." "done"
