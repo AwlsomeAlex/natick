@@ -108,10 +108,10 @@ GPERF_LINK="https://ftp.gnu.org/gnu/gperf/gperf-${GPERF_VER}.tar.gz"
 GPERF_CHKSUM="588546b945bba4b70b6a3a616e80b4ab466e3f33024a352fc2198112cdbb3ae2"
 
 # --- linux --- #
-LINUX_VER="5.6.10"
+LINUX_VER="5.6.11"
 #LINUX_LINK="https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-${LINUX_VER}.tar.xz"
 LINUX_LINK="https://mirror.math.princeton.edu/pub/kernel/linux/kernel/v5.x/linux-${LINUX_VER}.tar.xz" # My Closest Mirror in NJ
-LINUX_CHKSUM="7bdc96827a9db8de79cd13d74a1c5fe8915674f793e592387f2903cb225801b9"
+LINUX_CHKSUM="d6dd6cbe99429f088eddb248abce7832e8f8e45eb072cbf0d0f86b5b87221baa"
 
 # --- binutils --- #
 BINUTILS_VER="2.34"
