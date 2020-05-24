@@ -119,7 +119,7 @@ export MAKEFLAGS="-j$NUM_JOBS"
 export BUILDFLAGS="--build=$XHOST --host=$XTARGET"
 export TOOLFLAGS="--build=$XHOST --host=$XTARGET --target=$XTARGET"
 export PERLFLAGS="--target=$XTARGET"
-export PKG_CONFIG_PATH="$FIN_DIR/usr/lib/pkgconfig:$FIN_DIR/usr/share/pkgconfig"
+export PKG_CONFIG_PATH="/usr/lib/pkgconfig:/usr/share/pkgconfig"
 export PKG_CONFIG_SYSROOT="$FIN_DIR"
 
 # ----- Path ----- #
