@@ -12,7 +12,7 @@ set -e
 #  Thanks Firas Khalil Khana, protonesso, and more  #
 #===================================================#
 
-# Inspired by Firasuke's script found below:
+# Inspired by firasuke's script found below:
 # https://gist.github.com/firasuke/00c37f53b3fb17cb0a5b1623f4afff74
 
 #==================================#
@@ -140,7 +140,7 @@ echo -e "${BL}[....] ${NC}Downloading Patches and Scripts...."
 wget -nc -q --show-progress -P ${TSRC} "https://raw.githubusercontent.com/glaucuslinux/glaucus/master/cerata/binutils/config.guess"
 chmod +x ${TSRC}/config.guess
 wget -nc -q --show-progress -P ${TSRC} "https://raw.githubusercontent.com/glaucuslinux/glaucus/master/cerata/musl/patches/qword/0002-enable-fast-math.patch"
-echo "Thanks Firasuke for the patch!"
+echo "Thanks firasuke for the patch!"
 wget -nc -q --show-progress -P ${TSRC} "https://raw.githubusercontent.com/glaucuslinux/glaucus/master/cerata/gcc/patches/upstream/Enable-CET-in-cross-compiler-if-possible.patch"
 echo -e "${GN}[DONE] ${NC}Downloaded Patches and Scripts."
 
