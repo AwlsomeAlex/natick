@@ -1,43 +1,44 @@
-# StelaLinux - A Minimal Linux Distribution
-StelaLinux is a research Linux Distribution built with the Linux Kernel, musl C Library, the BusyBox Userland, and a custom init script. Various packages are also included like vim, util-linux, etc.
+# Natick Research Linux Distribution
+Natick is a research Linux Distribution based on the latest Linux Kernel, the BusyBox userland, and the musl C library. Extra packages like vim, util-linux, apache and more will also be included.
 
-StelaLinux (formally StarLinux, AwlsomeLinux, and AwlBuntu) has been my project in researching how a Linux Distribution works, along with building one from the ground up. It was originally based off of Minimal Linux Live, as I reworked a few things, but evolved into a totally different standalone project. Now it is more of a Linux From Scratch-like distribution. StelaLinux is built with a musl-powered toolchain, runs using custom init scripts (called Xiongnu), has a package manager in the works called fox, and a package repository.
+Natick is a personal research project that stemmed off of other attempts to creare a server Linux Distribution based on the musl C library. It uses the mussel toolchain for package compilation and an in-house init system close to SysV.
 
-StelaLinux has alot of user customization features, from target architecture to included packages. Right now StelaLinux can be built for x86 processors (x86_64 and i686), but RISC-V and ARM (Raspberry Pi) are in the works. StelaLinux uses a musl toolchain to build packages so the user does not have to rely on installed libraries. The choice of using the musl C Library instead of GNU C Library is for safety and lightweightness. I understand this breaks support for Nvidia Drivers, precompiled packages (except Flatpaks), and Systemd (good.), but with more musl-based Distributions arising, hopefully more strain is put on developers to support musl natively. 
+Natick is currently targeted for x86 (32-bit and 64-bit) systems, but I plan on adding ARM support for the Raspberry Pi in the future. The goal of this project is to make an easy to understand, minimal, lightweight, and easy to use server operating system. To do this, I will be using the musl-libc. I understand this breaks compatibility for a lot of things (Nvidia Drivers, SystemD, Steam, AppImages), but gaming is not the goal of this distro.
 
-## Building StelaLinux:
-#### Dependencies (Debian-based Distributions)<br>
-Tested on Ubuntu 19.10 MATE<br>
-`sudo apt install build-essential m4 bison flex textinfo bc pv flex rsync unzip libssl-dev libelf-dev`
+**THIS PROJECT IS FOR ADVANCED LINUX USERS AND SHOULD NOT BE USED ON PRODUCTION SYSTEMS**
 
-#### Dependencies (Fedora-based Distributions)<br>
-Tested on Fedora 31 Workstation and Server Edition<br>
+## Compiling Packages
+### Dependencies (Fedora 33):
+`# dnf groupinstall "Development Tools" "C Development Tools and Libraries"`
+<br>
+`# dnf install texinfo pv libisoburn bsdtar glibc-static xorriso xz-devel zlib-devel openssl-devel elfutils-libelf-devel qemu-system-x86 lzip`
+<br>
+### Dependencies (Ubuntu 20.04/20.10)
+`# apt install build-essential m4 bison bsdtar flex texinfo bc pv rsync unzip libssl-dev libelf-dev`
+<br>
+### mussel Toolchain
+[GitHub](https://github.com/firasuke/mussel)
+<br>
+### nbs.sh (Natick Build Script) Options:
+`./nbs.sh toolchain` - Compiles Natick toolchain
+<br>
+`./nbs.sh build [package]` - Compiles defined package
+<br>
+`./nbs.sh clean` - Cleans build environment
 
-**Software Package Groups:**<br>
-`sudo dnf groupinstall "Development Tools" "C Development Tools and Libraries"`
+## License
+Natick, `/nbs.sh` and other scripts are licensed under the ISC license. <br>
+mussel is also licensed under the ISC license.
 
-**Individual Packages:**<br>
-`sudo dnf install texinfo pv libisoburn bsdtar glibc-static xorriso xz-devel zlib-devel openssl-devel elfutils-libelf-devel qemu-system-x86`
-
-#### Dependencies (Arch-based Distributions)<br>
-`Untested`
-
-### `stela.sh` (StelaLinux Build Script) Options:
-`./stela all`             - Builds the StelaLinux Toolchain, StelaLinux Packages, InitramFS, and LiveCD Image<br>
-`./stela toolchain`       - Builds the StelaLinux Toolchain<br>
-`./stela build [package]` - Builds a defined StelaLinux Package<br>
-`./stela initramfs`       - Generate a StelaLinux InitramFS<br>
-`./stela image`           - Generate a StelaLinux LiveCD (No EFI Support)<br>
-`./stela qemu`            - Launches QEMU with the StelaLinux LiveCD<br>
-`./stela clean`           - Cleans the StelaLinux Build Directories<br>
-
-## Installing StelaLinux:
-`TBA`
-
-## Contributors:
-* AwlsomeAlex (Lead Developer)
-* [protonesso](https://github.com/protonesso) (Toolchain/Influence)
+## Contributors
+- AwlsomeAlex (Lead Developer / mussel toolchain Developer)
+- [firasuke](https://github.com/firasuke) ([mussel toolchain Developer](https://github.com/firasuke/mussel))
 
 ### Special Thanks:
-* [Ivandavidov](https://github.com/ivandavidov) ([MLL](https://github.com/ivandavidov/minimal))
-* [Linux From Scratch Project](http://www.linuxfromscratch.org/)
+- [protonesso](https://github.com/protonesso)
+- [Ivandavidov](https://github.com/ivandavidov)([MLL](https://github.com/ivandavidov/minimal))
+- [Linux From Scratch Project](http://www.linuxfromscratch.org/)
+
+#### Check out these others musl-libc distros!
+- [Ataraxia](https://github.com/ataraxialinux/ataraxia)
+- [glaucus](https://www.glaucuslinux.org/)
