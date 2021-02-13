@@ -9,7 +9,10 @@
 # All Rights Reserved 
 #=========================#
 
-# Call external libs
+# --- Defined Variables --- #
+BARCH="x86_64"		# Only variable user should control!
+
+# --- Call external libs --- #
 . lib/vars.sh
 . lib/func.sh
 . lib/btrs.sh
