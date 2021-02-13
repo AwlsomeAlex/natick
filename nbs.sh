@@ -19,7 +19,7 @@ EXEC=$0
 OPT=$1
 PKG=$2
 
-case "${OPTION}" in
+case "${OPT}" in
 	toolchain )
 		if [[ -d ${M_TOOLCHAIN} ]] && [[ -d ${M_SYSROOT} ]]; then
 			lprint "Mussel for ${BARCH} already compiled." "done"
