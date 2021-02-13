@@ -27,7 +27,7 @@ lprint() {
 			echo "=> ${msg}" >> ${LOG}
 			;;
 		"warn" )
-			echo -e "${ORANGE}!> ${NC}${msg}"
+			echo -e "${ORANGE}!. ${NC}${msg}"
 			echo "!> ${msg}" >> ${LOG}
 			;;
 		"fail" )
