@@ -1,12 +1,3 @@
-.config
 work/
-source/
-final/
-toolchain/source
-toolchain/work
-toolchain/final
-StelaLinux-*.iso
-StelaLinux-*.tar.xz
-StelaLinux-*.iso.md5
-StelaLinux-*.tar.xz.md5
+out/
 log.txt
