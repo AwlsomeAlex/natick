@@ -19,24 +19,28 @@ lprint() {
 
 	case ${opt} in
 		"...." )
-			echo -e "${BLUE}[....] ${NC}${msg}"
-			echo "[....] ${msg}" >> ${LOG}
+			echo -e "${BLUE}.. ${NC}${msg}"
+			echo ".. ${msg}" >> ${LOG}
 			;;
 		"done" )
-			echo -e "${GREEN}[DONE] ${NC}${msg}"
-			echo "[DONE] ${msg}" >> ${LOG}
+			echo -e "${GREEN}=> ${NC}${msg}"
+			echo "=> ${msg}" >> ${LOG}
+			;;
+		"warn" )
+			echo -e "${ORANGE}!> ${NC}${msg}"
+			echo "!> ${msg}" >> ${LOG}
 			;;
 		"fail" )
-			echo -e "${RED}[FAIL] ${NC}${msg}"
-			echo "[FAIL] ${msg}" >> ${LOG}
+			echo -e "${RED}!! ${NC}${msg}"
+			echo "!! ${msg}" >> ${LOG}
 			;;
 		"" )
 			echo "${msg}"
 			echo "${msg}" >> ${LOG}
 			;;
 		*)
-            echo -e "${RED}[FAIL] ${ORANGE}lprint: ${NC}Invalid flag: ${flag}"
-            echo "[FAIL] lprint: Invalid flag: ${flag}" >> ${LOG}
+            echo -e "${RED}!! ${ORANGE}lprint: ${NC}Invalid flag: ${flag}"
+            echo "!! lprint: Invalid flag: ${flag}" >> ${LOG}
             exit
             ;;
    	esac

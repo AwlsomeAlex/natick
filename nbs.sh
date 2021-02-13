@@ -47,9 +47,11 @@ case "${OPT}" in
 	clean )
 		cd ${M_PROJECT}
 		./mussel.sh -c
+		lprint "Cleaning Natick Build Environment...." "...."
 		rm -rf ${N_OUT} &> /dev/null
 		rm -rf ${N_WORK} &> /dev/null
 		rm ${LOG} &> /dev/null
+		lprint "Cleaned Natick Build Environment." "done"
 		;;
 	"" | * )
 		lusage
