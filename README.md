@@ -9,6 +9,8 @@ Natick is currently targeted for x86 (32-bit and 64-bit) systems, but I plan on 
 
 ## Compiling Packages
 ### Dependencies (Fedora 33):
+**mussel fails to build in RHEL8. Needs further investigation.**
+<br>
 `# dnf groupinstall "Development Tools" "C Development Tools and Libraries"`
 <br>
 `# dnf install texinfo pv libisoburn bsdtar glibc-static xorriso xz-devel zlib-devel openssl-devel elfutils-libelf-devel qemu-system-x86 lzip`
