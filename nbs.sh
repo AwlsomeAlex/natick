@@ -9,6 +9,7 @@
 # All Rights Reserved 
 #=========================#
 
+
 # --- Defined Variables --- #
 BARCH="x86_64"		# Only variable user should control!
 
@@ -27,6 +28,7 @@ if [[ ! -f ${M_PROJECT}/mussel.sh ]]; then
 	lprint "mussel not found. Did you clone without --recursive?" "fail"
 fi
 
+# --- Basically the main function --- #
 case "${OPT}" in
 	toolchain )
 		if [[ -d ${M_TOOLCHAIN} ]] && [[ -d ${M_SYSROOT} ]]; then
@@ -65,4 +67,3 @@ case "${OPT}" in
 		lusage
 		;;
 esac
-
