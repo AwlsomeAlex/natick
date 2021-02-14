@@ -33,6 +33,7 @@ lprint() {
 		"fail" )
 			echo -e "${RED}!! ${NC}${msg}"
 			echo "!! ${msg}" >> ${LOG}
+            exit
 			;;
 		"" )
 			echo "${msg}"
@@ -77,4 +78,31 @@ lusage() {
     echo "Developed by Alexander Barris (AwlsomeAlex)"
     echo "Licensed under ISC License"
     echo "No penguins were harmed in the making of this script."
+}
+
+#=========#
+# Failure #
+#=========#
+# $1: lineno | $2: message
+failure() {
+    local lineno=$1
+    local msg=$2
+    echo "nbs Unexpected Failed at ${lineno}: ${msg}"
+    echo "[FAIL] nbs.sh ${lineno}: ${msg}" >> ${LOG}
+}
+
+#==============#
+# Title Screen #
+#==============#
+ltitle() {
+    clear
+    echo "#========================#"
+    echo "# Natick Build System    #"
+    echo "#------------------------#"
+    echo "# Created by AwlsomeAlex #"
+    echo "# ISC License            #"
+    echo "#========================#"
+    echo "# Building Package: ${PKG}"
+    echo "#========================#"
+    echo ""
 }
