@@ -27,6 +27,10 @@ export HOSTCXX="g++"                        # Host C++ Compiler (g++)
 export HOSTPATH="${PATH}"                   # Host Path
 export ORIGMAKE="$(which make)"             # Host Make 
 
+# --- Platform Information --- #
+export XTARGET="${BARCH}-linux-musl"        # Target Architecture for mussel Toolchain
+export XHOST="$(echo ${MACHTYPE} | sed -e 's/-[^-]*/-cross/')"  # Host Architecture
+
 # --- Compiler Flags --- #
 export CFLAGS="-g0 -Os -s -fexcess-precision=fast -fomit-frame-pointer -Wl,--as-needed -pipe"
 export CXXFLAGS="${CFLAGS}"
@@ -60,3 +64,13 @@ export GREEN='\033[1;32m'  # Green
 export ORANGE='\033[0;33m' # Orange
 export BLINK='\033[5m'     # Blink
 export NO_BLINK='\033[25m' # No Blink
+
+# --- Package Work Area --- #
+vdef() {
+	export N_TOP="${N_WORK}/${PKG}" 		# Top Package Work Directory
+	export B_BUILDDIR="${N_TOP}/build"		# Build Directory
+	export B_SOURCEDIR="${N_TOP}/source"	# Source Download Directory
+	export B_BUILDROOT="${N_TOP}/root"		# Temp Sysroot for Packaging
+	export B_VANZILE="${N_TOP}/vz"			# Package Output Directory
+	export LOG=${N_TOP}/log.txt				# Local Compile Log
+}

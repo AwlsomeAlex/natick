@@ -8,7 +8,7 @@
 # Copyright (C) 2020-2021 Alexander Barris (AwlsomeAlex)
 # All Rights Reserved 
 #=========================#
-
+set -eE -o functrace
 
 # --- Defined Variables --- #
 BARCH="x86_64"		# Only variable user should control!
@@ -40,10 +40,11 @@ case "${OPT}" in
 		mkdir ${N_WORK}
 		;;
 	build )
+		ltitle 
 		# Check if user is root
-		if [ "$EUID" -ne 0 ]; then
-			lprint "Natick Build Script must be ran as root. To learn more, read help dialog." "fail"
-		fi
+		#if [ "$EUID" -ne 0 ]; then
+		#	lprint "Natick Build Script must be ran as root. To learn more, read help dialog." "fail"
+		#fi
 		
 		# Check if directories exist
 		if [[ ! -d ${M_PREFIX} ]]; then
@@ -52,7 +53,15 @@ case "${OPT}" in
 		if [[ ! -d ${N_WORK} ]]; then
 			mkdir ${N_WORK}
 		fi
-		echo "TO BE IMPLEMENTED"
+		# Initialize and source
+		pinit
+		trap 'failure ${LINENO} "$BASH_COMMAND"' ERR
+		source ${N_PKG}/${PKG}/${PKG}.btr
+		pprep
+		cd ${B_BUILDDIR}
+		lprint "Compiling ${PKG}...." "...."
+		build &>> ${LOG}
+		lprint "Compiled ${PKG}." "done"
 		;;
 	clean )
 		cd ${M_PROJECT}

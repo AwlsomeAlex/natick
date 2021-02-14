@@ -1,0 +1,87 @@
+#=========================#
+# Natick Build System     #
+#-------------------------#
+# Burnt Tavern Recipe     #
+# ISC License             #
+#=========================#
+# Package: Linux Kernel
+# Copyright (C) 2020-2021 Alexander Barris (AwlsomeAlex)
+# All Rights Reserved 
+#=========================#
+
+#===========#
+# Variables #
+#===========#
+pkg_name="linux"
+pkg_ver="5.10.16"
+pkg_rel="1"
+pkg_src=("https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-${pkg_ver}.tar.xz")
+pkg_chk="536fe3ea273bfcc72b3571d3b3a7ff0a5bcdc16068efd22e42c4f9d03c200a37"
+pkg_bld=()
+pkg_req=()
+pkg_desc="The Linux Kernel"
+
+#============#
+# Build Vars #
+#============#
+# Kernel Architecture Selector
+case "${BARCH}" in
+    x86_64)
+        export SUBKARCH="x86"
+        export XKARCH="x86_64"
+        export DEFCONFIG="x86_64_defconfig"
+        ;;
+    i686)
+        export SUBKARCH="x86"
+        export XKARCH="i386"
+        export DEFCONFIG="i386_defconfig"
+        ;;
+esac
+
+#============#
+# Build Area #
+#============#
+build() {
+    cd linux-${pkg_ver}
+
+	# Generate Kernel Config
+    make ARCH=${XKARCH} CROSS_COMPILE=${CROSS_COMPILE} ${DEFCONFIG} ${MAKEFLAGS}
+
+    # Set Configuration Variables
+    sed -i "s/.*CONFIG_DEFAULT_HOSTNAME.*/CONFIG_DEFAULT_HOSTNAME=\"natick\"/" .config      # Changes Hostname
+    sed -i 's:# CONFIG_LOCALVERSION is not set :CONFIG_LOCALVERSION="-natick":g' .config    # Adds -natick to Kernel Version
+    sed -i "s/.*\\(CONFIG_KERNEL_.*\\)=y/\\#\\ \\1 is not set/" .config                     # Resets compression
+    sed -i "s/.*CONFIG_KERNEL_XZ.*/CONFIG_KERNEL_XZ=y/" .config                             # Defaults to XZ compression
+    sed -i "s/.*CONFIG_FB_VESA.*/CONFIG_FB_VESA=y/" .config                                 # Enables VESA Framebuffer
+    sed -i 's:# CONFIG_UEVENT_HELPER is not set:CONFIG_UEVENT_HELPER=y:g' .config           # Enable mdev support
+    echo 'CONFIG_UEVENT_HELPER_PATH=""' >> .config                                          # Set mdev path to '' (Set by xiongnu)
+    sed -i "s/.*CONFIG_LOGO_LINUX_CLUT224.*/CONFIG_LOGO_LINUX_CLUT224=y/" .config           # Show Linux Kernel Logo on boot
+    sed -i "s/^CONFIG_DEBUG_KERNEL.*/\\# CONFIG_DEBUG_KERNEL is not set/" .config           # Disable debug symbols (smaller kernel binary)
+    sed -i "s/.*CONFIG_EFI_STUB.*/CONFIG_EFI_STUB=y/" .config                               # Enable EFI stub
+    echo "CONFIG_RESET_ATTACK_MITIGATION=y" >> .config                                      # Requests RAM clearing after reboot (Attack Migration)
+    echo "CONFIG_APPLE_PROPERTIES=n" >> .config                                             # Disable Mac Properties
+    if [[ ${BARCH} == 'x86_64' ]]; then
+        echo -e "${GREEN}64-bit Detected ${NC}"
+        echo "CONFIG_EFI_MIXED=y" >> .config                                                # Enable Mixed EFI
+    elif [[ ${BARCH} == 'i686' ]]; then
+        echo -e "${GREEN}32-bit Detected ${NC}"
+    else
+        echo -e "${RED}[FAIL] ${NC}Unknown Kernel Architecture: ${BARCH}"
+        exit 1
+    fi
+
+    unset LDFLAGS
+
+    # Compile Linux Kernel
+    mkdir -p ${B_BUILDROOT}/boot
+    make ARCH=${XKARCH} CROSS_COMPILE=${CROSS_COMPILE} CFLAGS="$CFLAGS" bzImage ${MAKEFILE}
+    cp -r arch/${SUBKARCH}/boot/bzImage ${B_BUILDROOT}/boot/linux-${pkg_ver}-${pkg_rel}.xz
+    chmod 755 ${B_BUILDROOT}/boot/linux-${pkg_ver}-${pkg_rel}.xz
+
+    # Compile Linux Kernel Headers
+    mkdir -p ${B_BUILDROOT}/usr/include
+    make ARCH=${XKARCH} headers
+    find usr/include -name '.*' -delete
+    rm usr/include/Makefile
+    cp -a usr/include/* ${B_BUILDROOT}/usr/include
+}
