@@ -22,6 +22,11 @@ EXEC=$0
 OPT=$1
 PKG=$2
 
+# --- Check for Toolchain --- #
+if [[ ! -f ${M_PROJECT}/mussel.sh ]]; then
+	lprint "mussel not found. Did you clone without --recursive?" "fail"
+fi
+
 case "${OPT}" in
 	toolchain )
 		if [[ -d ${M_TOOLCHAIN} ]] && [[ -d ${M_SYSROOT} ]]; then
