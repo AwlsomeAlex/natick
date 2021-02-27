@@ -4,8 +4,9 @@
 # Burnt Tavern Recipe     #
 # ISC License             #
 #=========================#
-# Package: vzINIT
+# Package: midstreams
 # Copyright (C) 2020-2021 Alexander Barris (AwlsomeAlex)
+# alex@awlsome.com
 # All Rights Reserved 
 #=========================#
 
@@ -19,7 +20,7 @@ pkg_src=("https://github.com/AwlsomeAlex/muroinit/archive/v${pkg_ver}.tar.gz")
 pkg_chk="4754a0987080d234d7c42ecd60e6e39a9f7be165d5d083e4fe3de9857eef6ab5"
 pkg_bld=()
 pkg_req=()
-pkg_desc="vzINIT System"
+pkg_desc="Midstreams INIT"
 
 #============#
 # Build Area #
