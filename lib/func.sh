@@ -1,6 +1,6 @@
 #!/bin/bash
 #=========================#
-# Natick Build System     #
+# natick Build System     #
 #-------------------------#
 # Function library script #
 # ISC License             #
@@ -53,13 +53,13 @@ lprint() {
 #=============#
 lusage() {
 	echo "${EXECUTE} [OPTION] [PACKAGE]"
-    echo "nbs.sh - Natick Build Script"
+    echo "nbs.sh - natick Build Script"
     echo ""
     echo "This script compiles and packs packages that will"
-    echo "be included in Natick. These packages are"
-    echo "specific to Natick and their architectures."
+    echo "be included in natick. These packages are"
+    echo "specific to natick and their architectures."
     echo ""
-#    echo -e "\033[1;31mNOTICE: \033[0mDue to Natick Build Script dealing with package"
+#    echo -e "\033[1;31mNOTICE: \033[0mDue to natick Build Script dealing with package"
 #    echo "        permissions, it must be ran as root. The script"
 #    echo "        is available with full source to see what it is"
 #    echo "        doing, but the root filesystem isnt modified at"
@@ -71,10 +71,10 @@ lusage() {
     echo ""
     echo "[OPTION]:"
     echo "      toolchain:  Ensures mussel is compiled for ${BARCH}"
-    echo "      build:      Builds a package for Natick"
+    echo "      build:      Builds a package for natick"
     echo "      clean:      Cleans mussel and the build environment"
     echo ""
-    echo "[PACKAGE]: Specific package to be compiled/packed for Natick"
+    echo "[PACKAGE]: Specific package to be compiled/packed for natick"
     echo ""
     echo "Developed by Alexander Barris (AwlsomeAlex)"
     echo "Licensed under ISC License"
@@ -98,7 +98,7 @@ failure() {
 ltitle() {
     clear
     echo "#========================#"
-    echo "# Natick Build System    #"
+    echo "# natick Build System    #"
     echo "#------------------------#"
     echo "# Created by AwlsomeAlex #"
     echo "# ISC License            #"

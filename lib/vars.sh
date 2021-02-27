@@ -1,6 +1,6 @@
 #!/bin/bash
 #=========================#
-# Natick Build System     #
+# natick Build System     #
 #-------------------------#
 # Variable library script #
 # ISC License             #
@@ -11,11 +11,11 @@
 #=========================#
 
 # --- Directory File Structure --- #
-export N_ROOT="$(pwd)"						# Natick Project Root
-export N_PKG="${N_ROOT}/pkg"				# Natick Package Repository
-export N_WORK="${N_ROOT}/work"				# Natick Work Directory
-export N_OUT="${N_ROOT}/out"				# Natick Out Directory
-export LOG="${N_ROOT}/log.txt"				# Natick Log File
+export N_ROOT="$(pwd)"						# natick Project Root
+export N_PKG="${N_ROOT}/pkg"				# natick Package Repository
+export N_WORK="${N_ROOT}/work"				# natick Work Directory
+export N_OUT="${N_ROOT}/out"				# natick Out Directory
+export LOG="${N_ROOT}/log.txt"				# natick Log File
 
 # --- Toolchain Configuration --- #
 export M_PROJECT="${N_ROOT}/toolchain"		# mussel Project Root

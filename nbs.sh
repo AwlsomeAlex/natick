@@ -1,6 +1,6 @@
 #!/bin/bash
 #=========================#
-# Natick Build System     #
+# natick Build System     #
 #-------------------------#
 # Main Executable script  #
 # ISC License             #
@@ -43,7 +43,7 @@ case "${OPT}" in
 		ltitle 
 		# Check if user is root
 		#if [ "$EUID" -ne 0 ]; then
-		#	lprint "Natick Build Script must be ran as root. To learn more, read help dialog." "fail"
+		#	lprint "natick Build Script must be ran as root. To learn more, read help dialog." "fail"
 		#fi
 		
 		# Check if directories exist
@@ -66,11 +66,11 @@ case "${OPT}" in
 	clean )
 		cd ${M_PROJECT}
 		./mussel.sh -c
-		lprint "Cleaning Natick Build Environment...." "...."
+		lprint "Cleaning natick Build Environment...." "...."
 		rm -rf ${N_OUT} &> /dev/null
 		rm -rf ${N_WORK} &> /dev/null
 		rm ${LOG} &> /dev/null
-		lprint "Cleaned Natick Build Environment." "done"
+		lprint "Cleaned natick Build Environment." "done"
 		;;
 	"" | * )
 		lusage

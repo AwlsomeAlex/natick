@@ -1,6 +1,6 @@
 #!/bin/bash
 #=========================#
-# Natick Build System     #
+# natick Build System     #
 #-------------------------#
 # Build library script    #
 # ISC License             #
