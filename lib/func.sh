@@ -6,6 +6,7 @@
 # ISC License             #
 #=========================#
 # Copyright (C) 2020-2021 Alexander Barris (AwlsomeAlex)
+# alex@awlsome.com
 # All Rights Reserved 
 #=========================#
 
@@ -58,13 +59,13 @@ lusage() {
     echo "be included in Natick. These packages are"
     echo "specific to Natick and their architectures."
     echo ""
-    echo -e "\033[1;31mNOTICE: \033[0mDue to Natick Build Script dealing with package"
-    echo "        permissions, it must be ran as root. The script"
-    echo "        is available with full source to see what it is"
-    echo "        doing, but the root filesystem isnt modified at"
-    echo "        all. This is just to ensure that generated file"
-    echo "        have the correct ownership when packaging occur"
-    echo ""
+#    echo -e "\033[1;31mNOTICE: \033[0mDue to Natick Build Script dealing with package"
+#    echo "        permissions, it must be ran as root. The script"
+#    echo "        is available with full source to see what it is"
+#    echo "        doing, but the root filesystem isnt modified at"
+#    echo "        all. This is just to ensure that generated file"
+#    echo "        have the correct ownership when packaging occur"
+#    echo ""
     echo "Selected Architecture: ${BARCH}"
     echo "To change this, modify the script."
     echo ""
