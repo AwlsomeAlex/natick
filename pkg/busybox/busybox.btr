@@ -14,10 +14,10 @@
 # Variables #
 #===========#
 pkg_name="busybox"
-pkg_ver="1.33.0"
+pkg_ver="1.31.1"
 pkg_rel="1"
 pkg_src=("https://busybox.net/downloads/busybox-${pkg_ver}.tar.bz2")
-pkg_chk="d568681c91a85edc6710770cebc1e80e042ad74d305b5c2e6d57a5f3de3b8fbd"
+pkg_chk="d0f940a72f648943c1f2211e0e3117387c31d765137d92bd8284a3fb9752a998"
 pkg_bld=()
 pkg_req=()
 pkg_desc="BusyBox Userland"
@@ -41,6 +41,10 @@ esac
 build() {
     cd busybox-${pkg_ver}
     
+    echo "$XKARCH"
+    echo "${CROSS_COMPILE}"
+    echo "$CFLAGS"
+    echo "$MAKEFLAGS"
     # Prepare BusyBox Configuration
     make ARCH=${XKARCH} CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS" defconfig ${MAKEFLAGS}
 
