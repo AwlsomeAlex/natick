@@ -35,7 +35,7 @@ case "${OPT}" in
 			lprint "Mussel for ${BARCH} already compiled." "done"
 		else
 			cd ${M_PROJECT}
-			env -i bash -l -c "time ./mussel.sh ${BARCH} -p"
+			env -i bash -l -c "time ./mussel.sh ${BARCH} -p -l -k"
 		fi
 		mkdir ${N_WORK}
 		;;
