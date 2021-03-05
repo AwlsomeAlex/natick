@@ -28,5 +28,5 @@ pkg_desc="Midstreams INIT for natickOS"
 build() {
     # Copy to FS (pkg: midstreams)
     mkdir -p ${B_BUILDROOT}/${pkg_name}
-    cp -r ${N_PKG}/${pkg_name}/temproot/* ${B_BUILDROOT}/${pkg_name}
+    cp -r ${N_PKG}/${pkg_name}/files/* ${B_BUILDROOT}/${pkg_name}
 }
