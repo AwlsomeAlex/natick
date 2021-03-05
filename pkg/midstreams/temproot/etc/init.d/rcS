@@ -1,0 +1,30 @@
+#!/bin/sh
+# vim: tabstop=4: shiftwidth=4: expandtab: set filetype=bash:
+############################
+#--------------------------#
+# MuroINIT - Service Start #
+#--------------------------#
+############################
+# rcS - Service Start 
+############################
+# Copyright (C) 2019-2020 Alexander Barris - All Rights Reserved
+# ISC License
+# vGIT
+
+for i in /etc/init.d/S??* ;do
+    [ ! -f "$i" ] && continue
+    case "$i" in
+    *.sh)
+        # Shell Script
+        (
+        trap - INT QUIT TSTP
+        set start
+        . $i
+        )
+        ;;
+    *)
+        # Fork
+        $i start
+        ;;
+    esac
+done
