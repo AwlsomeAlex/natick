@@ -1,0 +1,41 @@
+#=========================#
+# natick Build System     #
+#-------------------------#
+# Burnt Tavern Recipe     #
+# ISC License             #
+#=========================#
+# Package: Syslinux Bootloader
+# Copyright (C) 2020-2021 Alexander Barris (AwlsomeAlex)
+# alex@awlsome.com
+# All Rights Reserved 
+#=========================#
+
+#===========#
+# Variables #
+#===========#
+pkg_name="syslinux"
+pkg_ver="6.03"
+pkg_rel="1"
+pkg_src=("https://mirrors.edge.kernel.org/pub/linux/utils/boot/syslinux/6.xx/syslinux-${pkg_ver}.tar.xz")
+pkg_chk="26d3986d2bea109d5dc0e4f8c4822a459276cf021125e8c9f23c3cca5d8c850e"
+pkg_bld=()
+pkg_req=()
+pkg_desc="Syslinux Bootloader"
+
+
+#============#
+# Build Area #
+#============#
+build() {
+    # Create Directories
+    mkdir -p ${B_BUILDROOT}/syslinux/boot/{isolinux,syslinux}
+
+    # Copy Syslinux Files to Buildroot
+    cp syslinux-${pkg_ver}/bios/core/isolinux.bin ${B_BUILDROOT}/syslinux/boot/isolinux
+    cp syslinux-${pkg_ver}/bios/com32/elflink/ldlinux/ldlinux.c32 ${B_BUILDROOT}/syslinux/boot/isolinux
+
+    # Copy Local Files to Buildroot
+    cp ${N_PKG}/${pkg_name}/files/isohdpfx.bin ${B_BUILDROOT}/syslinux/boot/isolinux
+    cp ${N_PKG}/${pkg_name}/files/isolinux.cfg ${B_BUILDROOT}/syslinux/boot/isolinux
+    cp ${N_PKG}/${pkg_name}/files/syslinux.cfg ${B_BUILDROOT}/syslinux/boot/syslinux
+}
