@@ -40,6 +40,7 @@ case "${OPT}" in
 		mkdir ${N_WORK}
 		;;
 	build )
+		echo ""
 		ltitle 
 		# Check if user is root
 		#if [ "$EUID" -ne 0 ]; then
@@ -51,7 +52,7 @@ case "${OPT}" in
 			lprint "Toolchain not generated. Generate with '${EXEC} toolchain'" "fail"
 		fi
 		if [[ ! -d ${N_WORK} ]]; then
-			mkdir ${N_WORK}
+			mkdir ${N_WORK} ${N_OUT}
 		fi
 		# Initialize and source
 		pinit
@@ -61,11 +62,15 @@ case "${OPT}" in
 		cd ${B_BUILDDIR}
 		lprint "Compiling ${PKG}...." "...."
 		build &>> ${LOG}
-		lprint "Compiled ${PKG}." "done"
+		lprint "Packaging ${PKG}...." "...."
+		ppack
+		lprint "${PKG} has been compiled and packaged." "done"
 		;;
 	clean )
 		cd ${M_PROJECT}
-		./mussel.sh -c
+		if [[ ${PKG} != "--skip-toolchain" ]]; then
+			./mussel.sh -c
+		fi
 		lprint "Cleaning natick Build Environment...." "...."
 		rm -rf ${N_OUT} &> /dev/null
 		rm -rf ${N_WORK} &> /dev/null

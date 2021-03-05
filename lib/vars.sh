@@ -72,6 +72,5 @@ vdef() {
 	export B_BUILDDIR="${N_TOP}/build"		# Build Directory
 	export B_SOURCEDIR="${N_TOP}/source"	# Source Download Directory
 	export B_BUILDROOT="${N_TOP}/root"		# Temp Sysroot for Packaging
-	export B_VANZILE="${N_TOP}/vz"			# Package Output Directory
 	export LOG=${N_TOP}/log.txt				# Local Compile Log
 }

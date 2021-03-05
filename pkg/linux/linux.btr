@@ -73,16 +73,16 @@ build() {
 
     unset LDFLAGS
 
-    # Compile Linux Kernel
-    mkdir -p ${B_BUILDROOT}/boot
+    # Compile Linux Kernel (pkg: linux)
+    mkdir -p ${B_BUILDROOT}/${pkg_name}/boot
     make ARCH=${XKARCH} CROSS_COMPILE=${CROSS_COMPILE} CFLAGS="$CFLAGS" bzImage ${MAKEFILE}
-    cp -r arch/${SUBKARCH}/boot/bzImage ${B_BUILDROOT}/boot/linux-${pkg_ver}-${pkg_rel}.xz
-    chmod 755 ${B_BUILDROOT}/boot/linux-${pkg_ver}-${pkg_rel}.xz
+    cp -r arch/${SUBKARCH}/boot/bzImage ${B_BUILDROOT}/${pkg_name}/boot/linux-${pkg_ver}-${pkg_rel}.xz
+    chmod 755 ${B_BUILDROOT}/${pkg_name}/boot/linux-${pkg_ver}-${pkg_rel}.xz
 
-    # Compile Linux Kernel Headers
-    mkdir -p ${B_BUILDROOT}/usr/include
+    # Compile Linux Kernel Headers (pkg: linux-headers)
+    mkdir -p ${B_BUILDROOT}/${pkg_name}-headers/usr/include
     make ARCH=${XKARCH} headers
     find usr/include -name '.*' -delete
     rm usr/include/Makefile
-    cp -a usr/include/* ${B_BUILDROOT}/usr/include
+    cp -a usr/include/* ${B_BUILDROOT}/${pkg_name}-headers/usr/include
 }

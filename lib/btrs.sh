@@ -37,7 +37,7 @@ pinit() {
 pprep() {
 	# --- Package Generation Hierarchy --- #
 	vdef
-	mkdir -p ${B_BUILDDIR} ${B_SOURCEDIR} ${B_BUILDROOT} ${B_VANZILE}
+	mkdir -p ${B_BUILDDIR} ${B_SOURCEDIR} ${B_BUILDROOT}
 
 	# --- Check for Package Build Dependencies --- #
 	for p in "${pkg_bld[@]}"; do
@@ -57,6 +57,19 @@ pprep() {
 		fi
         (cd ${B_SOURCEDIR} && echo "${l_sum}  ${l_archive}" | sha256sum -c -) > /dev/null || lprint "Bad Checksum: ${l_archive}: ${l_sum}" "fail"
         pv ${B_SOURCEDIR}/${l_archive} | bsdtar xf - -C ${B_BUILDDIR}/
-        lprint "Downloaded and Extracted ${l_archive}." "done"
     done
+}
+
+#================#
+# Packaging Area #
+#================#
+ppack() {
+	# --- Package Generation --- #
+	vdef
+	cd ${N_TOP}
+	for dir in $(ls ${B_BUILDROOT}); do
+		cd ${B_BUILDROOT}/${dir}
+		fakeroot tar --zstd -cf ${N_OUT}/${dir}-${pkg_ver}-${pkg_rel}.tar.zst .
+		cd ../../
+	done
 }

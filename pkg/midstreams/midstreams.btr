@@ -13,21 +13,20 @@
 #===========#
 # Variables #
 #===========#
-pkg_name="vzINIT"
-pkg_ver="0."
+pkg_name="midstreams"
+pkg_ver="0.1-beta1"
 pkg_rel="1"
-pkg_src=("https://github.com/AwlsomeAlex/muroinit/archive/v${pkg_ver}.tar.gz")
-pkg_chk="4754a0987080d234d7c42ecd60e6e39a9f7be165d5d083e4fe3de9857eef6ab5"
+pkg_src=()
+pkg_chk=""
 pkg_bld=()
 pkg_req=()
-pkg_desc="Midstreams INIT"
+pkg_desc="Midstreams INIT for natickOS"
 
 #============#
 # Build Area #
 #============#
 build() {
-    cd src
-
-    # Copy to FS
-    cp -r * R{B_BUILDROOT}
+    # Copy to FS (pkg: midstreams)
+    mkdir -p ${B_BUILDROOT}/${pkg_name}
+    cp -r ${N_PKG}/${pkg_name}/temproot/* ${B_BUILDROOT}/${pkg_name}
 }

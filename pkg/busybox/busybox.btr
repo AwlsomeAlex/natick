@@ -51,10 +51,10 @@ build() {
     # Enable Static Linking
     sed -i "s|.*CONFIG_STATIC.*|CONFIG_STATIC=y|" .config
 
-    # Compile BusyBox
-    mkdir -p ${B_BUILDROOT}/usr/bin
+    # Compile BusyBox (pkg: busybox)
+    mkdir -p ${B_BUILDROOT}/${pkg_name}/usr/bin
     make ARCH=${XKARCH} CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS" ${MAKEFLAGS}
     make ARCH=${XKARCH} CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS" busybox.links ${MAKEFLAGS}
-    install -D -m 755 busybox ${B_BUILDROOT}/usr/bin/busybox
-    for applet in `cat busybox.links|sed 's|^.*/||'`; do ln -sf busybox ${B_BUILDROOT}/usr/bin/$applet || true; done
+    install -D -m 755 busybox ${B_BUILDROOT}/${pkg_name}/usr/bin/busybox
+    for applet in `cat busybox.links|sed 's|^.*/||'`; do ln -sf busybox ${B_BUILDROOT}/${busybox}/usr/bin/$applet || true; done
 }

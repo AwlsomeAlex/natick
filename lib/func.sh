@@ -96,14 +96,13 @@ failure() {
 # Title Screen #
 #==============#
 ltitle() {
-    clear
-    echo "#========================#"
-    echo "# natick Build System    #"
-    echo "#------------------------#"
-    echo "# Created by AwlsomeAlex #"
-    echo "# ISC License            #"
-    echo "#========================#"
-    echo "# Building Package: ${PKG}"
-    echo "#========================#"
+    echo "+========================#"
+    echo "| natick Build System    |"
+    echo "+------------------------+"
+    echo "| Created by AwlsomeAlex |"
+    echo "| ISC License            |"
+    echo "+========================+"
+    echo "| Building Package: ${PKG}"
+    echo "+========================+"
     echo ""
 }
