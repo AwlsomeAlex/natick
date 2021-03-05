@@ -13,10 +13,10 @@ natick is currently targeted for x86 (32-bit and 64-bit) systems, but I plan on 
 <br>
 `# dnf groupinstall "Development Tools" "C Development Tools and Libraries"`
 <br>
-`# dnf install texinfo pv libisoburn bsdtar glibc-static xorriso xz-devel zlib-devel openssl-devel elfutils-libelf-devel qemu-system-x86 lzip`
+`# dnf install texinfo pv libisoburn bsdtar glibc-static xorriso xz-devel zlib-devel openssl-devel elfutils-libelf-devel qemu-system-x86 lzip fakeroot`
 <br>
 ### Dependencies (Ubuntu 20.04/20.10)
-`# apt install build-essential m4 bison bsdtar flex texinfo bc pv rsync unzip libssl-dev libelf-dev`
+`# apt install build-essential m4 bison bsdtar flex texinfo bc pv rsync unzip libssl-dev libelf-dev fakeroot`
 <br>
 ### mussel Toolchain
 [GitHub](https://github.com/firasuke/mussel)
