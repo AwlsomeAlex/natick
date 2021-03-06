@@ -1,0 +1,54 @@
+#=========================#
+# natick Build System     #
+#-------------------------#
+# Burnt Tavern Recipe     #
+# ISC License             #
+#=========================#
+# Package: musl libc
+# Copyright (C) 2020-2021 Alexander Barris (AwlsomeAlex)
+# alex@awlsome.com
+# All Rights Reserved 
+#=========================#
+
+#===========#
+# Variables #
+#===========#
+pkg_name="musl"
+pkg_ver="1.2.2"
+pkg_rel="1"
+pkg_src=("https://musl.libc.org/releases/musl-${pkg_ver}.tar.gz")
+pkg_chk="9b969322012d796dc23dda27a35866034fa67d8fb67e0e2c45c913c3d43219dd"
+pkg_bld=()
+pkg_req=()
+pkg_desc="musl C Library"
+
+#============#
+# Build Area #
+#============#
+build() {
+    cd musl-${pkg_ver}
+    mkdir -p ${B_BUILDROOT}/${pkg_name}/usr/bin
+
+    # Test Package
+    ${CROSS_COMPILE}gcc ${CFLAGS} -c ${N_PKG}/${pkg_name}/files/__stack_chk_fail_local.c -o __stack_chk_fail_local.o
+    ${CROSS_COMPILE}ar r libssp_nonshared.a __stack_chk_fail_local.o
+
+    # Configure musl
+    ./configure ${TOOLFLAGS} \
+        --prefix=/usr \
+        --libdir=/usr/lib \
+        --syslibdir=/usr/lib \
+        --enable-optimize=size
+
+    # Compile musl (pkg: musl)
+    make DESTDIR=${B_BUILDROOT}/${pkg_name} ${MAKEFLAGS}
+    make DESTDIR=${B_BUILDROOT}/${pkg_name} install ${MAKEFLAGS}
+    cp libssp_nonshared.a ${B_BUILDROOT}/${pkg_name}/usr/lib
+    ln -sf ../lib/libc.so ${B_BUILDROOT}/${pkg_name}/usr/bin/ldd    # ldd symlink
+    cat > ${B_BUILDROOT}/${pkg_name}/usr/bin/ldconfig << "EOF"
+#!/bin/sh
+echo "adjusting libs..."
+true
+EOF
+	chmod +x ${B_BUILDROOT}/${pkg_name}/usr/bin/ldconfig            # dummy ldconfig
+}
