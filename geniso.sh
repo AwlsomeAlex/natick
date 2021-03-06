@@ -12,13 +12,14 @@
 #=========================#
 
 # --- Packages To Include --- #
-PKGS=("busybox" "linux" "midstreams" "syslinux")
+PKGS=("busybox" "musl" "linux" "midstreams" "syslinux")
 
 
 # --- Call external libs --- #
 . lib/vars.sh
 . lib/func.sh
-export PKG="LiveCD"
+export PKG="iso"
+vdef
 
 ltitle
 
@@ -50,11 +51,12 @@ cd ${curr}
 # --- Populate the InitramFS --- #
 lprint "Populating InitramFS...." "...."
 for item in ${PKGS[@]}; do
-    if [[! -f ${N_OUT}/${item}-[:digit:]*.tar.zstd ]]; then
-        lprint "${item} not compiled."
-        lprint "Please compile it with './nbs.sh build ${item}" "fail"
+    if [ ! -f ${N_OUT}/${item}-[0-9]*.tar.zst ]; then
+        lprint "${item} not compiled. Please compile it with './nbs.sh build ${item}" "fail"
+    else
+        file="${N_OUT}/${item}-[0-9]*.tar.zst"
+        tar -xf ${file} -C ${N_WORK}/iso/sysroot
     fi
-    tar -xvf ${N_OUT}/${item}-[:digit:]*.tar.zstd -C ${N_WORK}/iso/sysroot
 done
 
 # --- Clean Sysroot --- #
@@ -62,7 +64,7 @@ ${XTARGET}-strip -g \
     ${N_WORK}/iso/sysroot/bin/* \
     ${N_WORK}/iso/sysroot/sbin/* \
     ${N_WORK}/iso/sysroot/lib/* \
-    2>/dev/null
+    2>/dev/null &>> ${LOG}
 
 
 # --- Generate InitramFS --- #
@@ -75,13 +77,14 @@ cd ${curr}
 lprint "Preparing Image...." "...."
 mv ${N_WORK}/iso/sysroot/boot/linux-*.xz ${N_WORK}/iso/vanzille/linux.xz
 cp -r ${N_WORK}/iso/sysroot/boot/* ${N_WORK}/iso/boot
-rm ${N_WORK}/iso/boot/kernel*.xz
+rm -rf /tmp/natick-sysroot
 mv ${N_WORK}/iso/sysroot /tmp/natick-sysroot
 # ^^^ TEMPORARY ^^^^
 
 # --- Generate Image --- #
 lprint "Generating Image...." "...."
-xorriso -as mkisofs \
+cd ${N_WORK}/iso
+fakeroot xorriso -as mkisofs \
     -isohybrid-mbr boot/isolinux/isohdpfx.bin \
     -c boot/isolinux/boot.cat \
     -b boot/isolinux/isolinux.bin \
@@ -89,6 +92,7 @@ xorriso -as mkisofs \
     -boot-load-size 4 \
     -boot-info-table \
     -o ${N_OUT}/natick.iso \
-    .
+    . &>> ${LOG}
+
 
 lprint "Image successfully generated! It can now be found in ${N_OUT}/natick.iso!" "done"
