@@ -11,7 +11,7 @@
 set -eE -o functrace
 
 # --- Defined Variables --- #
-BARCH="x86_64"		# Only variable user should control!
+BARCH="i686"		# Only variable user should control!
 
 # --- Call external libs --- #
 . lib/vars.sh
@@ -52,7 +52,10 @@ case "${OPT}" in
 			lprint "Toolchain not generated. Generate with '${EXEC} toolchain'" "fail"
 		fi
 		if [[ ! -d ${N_WORK} ]]; then
-			mkdir ${N_WORK} ${N_OUT}
+			mkdir ${N_WORK}
+		fi
+		if [[ ! -d ${N_OUT} ]]; then
+			mkdir ${N_OUT}
 		fi
 		# Initialize and source
 		pinit
