@@ -61,6 +61,8 @@ case "${OPT}" in
 		pinit
 		trap 'failure ${LINENO} "$BASH_COMMAND"' ERR
 		source ${N_PKG}/${PKG}/${PKG}.btr
+		vdef
+		vprint &>> ${LOG}
 		pprep
 		cd ${B_BUILDDIR}
 		lprint "Compiling ${PKG}...." "...."

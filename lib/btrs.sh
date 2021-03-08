@@ -22,7 +22,7 @@ pinit() {
 		lprint "The specified package, ${PKG}, appears to already been built." "warn"
 		read -p "Rebuild? (Y/n): " opt
 		if [[ ${opt} == "Y" ]]; then
-			rm -rf ${N_WORK}/${PKG}/{build,root,vz}
+			rm -rf ${N_WORK}/${PKG}/{build,root,vz,log.txt}
 			echo ""
 		else
 			lprint "Good call." "fail"
@@ -36,7 +36,6 @@ pinit() {
 #======================#
 pprep() {
 	# --- Package Generation Hierarchy --- #
-	vdef
 	mkdir -p ${B_BUILDDIR} ${B_SOURCEDIR} ${B_BUILDROOT}
 
 	# --- Check for Package Build Dependencies --- #
@@ -70,6 +69,7 @@ ppack() {
 	for dir in $(ls ${B_BUILDROOT}); do
 		cd ${B_BUILDROOT}/${dir}
 		fakeroot tar --zstd -cf ${N_OUT}/${dir}-${pkg_ver}-${pkg_rel}.tar.zst .
+		cp -r * ${M_SYSROOT}
 		cd ../../
 	done
 }

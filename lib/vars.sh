@@ -43,8 +43,13 @@ export MAKEFLAGS="-j${JOBS}"
 export BUILDFLAGS="--build=${XHOST} --host=${XTARGET}"
 export TOOLFLAGS="--build=${XHOST} --host=${XTARGET} --target=${XTARGET}"
 export PERLFLAGS="--target=${XTARGET}"
+
+# --- Pkgconfig Flags --- #
 export PKG_CONFIG_PATH="${M_SYSROOT}/usr/lib/pkgconfig:${M_SYSROOT}/usr/share/pkgconfig"
+export PKG_CONFIG_LIBDIR="${M_SYSROOT}/usr/lib/pkgconfig:${M_SYSROOT}/usr/share/pkgconfig"
 export PKG_CONFIG_SYSROOT="${M_SYSROOT}"
+export PKG_CONFIG_SYSTEM_INCLUDE_PATH="${M_SYSROOT}/usr/include"
+export PKG_CONFIG_SYSTEM_LIBRARY_PATH="${M_SYSROOT}/usr/lib"
 
 # --- Executable Names --- #
 export PATH="${M_PREFIX}/bin:${PATH}"       # mussel's bin directory
@@ -73,4 +78,58 @@ vdef() {
 	export B_SOURCEDIR="${N_TOP}/source"	# Source Download Directory
 	export B_BUILDROOT="${N_TOP}/root"		# Temp Sysroot for Packaging
 	export LOG=${N_TOP}/log.txt				# Local Compile Log
+}
+
+vprint() {
+	printf "========== Natick: Directories ================\n"
+	printf "ROOT:\t\t\t${N_ROOT}\n"
+	printf "PKGS:\t\t\t${N_PKG}\n"
+	printf "WORK:\t\t\t${N_WORK}\n"
+	printf "OUT:\t\t\t${N_OUT}\n"
+	printf "LOG:\t\t\t${LOG}\n\n"
+
+	printf "========== Natick: Package Directories ==========\n"
+	printf "N_TOP:\t\t\t${N_TOP}\n"
+	printf "B_BUILDDIR:\t\t${B_BUILDDIR}\n"
+	printf "B_SOURCEDIR:\t${B_SOURCEDIR}\n"
+	printf "B_BUILDROOT:\t${B_BUILDROOT}\n\n"
+
+	printf "========== mussel: Directories ==================\n"
+	printf "M_PROJECT:\t\t${M_PROJECT}\n"
+	printf "M_PREFIX:\t\t${M_PREFIX}\n"
+	printf "M_SYSROOT:\t\t${M_SYSROOT}\n\n"
+
+	printf "========== mussel: Host Information =============\n"
+	printf "HOSTCC:\t\t\t${HOSTCC}\n"
+	printf "HOSTCXX:\t\t${HOSTCXX}\n"
+	printf "HOSTPATH:\t\t${HOSTPATH}\n"
+	printf "ORIGMAKE:\t\t${ORIGMAKE}\n\n"
+
+	printf "========== mussel: Platform Information =========\n"
+	printf "XTARGET:\t\t${XTARGET}\n"
+	printf "XHOST:\t\t\t${XHOST}\n\n"
+
+	printf "========== mussel: Compiler Flags ===============\n"
+	printf "CFLAGS:\t\t\t${CFLAGS}\n"
+	printf "CXXFLAGS:\t\t${CXXFLAGS}\n"
+	printf "LC_ALL:\t\t\t${LC_ALL}\n"
+	printf "MAKEFLAGS:\t\t${MAKEFLAGS}\n\n"
+
+	printf "========== mussel: Build Flags ==================\n"
+	printf "PKG_CONFIG_PATH:\t\t\t\t${PKG_CONFIG_PATH}\n"
+	printf "PKG_CONFIG_LIBDIR:\t\t\t\t${PKG_CONFIG_LIBDIR}\n"
+	printf "PKG_CONFIG_SYSROOT:\t\t\t\t${PKG_CONFIG_SYSROOT}\n"
+	printf "PKG_CONFIG_SYSTEM_INCLUDE_PATH:\t${PKG_CONFIG_SYSTEM_INCLUDE_PATH}\n"
+	printf "PKG_CONFIG_SYSTEM_LIBRARY_PATH:\t${PKG_CONFIG_SYSTEM_LIBRARY_PATH}\n\n"
+
+	printf "========== mussel: Executable Names =============\n"
+	printf "PATH:\t\t\t${PATH}\n"
+	printf "CROSS_COMPILE:\t${CROSS_COMPILE}\n"
+	printf "CC:\t\t\t\t${CC}\n"
+	printf "CXX:\t\t\t${CXX}\n"
+	printf "AR:\t\t\t\t${AR}\n"
+	printf "AS:\t\t\t\t${AS}\n"
+	printf "RANLIB:\t\t\t${RANLIB}\n"
+	printf "LD:\t\t\t\t${LD}\n"
+	printf "STRIP:\t\t\t${STRIP}\n\n"
 }
