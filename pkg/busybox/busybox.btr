@@ -14,10 +14,13 @@
 # Variables #
 #===========#
 pkg_name="busybox"
-pkg_ver="1.31.1"
+pkg_ver="2d48d9b1cca7745a514f8cf770308ceb48edb195"
+#pkg_ver="1.31.1"
 pkg_rel="1"
-pkg_src=("https://busybox.net/downloads/busybox-${pkg_ver}.tar.bz2")
-pkg_chk="d0f940a72f648943c1f2211e0e3117387c31d765137d92bd8284a3fb9752a998"
+pkg_src=("https://git.busybox.net/busybox/snapshot/busybox-2d48d9b1cca7745a514f8cf770308ceb48edb195.tar.gz")
+#pkg_src=("https://busybox.net/downloads/busybox-${pkg_ver}.tar.bz2")
+pkg_chk="519010da69bc8199e2c434521c8839077fa1a171c1b66732f9d98b0d781ac949"
+#pkg_chk="d0f940a72f648943c1f2211e0e3117387c31d765137d92bd8284a3fb9752a998"
 pkg_bld=()
 pkg_req=()
 pkg_desc="BusyBox Userland"
@@ -40,16 +43,13 @@ esac
 #============#
 build() {
     cd busybox-${pkg_ver}
-    
-    echo "$XKARCH"
-    echo "${CROSS_COMPILE}"
-    echo "$CFLAGS"
-    echo "$MAKEFLAGS"
+
     # Prepare BusyBox Configuration
     make ARCH=${XKARCH} CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="$CFLAGS" defconfig ${MAKEFLAGS}
 
     # Enable Static Linking
     sed -i "s|.*CONFIG_STATIC.*|CONFIG_STATIC=y|" .config
+    sed -i "s|.*CONFIG_STATIC_LIBGCC.*|CONFIG_STATIC_LIBGCC=n|" .config
 
     # Compile BusyBox (pkg: busybox)
     mkdir -p ${B_BUILDROOT}/${pkg_name}/usr/bin
