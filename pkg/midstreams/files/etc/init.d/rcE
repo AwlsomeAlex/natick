@@ -1,15 +1,18 @@
 #!/bin/sh
 # vim: tabstop=4: shiftwidth=4: expandtab: set filetype=bash:
-##########################
-#------------------------#
-# MuroINIT - Service End #
-#------------------------#
-##########################
-# rcE - Service End
-#########################
-# Copyright (C) 2019-2020 Alexander Barris - All Rights Reserved
-# ISC License
-# vGIT
+#============================#
+# midstreams - natickOS INIT #
+#----------------------------#
+# init.d Function            #
+# ISC License                #
+#============================#
+# Service End
+#============================#
+# Copyright (C) 2019-2021 Alexander Barris (AwlsomeAlex)
+# alex@awlsome.com
+# All Rights Reserved
+#============================#
+
 
 for i in /etc/init.d/S??* ;do
     [ ! -f "$i" ] && continue

@@ -1,15 +1,16 @@
 #!/bin/busybox sh
 # vim: tabstop=4: shiftwidth=4: expandtab: set filetype=bash:
-########################
-#----------------------#
-#   MuroINIT - Init    #
-#----------------------#
-########################
-# System Init Scripts  #
-########################
-# Copyright (C) 2019-2020 Alexander Barris - All Rights Reserved
-# ISC License
-# vGIT
+#============================#
+# midstreams - natickOS INIT #
+#----------------------------#
+# ISC License                #
+#============================#
+# INIT
+#============================#
+# Copyright (C) 2019-2021 Alexander Barris (AwlsomeAlex)
+# alex@awlsome.com
+# All Rights Reserved
+#============================#
 
 dmesg -n 1 # Supress Kernel Messages
 
@@ -29,7 +30,7 @@ NC='\033[0m'
 # rescueShell(reason): Drops user into Emergency Shell
 function rescueShell() {
     REASON=$1
-    echo -e "${RED}[FAIL] ${NC}System could not be initialized! REASON: $REASON"
+    echo -e "${RED}!! ${NC}System could not be initialized! REASON: $REASON"
     echo "Dropping to an Emergency Shell...."
     exec sh -
 }
@@ -43,25 +44,25 @@ function moveMount() {
 #-----------------------#
 # ----- Init Area ----- #
 #-----------------------#
-echo -e "${ORANGE}========== Midstreams vGIT - natickOSOS ==========${NC}"
-echo -e "${BLUE}[....] ${NC}Mounting System Directories...."
+echo -e "${ORANGE}========== midstreams - natickOS ==========${NC}"
+echo -e "${BLUE}.. ${NC}Mounting System Directories...."
 mount -t devtmpfs none /dev || rescueShell "Failed to mount /dev!"
 mount -t proc none /proc || rescueShell "Failed to mount /proc!"
 mount -t sysfs none /sys || rescueShell "Failed to mount /sys!"
 mount -t tmpfs none /tmp || rescueShell "Failed to mount /tmp!"
-echo -e "${GREEN}[DONE] ${NC}Mounted Directories."
-echo -e "${BLUE}[....] ${NC}Mounting Filesystem as ro"
+echo -e "${GREEN}=> ${NC}Mounted Directories."
+echo -e "${BLUE}.. ${NC}Mounting Filesystem as ro"
 mount -o remount,ro / || rescueShell "Failed to mount as ro"
-echo -e "${GREEN}[DONE] ${NC}Mounted Filesystem as ro"
-echo -e "${BLUE}[....] ${NC}Mounting Filesystem as rw"
+echo -e "${GREEN}=> ${NC}Mounted Filesystem as ro"
+echo -e "${BLUE}.. ${NC}Mounting Filesystem as rw"
 mount -o remount,rw / || rescueShell "Failed to mount as rw"
-echo -e "${GREEN}[DONE] ${NC}Mounted Filesystem as rw"
-echo -e "${BLUE}[....] ${NC}Populating Dynamic Device Directory (/dev)...."
+echo -e "${GREEN}=> ${NC}Mounted Filesystem as rw"
+echo -e "${BLUE}.. ${NC}Populating Dynamic Device Directory (/dev)...."
 echo /sbin/mdev > /proc/sys/kernel/hotplug
-echo -e "${GREEN}[DONE] ${NC}Populated Dynamic Device Directory (/dev)."
-echo -e "${BLUE}[....] ${NC}Mounting File Systems...."
-echo -e "${GREEN}[DONE] ${NC}Mounted File System."
-echo -e "${BLUE}[....] ${NC}Moving Filesystems...."
-echo -e "${GREEN}[DONE] ${NC}Moved Filesystems."
-echo -e "${BLUE}[....] ${NC}Booting System...."
+echo -e "${GREEN}=> ${NC}Populated Dynamic Device Directory (/dev)."
+echo -e "${BLUE}.. ${NC}Mounting File Systems...."
+echo -e "${GREEN}=> ${NC}Mounted File System."
+echo -e "${BLUE}.. ${NC}Moving Filesystems...."
+echo -e "${GREEN}=> ${NC}Moved Filesystems."
+echo -e "${BLUE}.. ${NC}Booting System...."
 exec /bin/init || rescueShell "Failed to start BusyBox init!"

@@ -1,4 +1,4 @@
-export PS1='StelaLinux:\w# '
+export PS1='natickOS:\w# '
 export TERMINFO=/usr/share/terminfo/
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/lib:/usr/lib
 #export PATH=$PATH:/opt/jvm/default/bin

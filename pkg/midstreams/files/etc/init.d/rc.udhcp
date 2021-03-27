@@ -1,15 +1,17 @@
 #!/bin/sh
 # vim: tabstop=4: shiftwidth=4: expandtab: set filetype=bash:
-##########################
-#------------------------#
-# MuroINIT - DHCP Config #
-#------------------------#
-##########################
+#============================#
+# midstreams - natickOS INIT #
+#----------------------------#
+# init.d Function            #
+# ISC License                #
+#============================#
 # DHCP
-##########################
-# Copyright (C) 2019-2020 Alexander Barris - All Rights Reserved
-# ISC License
-# vGIT
+#============================#
+# Copyright (C) 2019-2021 Alexander Barris (AwlsomeAlex)
+# alex@awlsome.com
+# All Rights Reserved
+#============================#
 
 ip addr add $ip/$mask dev $interface 
 
@@ -20,5 +22,5 @@ if [ "$ip" ]; then
     echo "DHCP Configuration for Device $interface"
     echo "IP:           $ip"
     echo "Mask:         $mask"
-    echo "Router:   $router"
+    echo "Router:       $router"
 fi
