@@ -30,6 +30,9 @@ fi
 
 # --- Basically the main function --- #
 case "${OPT}" in
+	check )
+		lcheck
+		;;
 	toolchain )
 		if [[ -d ${M_TOOLCHAIN} ]] && [[ -d ${M_SYSROOT} ]]; then
 			lprint "Mussel for ${BARCH} already compiled." "done"
@@ -67,17 +70,6 @@ case "${OPT}" in
 		ppack
 		lprint "${PKG} has been compiled and packaged." "done"
 		;;
-	clean )
-		cd ${M_PROJECT}
-		if [[ ${PKG} != "--skip-toolchain" ]]; then
-			./mussel.sh -c
-		fi
-		lprint "Cleaning natickOS Build Environment...." "...."
-		rm -rf ${N_OUT} &> /dev/null
-		rm -rf ${N_WORK} &> /dev/null
-		rm ${LOG} &> /dev/null
-		lprint "Cleaned natickOS Build Environment." "done"
-		;;
 	run )
 		if [[ ! -f ${N_OUT}/natickOS.iso ]]; then
 			lprint "natickOS ISO not generated. Please generate with ./geniso.sh" "fail"
@@ -92,6 +84,17 @@ case "${OPT}" in
 			fi
 		fi
 		lprint "QEMU Finished." "done"
+		;;
+	clean )
+		cd ${M_PROJECT}
+		if [[ ${PKG} != "--skip-toolchain" ]]; then
+			./mussel.sh -c
+		fi
+		lprint "Cleaning natickOS Build Environment...." "...."
+		rm -rf ${N_OUT} &> /dev/null
+		rm -rf ${N_WORK} &> /dev/null
+		rm ${LOG} &> /dev/null
+		lprint "Cleaned natickOS Build Environment." "done"
 		;;
 	"" | * )
 		lusage
