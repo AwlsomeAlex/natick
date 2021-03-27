@@ -91,8 +91,8 @@ fakeroot xorriso -as mkisofs \
     -no-emul-boot \
     -boot-load-size 4 \
     -boot-info-table \
-    -o ${N_OUT}/natickOS-${BARCH}.iso \
+    -o ${N_OUT}/natickOS.iso \
     . &>> ${LOG}
 
 
-lprint "Image successfully generated! It can now be found in ${N_OUT}/natickOS-${BARCH}.iso!" "done"
+lprint "Image successfully generated! It can now be found in ${N_OUT}/natickOS.iso!" "done"

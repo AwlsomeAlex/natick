@@ -11,7 +11,7 @@
 set -eE -o functrace
 
 # --- Defined Variables --- #
-BARCH="i686"		# Only variable user should control!
+export BARCH="i686"		# Only variable user should control!
 
 # --- Call external libs --- #
 . lib/vars.sh
@@ -76,9 +76,9 @@ case "${OPT}" in
 		else
 			lprint "Starting natickOS in QEMU...." "...."
 			if [[ ${BARCH} == "x86_64" ]]; then
-				qemu-system-x86_64 -boot d -cdrom ${N_OUT}/natickOS-${BARCH}.iso -m 512
+				qemu-system-x86_64 -boot d -cdrom ${N_OUT}/natickOS.iso -m 512
 			elif [[ ${BARCH} == "i686" ]]; then
-				qemu-system-i386 -boot d -cdrom ${N_OUT}/natickOS-${BARCH}.iso -m 512
+				qemu-system-i386 -boot d -cdrom ${N_OUT}/natickOS.iso -m 512
 			else
 				lprint "Invalid Architecture: ${BARCH}" "fail"
 			fi
