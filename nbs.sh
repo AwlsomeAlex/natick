@@ -78,6 +78,21 @@ case "${OPT}" in
 		rm ${LOG} &> /dev/null
 		lprint "Cleaned natickOS Build Environment." "done"
 		;;
+	run )
+		if [[ ! -f ${N_OUT}/natickOS.iso ]]; then
+			lprint "natickOS ISO not generated. Please generate with ./geniso.sh" "fail"
+		else
+			lprint "Starting natickOS in QEMU...." "...."
+			if [[ ${BARCH} == "x86_64" ]]; then
+				qemu-system-x86_64 -boot d -cdrom ${N_OUT}/natickOS-${BARCH}.iso -m 512
+			elif [[ ${BARCH} == "i686" ]]; then
+				qemu-system-i386 -boot d -cdrom ${N_OUT}/natickOS-${BARCH}.iso -m 512
+			else
+				lprint "Invalid Architecture: ${BARCH}" "fail"
+			fi
+		fi
+		lprint "QEMU Finished." "done"
+		;;
 	"" | * )
 		lusage
 		;;

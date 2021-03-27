@@ -66,6 +66,7 @@ lusage() {
     echo "      toolchain:  Ensures mussel is compiled for ${BARCH}"
     echo "      build:      Builds a package for natickOS"
     echo "      clean:      Cleans mussel and the build environment"
+    echo "      run:        Run natickOS in QEMU"
     echo ""
     echo "[PACKAGE]: Specific package to be compiled/packed for natickOS"
     echo ""
@@ -89,13 +90,13 @@ failure() {
 # Title Screen #
 #==============#
 ltitle() {
-    echo "+========================#"
+    echo "+==========================#"
     echo "| natickOS Build System    |"
-    echo "+------------------------+"
-    echo "| Created by AwlsomeAlex |"
-    echo "| ISC License            |"
-    echo "+========================+"
+    echo "+--------------------------+"
+    echo "| Created by AwlsomeAlex   |"
+    echo "| ISC License              |"
+    echo "+==========================+"
     echo "| Building Package: ${PKG}"
-    echo "+========================+"
+    echo "+==========================+"
     echo ""
 }
