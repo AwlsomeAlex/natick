@@ -1,0 +1,77 @@
+#===========================#
+# natickOS Build System     #
+#---------------------------#
+# Burnt Tavern Recipe       #
+# ISC License               #
+#===========================#
+# Package: util-linux
+# Copyright (C) 2020-2021 Alexander Barris (AwlsomeAlex)
+# alex@awlsome.com
+# All Rights Reserved 
+#===========================#
+
+#===========#
+# Variables #
+#===========#
+pkg_name="util-linux"
+pkg_ver="2.36.2"
+pkg_verrel="2.36"
+pkg_rel="1"
+pkg_src=("https://mirrors.edge.kernel.org/pub/linux/utils/util-linux/v${pkg_verrel}/util-linux-${pkg_ver}.tar.xz")
+pkg_chk="f7516ba9d8689343594356f0e5e1a5f0da34adfbc89023437735872bb5024c5f"
+pkg_bld=()
+pkg_req=()
+pkg_desc="Miscellaneous system utilities for Linux"
+
+#============#
+# Build Area #
+#============#
+build() {
+    cd util-linux-${pkg_ver}
+    mkdir -p ${B_BUILDROOT}/${pkg_name}
+
+    # Configure
+    ./configure ${BUILDFLAGS} \
+        --prefix=/usr \
+        --exec-prefix=/usr \
+        --bindir=/usr/bin \
+        --sbindir=/usr/sbin \
+        --libexecdir=/usr/lib/util-linux \
+        --sysconfdir=/etc \
+        --sharedstatedir=/var/lib \
+        --localstatedir=/var \
+        --libdir=/usr/lib \
+        --includedir=/usr/include \
+        --disable-chfn-chsh \
+        --enable-fs-paths-default=/usr/bin \
+        --enable-usrdir-path \
+        --disable-login \
+        --disable-nologin \
+        --disable-su \
+        --disable-setpriv \
+        --disable-runuser \
+        --disable-pylibmount \
+        --disable-static \
+        --disable-makeinstall-chown \
+        --without-python \
+        --without-systemd \
+        --without-systemdsystemunitdir
+
+    # /sbin -> /usr/bin
+    sed 's/${exec_prefix}\/sbin/\/usr\/bin/' -i Makefile
+
+    # Compile
+    make ${MAKEFLAGS}
+
+    # Install
+    make DESTDIR=${B_BUILDROOT}/${pkg_name} install-strip
+
+    # FS changes
+    cd ${B_BUILDROOT}/${pkg_name}
+    mkdir -p var/lib/hwclock
+
+    # Remove .la
+    for la in libblkid libfdisk libmount libsmartcols libuuid; do
+        rm ${B_BUILDROOT}/${pkg_name}/usr/lib/${la}.la
+    done
+}

@@ -12,7 +12,7 @@
 #===========================#
 
 # --- Packages To Include --- #
-PKGS=("busybox" "musl" "linux" "midstreams" "syslinux")
+PKGS=("busybox" "musl" "linux" "linux-headers" "midstreams" "syslinux" "zlib" "ncurses" "util-linux")
 
 
 # --- Call external libs --- #
