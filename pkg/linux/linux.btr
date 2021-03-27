@@ -14,10 +14,10 @@
 # Variables #
 #===========#
 pkg_name="linux"
-pkg_ver="5.10.16"
+pkg_ver="5.11.10"
 pkg_rel="1"
 pkg_src=("https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-${pkg_ver}.tar.xz")
-pkg_chk="536fe3ea273bfcc72b3571d3b3a7ff0a5bcdc16068efd22e42c4f9d03c200a37"
+pkg_chk="d372acb8fa337141ca1bbeda9e25873c76ce52a27974226a95275ce43522dc1d"
 pkg_bld=()
 pkg_req=()
 pkg_desc="The Linux Kernel"
