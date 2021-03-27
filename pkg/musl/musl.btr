@@ -1,14 +1,14 @@
-#=========================#
-# natick Build System     #
-#-------------------------#
-# Burnt Tavern Recipe     #
-# ISC License             #
-#=========================#
+#===========================#
+# natickOS Build System     #
+#---------------------------#
+# Burnt Tavern Recipe       #
+# ISC License               #
+#===========================#
 # Package: musl libc
 # Copyright (C) 2020-2021 Alexander Barris (AwlsomeAlex)
 # alex@awlsome.com
 # All Rights Reserved 
-#=========================#
+#===========================#
 
 #===========#
 # Variables #

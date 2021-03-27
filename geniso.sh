@@ -1,15 +1,15 @@
 #!/bin/bash
-#=========================#
-# natick Build System     #
-#-------------------------#
-# Burnt Tavern Recipe     #
-# ISC License             #
-#=========================#
+#===========================#
+# natickOS Build System     #
+#---------------------------#
+# Burnt Tavern Recipe       #
+# ISC License               #
+#===========================#
 # LiveCD Generator
 # Copyright (C) 2020-2021 Alexander Barris (AwlsomeAlex)
 # alex@awlsome.com
 # All Rights Reserved
-#=========================#
+#===========================#
 
 # --- Packages To Include --- #
 PKGS=("busybox" "musl" "linux" "midstreams" "syslinux")
@@ -77,8 +77,8 @@ cd ${curr}
 lprint "Preparing Image...." "...."
 mv ${N_WORK}/iso/sysroot/boot/linux-*.xz ${N_WORK}/iso/vanzille/linux.xz
 cp -r ${N_WORK}/iso/sysroot/boot/* ${N_WORK}/iso/boot
-rm -rf /tmp/natick-sysroot
-mv ${N_WORK}/iso/sysroot /tmp/natick-sysroot
+rm -rf /tmp/natickOS-sysroot
+mv ${N_WORK}/iso/sysroot /tmp/natickOS-sysroot
 # ^^^ TEMPORARY ^^^^
 
 # --- Generate Image --- #
@@ -91,8 +91,8 @@ fakeroot xorriso -as mkisofs \
     -no-emul-boot \
     -boot-load-size 4 \
     -boot-info-table \
-    -o ${N_OUT}/natick.iso \
+    -o ${N_OUT}/natickOS.iso \
     . &>> ${LOG}
 
 
-lprint "Image successfully generated! It can now be found in ${N_OUT}/natick.iso!" "done"
+lprint "Image successfully generated! It can now be found in ${N_OUT}/natickOS.iso!" "done"

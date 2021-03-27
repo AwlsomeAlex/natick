@@ -1,14 +1,14 @@
-#=========================#
-# natick Build System     #
-#-------------------------#
-# Burnt Tavern Recipe     #
-# ISC License             #
-#=========================#
+#===========================#
+# natickOS Build System     #
+#---------------------------#
+# Burnt Tavern Recipe       #
+# ISC License               #
+#===========================#
 # Package: Linux Kernel
 # Copyright (C) 2020-2021 Alexander Barris (AwlsomeAlex)
 # alex@awlsome.com
 # All Rights Reserved 
-#=========================#
+#===========================#
 
 #===========#
 # Variables #
@@ -49,8 +49,8 @@ build() {
     make ARCH=${XKARCH} CROSS_COMPILE=${CROSS_COMPILE} ${DEFCONFIG} ${MAKEFLAGS}
 
     # Set Configuration Variables
-    sed -i "s/.*CONFIG_DEFAULT_HOSTNAME.*/CONFIG_DEFAULT_HOSTNAME=\"natick\"/" .config      # Changes Hostname
-    sed -i 's:# CONFIG_LOCALVERSION is not set :CONFIG_LOCALVERSION="-natick":g' .config    # Adds -natick to Kernel Version
+    sed -i "s/.*CONFIG_DEFAULT_HOSTNAME.*/CONFIG_DEFAULT_HOSTNAME=\"natickOS\"/" .config      # Changes Hostname
+    sed -i 's:# CONFIG_LOCALVERSION is not set :CONFIG_LOCALVERSION="-natickOS":g' .config    # Adds -natickOS to Kernel Version
     sed -i "s/.*\\(CONFIG_KERNEL_.*\\)=y/\\#\\ \\1 is not set/" .config                     # Resets compression
     sed -i "s/.*CONFIG_KERNEL_XZ.*/CONFIG_KERNEL_XZ=y/" .config                             # Defaults to XZ compression
     sed -i "s/.*CONFIG_FB_VESA.*/CONFIG_FB_VESA=y/" .config                                 # Enables VESA Framebuffer

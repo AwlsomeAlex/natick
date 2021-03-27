@@ -43,7 +43,7 @@ function moveMount() {
 #-----------------------#
 # ----- Init Area ----- #
 #-----------------------#
-echo -e "${ORANGE}========== Midstreams vGIT - natickOS ==========${NC}"
+echo -e "${ORANGE}========== Midstreams vGIT - natickOSOS ==========${NC}"
 echo -e "${BLUE}[....] ${NC}Mounting System Directories...."
 mount -t devtmpfs none /dev || rescueShell "Failed to mount /dev!"
 mount -t proc none /proc || rescueShell "Failed to mount /proc!"

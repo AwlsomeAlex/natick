@@ -1,14 +1,14 @@
 #!/bin/bash
-#=========================#
-# natick Build System     #
-#-------------------------#
-# Function library script #
-# ISC License             #
-#=========================#
+#===========================#
+# natickOS Build System     #
+#---------------------------#
+# Function library script   #
+# ISC License               #
+#===========================#
 # Copyright (C) 2020-2021 Alexander Barris (AwlsomeAlex)
 # alex@awlsome.com
 # All Rights Reserved 
-#=========================#
+#===========================#
 
 #======================#
 # Print Formatted Text #
@@ -53,28 +53,21 @@ lprint() {
 #=============#
 lusage() {
 	echo "${EXECUTE} [OPTION] [PACKAGE]"
-    echo "nbs.sh - natick Build Script"
+    echo "nbs.sh - natickOS Build Script"
     echo ""
     echo "This script compiles and packs packages that will"
-    echo "be included in natick. These packages are"
-    echo "specific to natick and their architectures."
+    echo "be included in natickOS. These packages are"
+    echo "specific to natickOS and their architectures."
     echo ""
-#    echo -e "\033[1;31mNOTICE: \033[0mDue to natick Build Script dealing with package"
-#    echo "        permissions, it must be ran as root. The script"
-#    echo "        is available with full source to see what it is"
-#    echo "        doing, but the root filesystem isnt modified at"
-#    echo "        all. This is just to ensure that generated file"
-#    echo "        have the correct ownership when packaging occur"
-#    echo ""
     echo "Selected Architecture: ${BARCH}"
     echo "To change this, modify the script."
     echo ""
     echo "[OPTION]:"
     echo "      toolchain:  Ensures mussel is compiled for ${BARCH}"
-    echo "      build:      Builds a package for natick"
+    echo "      build:      Builds a package for natickOS"
     echo "      clean:      Cleans mussel and the build environment"
     echo ""
-    echo "[PACKAGE]: Specific package to be compiled/packed for natick"
+    echo "[PACKAGE]: Specific package to be compiled/packed for natickOS"
     echo ""
     echo "Developed by Alexander Barris (AwlsomeAlex)"
     echo "Licensed under ISC License"
@@ -97,7 +90,7 @@ failure() {
 #==============#
 ltitle() {
     echo "+========================#"
-    echo "| natick Build System    |"
+    echo "| natickOS Build System    |"
     echo "+------------------------+"
     echo "| Created by AwlsomeAlex |"
     echo "| ISC License            |"

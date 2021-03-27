@@ -1,9 +1,9 @@
-# natick Research Linux Distribution
-natick is a research Linux Distribution based on the latest Linux Kernel, the BusyBox userland, and the musl C library. Extra packages like vim, util-linux, apache and more will also be included.
+# natickOS Research Linux Distribution
+natickOS is a research Linux Distribution based on the latest Linux Kernel, the BusyBox userland, and the musl C library. Extra packages like vim, util-linux, apache and more will also be included.
 
-natick is a personal research project that stemmed off of other attempts to creare a server Linux Distribution based on the musl C library. It uses the mussel toolchain for package compilation and an in-house init system close to SysV.
+natickOS is a personal research project that stemmed off of other attempts to creare a server Linux Distribution based on the musl C library. It uses the mussel toolchain for package compilation and an in-house init system close to SysV.
 
-natick is currently targeted for x86 (32-bit and 64-bit) systems, but I plan on adding ARM support for the Raspberry Pi in the future. The goal of this project is to make an easy to understand, minimal, lightweight, and easy to use server operating system. To do this, I will be using the musl-libc. I understand this breaks compatibility for a lot of things (Nvidia Drivers, SystemD, Steam, AppImages), but gaming is not the goal of this distro.
+natickOS is currently targeted for x86 (32-bit and 64-bit) systems, but I plan on adding ARM support for the Raspberry Pi in the future. The goal of this project is to make an easy to understand, minimal, lightweight, and easy to use server operating system. To do this, I will be using the musl-libc. I understand this breaks compatibility for a lot of things (Nvidia Drivers, SystemD, Steam, AppImages), but gaming is not the goal of this distro.
 
 **THIS PROJECT IS FOR ADVANCED LINUX USERS AND SHOULD NOT BE USED ON PRODUCTION SYSTEMS**
 
@@ -21,15 +21,15 @@ natick is currently targeted for x86 (32-bit and 64-bit) systems, but I plan on 
 ### mussel Toolchain
 [GitHub](https://github.com/firasuke/mussel)
 <br>
-### nbs.sh (natick Build Script) Options:
-`./nbs.sh toolchain` - Compiles natick toolchain
+### nbs.sh (natickOS Build Script) Options:
+`./nbs.sh toolchain` - Compiles natickOS toolchain
 <br>
 `./nbs.sh build [package]` - Compiles defined package
 <br>
 `./nbs.sh clean` - Cleans build environment
 
 ## License
-natick, `/nbs.sh` and other scripts are licensed under the ISC license. <br>
+natickOS, `/nbs.sh` and other scripts are licensed under the ISC license. <br>
 mussel is also licensed under the ISC license.
 
 ## Contributors

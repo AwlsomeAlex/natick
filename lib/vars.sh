@@ -1,21 +1,21 @@
 #!/bin/bash
-#=========================#
-# natick Build System     #
-#-------------------------#
-# Variable library script #
-# ISC License             #
-#=========================#
+#===========================#
+# natickOS Build System     #
+#---------------------------#
+# Variable library script   #
+# ISC License               #
+#===========================#
 # Copyright (C) 2020-2021 Alexander Barris (AwlsomeAlex)
 # alex@awlsome.com
 # All Rights Reserved 
-#=========================#
+#===========================#
 
 # --- Directory File Structure --- #
-export N_ROOT="$(pwd)"						# natick Project Root
-export N_PKG="${N_ROOT}/pkg"				# natick Package Repository
-export N_WORK="${N_ROOT}/work"				# natick Work Directory
-export N_OUT="${N_ROOT}/out"				# natick Out Directory
-export LOG="${N_ROOT}/log.txt"				# natick Log File
+export N_ROOT="$(pwd)"						# natickOS Project Root
+export N_PKG="${N_ROOT}/pkg"				# natickOS Package Repository
+export N_WORK="${N_ROOT}/work"				# natickOS Work Directory
+export N_OUT="${N_ROOT}/out"				# natickOS Out Directory
+export LOG="${N_ROOT}/log.txt"				# natickOS Log File
 
 # --- Toolchain Configuration --- #
 export M_PROJECT="${N_ROOT}/toolchain"		# mussel Project Root
@@ -81,14 +81,14 @@ vdef() {
 }
 
 vprint() {
-	printf "========== Natick: Directories ================\n"
+	printf "========== natickOS: Directories ================\n"
 	printf "ROOT:\t\t\t${N_ROOT}\n"
 	printf "PKGS:\t\t\t${N_PKG}\n"
 	printf "WORK:\t\t\t${N_WORK}\n"
 	printf "OUT:\t\t\t${N_OUT}\n"
 	printf "LOG:\t\t\t${LOG}\n\n"
 
-	printf "========== Natick: Package Directories ==========\n"
+	printf "========== natickOS: Package Directories ==========\n"
 	printf "N_TOP:\t\t\t${N_TOP}\n"
 	printf "B_BUILDDIR:\t\t${B_BUILDDIR}\n"
 	printf "B_SOURCEDIR:\t${B_SOURCEDIR}\n"

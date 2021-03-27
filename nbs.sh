@@ -1,13 +1,13 @@
 #!/bin/bash
-#=========================#
-# natick Build System     #
-#-------------------------#
-# Main Executable script  #
-# ISC License             #
-#=========================#
+#===========================#
+# natickOS Build System     #
+#---------------------------#
+# Main Executable script    #
+# ISC License               #
+#===========================#
 # Copyright (C) 2020-2021 Alexander Barris (AwlsomeAlex)
 # All Rights Reserved 
-#=========================#
+#===========================#
 set -eE -o functrace
 
 # --- Defined Variables --- #
@@ -42,10 +42,6 @@ case "${OPT}" in
 	build )
 		echo ""
 		ltitle 
-		# Check if user is root
-		#if [ "$EUID" -ne 0 ]; then
-		#	lprint "natick Build Script must be ran as root. To learn more, read help dialog." "fail"
-		#fi
 		
 		# Check if directories exist
 		if [[ ! -d ${M_PREFIX} ]]; then
@@ -76,11 +72,11 @@ case "${OPT}" in
 		if [[ ${PKG} != "--skip-toolchain" ]]; then
 			./mussel.sh -c
 		fi
-		lprint "Cleaning natick Build Environment...." "...."
+		lprint "Cleaning natickOS Build Environment...." "...."
 		rm -rf ${N_OUT} &> /dev/null
 		rm -rf ${N_WORK} &> /dev/null
 		rm ${LOG} &> /dev/null
-		lprint "Cleaned natick Build Environment." "done"
+		lprint "Cleaned natickOS Build Environment." "done"
 		;;
 	"" | * )
 		lusage

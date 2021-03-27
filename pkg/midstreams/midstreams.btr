@@ -1,14 +1,14 @@
-#=========================#
-# natick Build System     #
-#-------------------------#
-# Burnt Tavern Recipe     #
-# ISC License             #
-#=========================#
+#===========================#
+# natickOS Build System     #
+#---------------------------#
+# Burnt Tavern Recipe       #
+# ISC License               #
+#===========================#
 # Package: midstreams
 # Copyright (C) 2020-2021 Alexander Barris (AwlsomeAlex)
 # alex@awlsome.com
 # All Rights Reserved 
-#=========================#
+#===========================#
 
 #===========#
 # Variables #
@@ -20,7 +20,7 @@ pkg_src=()
 pkg_chk=""
 pkg_bld=()
 pkg_req=()
-pkg_desc="Midstreams INIT for natickOS"
+pkg_desc="Midstreams INIT for natickOSOS"
 
 #============#
 # Build Area #
