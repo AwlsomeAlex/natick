@@ -1,5 +1,5 @@
 #===========================#
-# natickOS Build System     #
+# natickOS Build Script     #
 #---------------------------#
 # Burnt Tavern Recipe       #
 # ISC License               #
@@ -27,10 +27,7 @@ pkg_desc="Miscellaneous system utilities for Linux"
 # Build Area #
 #============#
 build() {
-    cd util-linux-${pkg_ver}
-    mkdir -p ${B_BUILDROOT}/${pkg_name}
-
-    # Configure
+    # --- Configure --- #
     ./configure ${BUILDFLAGS} \
         --prefix=/usr \
         --exec-prefix=/usr \
@@ -57,21 +54,21 @@ build() {
         --without-systemd \
         --without-systemdsystemunitdir
 
-    # /sbin -> /usr/bin
+    # --- /sbin -> /usr/bin --- #
     sed 's/${exec_prefix}\/sbin/\/usr\/bin/' -i Makefile
 
-    # Compile
+    # --- Compile --- #
     make ${MAKEFLAGS}
 
-    # Install
-    make DESTDIR=${B_BUILDROOT}/${pkg_name} install-strip
+    # --- Install --- #
+    make DESTDIR=${B_BUILDROOT} install-strip
 
-    # FS changes
-    cd ${B_BUILDROOT}/${pkg_name}
+    # --- Extra Directories --- #
+    cd ${B_BUILDROOT}
     mkdir -p var/lib/hwclock
 
-    # Remove .la
+    # --- Clean Static Libraries --- #
     for la in libblkid libfdisk libmount libsmartcols libuuid; do
-        rm ${B_BUILDROOT}/${pkg_name}/usr/lib/${la}.la
+        rm ${B_BUILDROOT}/usr/lib/${la}.la
     done
 }

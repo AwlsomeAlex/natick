@@ -1,0 +1,56 @@
+#===========================#
+# natickOS Build Script     #
+#---------------------------#
+# Burnt Tavern Recipe       #
+# ISC License               #
+#===========================#
+# Package: Linux Kernel
+# Copyright (C) 2020-2021 Alexander Barris (AwlsomeAlex)
+# alex@awlsome.com
+# All Rights Reserved 
+#===========================#
+
+#===========#
+# Variables #
+#===========#
+# NOTE: No Source Provided because it uses pkg 'linux'
+pkg_name="linux-headers"
+pkg_ver="5.11.10"
+pkg_rel="1"
+pkg_src=()
+pkg_chk=""
+pkg_bld=("linux")
+pkg_req=()
+pkg_desc="The Linux Kernel Header Files"
+
+#============#
+# Build Vars #
+#============#
+# Kernel Architecture Selector
+case "${BARCH}" in
+    x86_64)
+        export SUBKARCH="x86"
+        export XKARCH="x86_64"
+        export DEFCONFIG="x86_64_defconfig"
+        ;;
+    i686)
+        export SUBKARCH="x86"
+        export XKARCH="i386"
+        export DEFCONFIG="i386_defconfig"
+        ;;
+esac
+
+#============#
+# Build Area #
+#============#
+build() {
+    # --- NOTE: Uses 'linux' source --- #
+    cd ${N_WORK}/linux/build/linux-${pkg_ver}
+
+    # --- Compile --- #
+    mkdir -p ${B_BUILDROOT}/usr/include
+    make ARCH=${XKARCH} headers
+    find usr/include -name '.*' -delete
+    rm usr/include/Makefile
+    cp -a usr/include/* ${B_BUILDROOT}/usr/include
+}

@@ -1,5 +1,5 @@
 #===========================#
-# natickOS Build System     #
+# natickOS Build Script     #
 #---------------------------#
 # Burnt Tavern Recipe       #
 # ISC License               #
@@ -26,29 +26,28 @@ pkg_desc="musl C Library"
 # Build Area #
 #============#
 build() {
-    cd musl-${pkg_ver}
-    mkdir -p ${B_BUILDROOT}/${pkg_name}/usr/bin
+    mkdir -p ${B_BUILDROOT}/usr/bin
 
-    # Test Package
+    # --- Test Toolchain --- #
     ${CROSS_COMPILE}gcc ${CFLAGS} -c ${N_PKG}/${pkg_name}/files/__stack_chk_fail_local.c -o __stack_chk_fail_local.o
     ${CROSS_COMPILE}ar r libssp_nonshared.a __stack_chk_fail_local.o
 
-    # Configure musl
+    # --- Configure --- #
     ./configure ${TOOLFLAGS} \
         --prefix=/usr \
         --libdir=/usr/lib \
         --syslibdir=/usr/lib \
         --enable-optimize=size
 
-    # Compile musl (pkg: musl)
-    make DESTDIR=${B_BUILDROOT}/${pkg_name} ${MAKEFLAGS}
-    make DESTDIR=${B_BUILDROOT}/${pkg_name} install ${MAKEFLAGS}
-    cp libssp_nonshared.a ${B_BUILDROOT}/${pkg_name}/usr/lib
-    ln -sf ../lib/libc.so ${B_BUILDROOT}/${pkg_name}/usr/bin/ldd    # ldd symlink
-    cat > ${B_BUILDROOT}/${pkg_name}/usr/bin/ldconfig << "EOF"
+    # --- Compile --- #
+    make DESTDIR=${B_BUILDROOT} ${MAKEFLAGS}
+    make DESTDIR=${B_BUILDROOT} install ${MAKEFLAGS}
+    cp libssp_nonshared.a ${B_BUILDROOT}/usr/lib
+    ln -sf ../lib/libc.so ${B_BUILDROOT}/usr/bin/ldd    # ldd symlink
+    cat > ${B_BUILDROOT}/usr/bin/ldconfig << "EOF"
 #!/bin/sh
 echo "adjusting libs..."
 true
 EOF
-	chmod +x ${B_BUILDROOT}/${pkg_name}/usr/bin/ldconfig            # dummy ldconfig
+	chmod +x ${B_BUILDROOT}/usr/bin/ldconfig            # dummy ldconfig
 }

@@ -1,5 +1,5 @@
 #===========================#
-# natickOS Build System     #
+# natickOS Build Script     #
 #---------------------------#
 # Burnt Tavern Recipe       #
 # ISC License               #
@@ -26,18 +26,15 @@ pkg_desc="The Zlib compression and decompression library"
 # Build Area #
 #============#
 build() {
-    cd zlib-${pkg_ver}
-    mkdir ${B_BUILDROOT}/${pkg_name}
-   
-    # Export Variables
+    # --- Export CHOST --- #
     export CHOST="${XTARGET}"
 
-    # Configure
+    # --- Configure --- #
     ./configure --prefix=/usr
 
-    # Compile
+    # --- Compile --- #
     make ${MAKEFLAGS}
 
-    # Install
-    make DESTDIR=${B_BUILDROOT}/${pkg_name} install
+    # --- Install --- #
+    make DESTDIR=${B_BUILDROOT} install
 }

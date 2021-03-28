@@ -1,5 +1,5 @@
 #===========================#
-# natickOS Build System     #
+# natickOS Build Script     #
 #---------------------------#
 # Burnt Tavern Recipe       #
 # ISC License               #
@@ -26,17 +26,14 @@ pkg_desc="System V Release 4.0 curses emulation library"
 # Build Area #
 #============#
 build() {
-    cd ncurses-${pkg_ver}
-    mkdir ${B_BUILDROOT}/${pkg_name}
-   
-    # Set HostCC
+    # --- Select HostCC --- #
     if [ -n "${HOSTCC}" ]; then
         BUILDFLAGS="${BUILDFLAGS} --with-build-cc=${HOSTCC}"
     else
         BUILDFLAGS="${BUILDFLAGS}"
     fi
 
-    # Configure
+    # --- Configure --- #
     ./configure ${BUILDFLAGS} \
         --prefix=/usr \
         --mandir=/usr/share/man \
@@ -51,29 +48,29 @@ build() {
         --enable-pc-files \
         --enable-widec
 
-    # Compile
+    # --- Compile --- #
     make ${MAKEFLAGS}
 
-    # Install
-    make -j1 DESTDIR=${B_BUILDROOT}/${pkg_name} install
+    # --- Install --- #
+    make -j1 DESTDIR=${B_BUILDROOT} install
 
     # Symlink Libraries together (LFS)
     #
     # Source: http://www.linuxfromscratch.org/lfs/view/stable/chapter08/ncurses.html
     #
     for lib in ncurses form panel menu; do
-        echo "INPUT(-l${lib}w)" > ${B_BUILDROOT}/${pkg_name}/usr/lib/lib${lib}.so
-        echo "INPUT(-l${lib}w)" > ${B_BUILDROOT}/${pkg_name}/usr/lib/lib${lib}.a
-        ln -sf ${lib}w.pc ${B_BUILDROOT}/${pkg_name}/usr/lib/pkgconfig/${lib}.pc
+        echo "INPUT(-l${lib}w)" > ${B_BUILDROOT}/usr/lib/lib${lib}.so
+        echo "INPUT(-l${lib}w)" > ${B_BUILDROOT}/usr/lib/lib${lib}.a
+        ln -sf ${lib}w.pc ${B_BUILDROOT}/usr/lib/pkgconfig/${lib}.pc
     done
     for lib in tic tinfo; do
-        echo "INPUT(libncursesw.so.${PKG_VERSION})" > ${B_BUILDROOT}/${pkg_name}/usr/lib/lib${lib}.so
-        ln -sf libncursesw.so.${PKG_VERSION} ${B_BUILDROOT}/${pkg_name}/usr/lib/lib${lib}.so.${PKG_VERSION}
+        echo "INPUT(libncursesw.so.${PKG_VERSION})" > ${B_BUILDROOT}/usr/lib/lib${lib}.so
+        ln -sf libncursesw.so.${PKG_VERSION} ${B_BUILDROOT}/usr/lib/lib${lib}.so.${PKG_VERSION}
     done
-    echo 'INPUT(-lncursesw)' > ${B_BUILDROOT}/${pkg_name}/usr/lib/libcursesw.so
-	ln -sf libncurses.so ${B_BUILDROOT}/${pkg_name}/usr/lib/libcurses.so
-	ln -sf ncursesw6-config ${B_BUILDROOT}/${pkg_name}/usr/bin/ncurses6-config
+    echo 'INPUT(-lncursesw)' > ${B_BUILDROOT}/usr/lib/libcursesw.so
+	ln -sf libncurses.so ${B_BUILDROOT}/usr/lib/libcurses.so
+	ln -sf ncursesw6-config ${B_BUILDROOT}/usr/bin/ncurses6-config
 
     # Remove un-needed binaries
-    rm -rf ${B_BUILDROOT}/${pkg_name}/usr/bin
+    rm -rf ${B_BUILDROOT}/usr/bin
 }

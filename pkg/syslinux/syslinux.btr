@@ -1,5 +1,5 @@
 #===========================#
-# natickOS Build System     #
+# natickOS Build Script     #
 #---------------------------#
 # Burnt Tavern Recipe       #
 # ISC License               #
@@ -27,15 +27,15 @@ pkg_desc="Syslinux Bootloader"
 # Build Area #
 #============#
 build() {
-    # Create Directories
-    mkdir -p ${B_BUILDROOT}/syslinux/boot/{isolinux,syslinux}
+    # --- Create Directories --- #
+    mkdir -p ${B_BUILDROOT}/boot/{isolinux,syslinux}
 
-    # Copy Syslinux Files to Buildroot
-    cp syslinux-${pkg_ver}/bios/core/isolinux.bin ${B_BUILDROOT}/syslinux/boot/isolinux
-    cp syslinux-${pkg_ver}/bios/com32/elflink/ldlinux/ldlinux.c32 ${B_BUILDROOT}/syslinux/boot/isolinux
+    # --- Copy tarball files to BUILDROOT --- #
+    cp bios/core/isolinux.bin ${B_BUILDROOT}/boot/isolinux
+    cp bios/com32/elflink/ldlinux/ldlinux.c32 ${B_BUILDROOT}/boot/isolinux
 
-    # Copy Local Files to Buildroot
-    cp ${N_PKG}/${pkg_name}/files/isohdpfx.bin ${B_BUILDROOT}/syslinux/boot/isolinux
-    cp ${N_PKG}/${pkg_name}/files/isolinux.cfg ${B_BUILDROOT}/syslinux/boot/isolinux
-    cp ${N_PKG}/${pkg_name}/files/syslinux.cfg ${B_BUILDROOT}/syslinux/boot/syslinux
+    # --- Copy local files to BUILDROOT --- #
+    cp ${N_PKG}/${pkg_name}/files/isohdpfx.bin ${B_BUILDROOT}/boot/isolinux
+    cp ${N_PKG}/${pkg_name}/files/isolinux.cfg ${B_BUILDROOT}/boot/isolinux
+    cp ${N_PKG}/${pkg_name}/files/syslinux.cfg ${B_BUILDROOT}/boot/syslinux
 }

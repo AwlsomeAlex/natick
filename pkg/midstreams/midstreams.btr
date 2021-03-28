@@ -1,5 +1,5 @@
 #===========================#
-# natickOS Build System     #
+# natickOS Build Script     #
 #---------------------------#
 # Burnt Tavern Recipe       #
 # ISC License               #
@@ -26,7 +26,6 @@ pkg_desc="Midstreams INIT for natickOSOS"
 # Build Area #
 #============#
 build() {
-    # Copy to FS (pkg: midstreams)
-    mkdir -p ${B_BUILDROOT}/${pkg_name}
-    cp -r ${N_PKG}/${pkg_name}/files/* ${B_BUILDROOT}/${pkg_name}
+    # --- Copy local files to BUILDROOT --- #
+    cp -r ${N_PKG}/${pkg_name}/files/* ${B_BUILDROOT}
 }
