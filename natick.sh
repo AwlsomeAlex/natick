@@ -471,13 +471,13 @@ function niso() {
         rm -rf ${N_WORK}/iso
     elif [[ -d ${N_WORK}/iso ]]; then
         lprint "The ISO work directory seems to be occupied." "warn"
-	read -p "Delete? (Y/n): " input
-	if [[ ${input} == "Y" ]]; then
+	    read -p "Delete? (Y/n): " input
+	    if [[ ${input} == "Y" ]]; then
             rm -rf ${N_WORK}/iso/
             echo ""
-	else
+	    else
             lprint "Good call." "fail"
-	fi
+	    fi
     fi
     mkdir -p ${N_WORK}/iso/{sysroot,vanzille,boot}
 
@@ -541,7 +541,100 @@ function niso() {
         . &>> ${LOG} || true
     
     # --- Done --- #
-    lprint "Image successfully generated! It can now be found in ${N_OUT}/natickOS-${BARCH}.iso!" "done"
+    lprint "LiveCD successfully generated! It can now be found in ${N_OUT}/natickOS-${BARCH}.iso!" "done"
+}
+
+# nimg(): Generate natickOS Image
+# Process from glaucus Linux: https://github.com/glaucuslinux/radula/blob/master/radula#L826
+function nimg() {
+    export PKG="img"
+
+    local img="${N_WORK}/img/natickOS-${BARCH}.img"
+    local size="128M"
+    local loop=$(losetup -f)
+    local mnt="/mnt/natick"
+
+    ltitle
+
+    # --- Check Directory --- #
+    if [[ -d ${N_WORK}/img ]] && [[ ${ARG} == "--force" ]]; then
+        rm -rf ${N_WORK}/img
+    elif [[ -d ${N_WORK}/img ]]; then
+        lprint "The IMG work directory seems to be occupied." "warn"
+	    read -p "Delete? (Y/n): " input
+	    if [[ ${input} == "Y" ]]; then
+            rm -rf ${N_WORK}/img/
+            echo ""
+	    else
+            lprint "Good call." "fail"
+	    fi
+    fi
+    mkdir -p ${N_WORK}/img
+    mkdir -p ${mnt}
+
+    # --- LOG Redirection --- #
+    export LOG=${N_WORK}/img/log.txt
+
+    # --- Create and Format IMG --- #
+    lprint "Preparing IMG...." "...."
+    qemu-img create -f raw ${img} ${size} &>> ${LOG}
+    dd if=${N_PKG}/syslinux/files/mbr.bin of=${img} conv=notrunc bs=440 count=1 &>> ${LOG}
+    parted -s ${img} mklabel msdos &>> ${LOG}
+    parted -s -a none ${img} mkpart primary ext4 0 ${size} &>> ${LOG}
+    parted -s -a none ${img} set 1 boot on &>> ${LOG}
+
+    # --- Loopback Device --- #
+    losetup -D &>> ${LOG}
+    losetup ${loop} ${img} &>> ${LOG}
+
+    # --- MKFS IMG --- #
+    partx -a ${loop} &>> ${LOG}
+    mkfs.ext4 $(printf ${loop})p1 &>> ${LOG}
+    mount $(printf ${loop})p1 ${mnt}
+    rm -rf ${mnt}/lost+found > /dev/null
+
+    # --- Create IMG File Sctructure --- #
+    lprint "Occupying IMG...." "...."
+    mkdir -p ${mnt}/{boot,dev,etc,mnt/root,proc,root,sys,tmp,usr/{bin,lib,sbin,share,include},run}
+    curr=$(pwd)
+    cd ${mnt}
+    ln -s usr/bin bin
+    ln -s usr/sbin sbin
+    ln -s usr/lib lib
+    cd ${curr}
+
+    # --- Copy Packages to IMG --- #
+    for item in ${PKGS[@]}; do
+        if [ ! -f ${N_OUT}/${item}-[0-9]*.tar.zst ]; then
+            lprint "${item} not compiled. Please compile it with '${EXEC} build ${item}" "fail"
+        elif [[ ${item} == "syslinux" ]]; then # syslinux conflicts with extlinux
+            continue
+        else
+            file="${N_OUT}/${item}-[0-9]*.tar.zst"
+            tar -xf ${file} -C ${mnt}
+        fi
+    done
+
+    # --- Install extlinux to IMG --- #
+    lprint "Installing extlinux...." "...."
+    mkdir ${mnt}/boot/extlinux > /dev/null
+    cp ${N_PKG}/syslinux/files/extlinux.conf ${mnt}/boot/extlinux &>> ${LOG}
+    extlinux --install ${mnt}/boot/extlinux &>> ${LOG}
+
+    # --- Change owner to root:root --- #
+    chattr -i ${mnt}/boot/extlinux/ldlinux.sys
+    chown -Rv 0:0 ${mnt} > /dev/null
+    mv ${mnt}/boot/linux-* ${mnt}/boot/linux.xz
+
+    # --- Clean up --- #
+    umount -f ${mnt} &>> ${LOG}
+    partx -d ${loop}
+    losetup -d ${loop}
+    cp ${img} ${N_OUT}
+    chown -R ${USER}:${USER} ${N_WORK}/img
+
+    lprint "Image successfully generated! It can now be found in ${N_OUT}/natickOS-${BARCH}.img!" "done"
+
 }
 
 #================#
@@ -571,7 +664,7 @@ case "${OPT}" in
             export PKG="${p}"
             nbuild --force
         done
-        niso --force
+        nimg --force
         ;;
     "build" )
         # This does directory and package checks, then compiles
@@ -586,6 +679,21 @@ case "${OPT}" in
         export ARG=${PKG}
         niso
         ;;
+    "img" )
+        # This creates a natickOS System Image. It is different
+        # from a LiveCD because this is a "real" natickOS system
+        # in theory. The IMG acts more like a virtual disk instead
+        # of a liveCD. ATM it is MBR only....
+        #
+        # THIS MUST BE RAN AS ROOT BECAUSE IT REQUIRES ACCESS
+        # TO SYSTEM LOOPBACK DEVICES
+        if [ $(id -u) -ne 0 ]; then
+            lprint "'${EXEC} img' must be ran as root!" "fail"
+        else
+            export ARG=${PKG}
+            nimg
+        fi
+        ;;
     "clean" )
         cd ${M_PROJECT}
         if [[ ${PKG} != "--skip-toolchain" ]]; then
@@ -598,14 +706,16 @@ case "${OPT}" in
         echo -e "${GREEN}=> ${NC}Cleaned natickOS Build Environment." "done"
         ;;
     "run" )
-        if [[ ! -f ${N_OUT}/natickOS-${BARCH}.iso ]]; then
-            lprint "natickOS ISO not generated. Please generate with ./geniso.sh" "fail"
+        if [[ ! -f ${N_OUT}/natickOS-${BARCH}.img ]]; then
+            lprint "natickOS IMG not generated. Please generate with '${EXEC} img'" "fail"
 	else
             lprint "Starting natickOS in QEMU...." "...."
             if [[ ${BARCH} == "x86_64" ]]; then
-                qemu-system-x86_64 -boot d -cdrom ${N_OUT}/natickOS-${BARCH}.iso -m 512
+                #qemu-system-x86_64 -boot d -cdrom ${N_OUT}/natickOS-${BARCH}.iso -m 512
+                qemu-system-x86_64 -boot d -drive format=raw file=${N_OUT}/natickOS-${BARCH}.img -m 512
             elif [[ ${BARCH} == "i686" ]]; then
-                qemu-system-i386 -boot d -cdrom ${N_OUT}/natickOS-${BARCH}.iso -m 512
+                #qemu-system-i386 -boot d -cdrom ${N_OUT}/natickOS-${BARCH}.iso -m 512
+                qemu-system-i386 -boot d -drive format=raw file=${N_OUT}/natickOS-${BARCH}.img -m 512
             else
                 lprint "Invalid Architecture: ${BARCH}" "fail"
             fi
@@ -625,14 +735,15 @@ case "${OPT}" in
         echo "Selected Architecture: ${BARCH}"
         echo ""
         echo "[OPTION]:"
-        echo "      check:     Determines if system can build natickOS"
-        echo "      toolchain: Build mussel for ${BARCH}"
-        echo "      all:       Compile/Pack every available natickOS Package"
-        echo "      build:     Compile and pack a package for natickOS"
-        echo "      iso:       Generate natickOS Live Image"
-        echo "      run:       Run natickOS Live Image in QEMU"
-        echo "      clean:     Clean the build environment and mussel"
-        echo "      usage:     Display this message"
+        echo "       check:     Determines if system can build natickOS"
+        echo "       toolchain: Build mussel for ${BARCH}"
+        echo "       all:       Compile/Pack every available natickOS Package"
+        echo "       build:     Compile and pack a package for natickOS"
+        echo "       iso:       Generate natickOS Live Image"
+        echo "(root) img:       Generate natickOS System Image"
+        echo "       run:       Run natickOS System Image in QEMU"
+        echo "       clean:     Clean the build environment and mussel"
+        echo "       usage:     Display this message"
         echo ""
         echo "[PACKAGE]: Name of package to be compiled for natickOS"
         echo ""
