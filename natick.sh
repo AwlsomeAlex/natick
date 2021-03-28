@@ -424,8 +424,14 @@ function nbuild() {
     for i in "${!pkg_src[@]}"; do
         l_src="${pkg_src[i]}"
         l_sum="${pkg_chk[i]}"
-        l_archive=${l_src##*/}
+        if [[ ${l_src} == *github* ]]; then
+            l_archive="${pkg_name}-${pkg_ver}.tar.gz" # Special case for GitHub because their URL doesn't match archive name....
+        else
+            l_archive=${l_src##*/}
+        fi
         lprint "Downloading and Extracting ${l_archive}...." "...."
+
+        
 	    if [[ ! -f ${B_SOURCEDIR}/${l_archive} ]]; then
                 (cd ${B_SOURCEDIR} && curl -LJO ${l_src})
 	    fi
