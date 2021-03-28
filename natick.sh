@@ -15,9 +15,10 @@ set -eE -o functrace
 # These are the only variable the user should control
 # Because this defines the architecture of natickOS
 # and defines which packages are included in 'all'
+# along with packages included in LiveCD
 
-#export BARCH="x86_64"
-export BARCH="i686"
+export BARCH="x86_64"
+#export BARCH="i686"
 export PKGS=("busybox" "musl" "linux" "linux-headers" "midstreams" "syslinux" "zlib" "ncurses" "util-linux")
 
 #=========================================#
@@ -455,8 +456,6 @@ function nbuild() {
 function niso() {
     local arg=$1
 
-    # --- List of packages to bundle into InitramFS --- #
-    pkgs=("busybox" "musl" "linux" "linux-headers" "midstreams" "syslinux" "zlib" "ncurses" "util-linux")
     export PKG="iso"
     ltitle
 
@@ -491,7 +490,7 @@ function niso() {
 
     # --- Populate InitramFS --- #
     lprint "Populating InitramFS...." "...."
-    for item in ${pkgs[@]}; do
+    for item in ${PKGS[@]}; do
         if [ ! -f ${N_OUT}/${item}-[0-9]*.tar.zst ]; then
             lprint "${item} not compiled. Please compile it with '${EXEC} build ${item}" "fail"
         else
