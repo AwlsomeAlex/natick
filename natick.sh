@@ -664,7 +664,6 @@ case "${OPT}" in
             export PKG="${p}"
             nbuild --force
         done
-        nimg --force
         ;;
     "build" )
         # This does directory and package checks, then compiles
