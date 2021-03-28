@@ -19,11 +19,11 @@ set -eE -o functrace
 
 export BARCH="x86_64"
 #export BARCH="i686"
-export PKGS=("busybox" "musl" "linux" "linux-headers" "midstreams" "syslinux" "zlib" "ncurses" "util-linux")
+export PKGS=("busybox" "musl" "linux" "linux-headers" "midstreams" "syslinux" "zlib" "ncurses" "util-linux" "e2fsprogs" "vim" "dialog")
 
-#=========================================#
-# DO NOT CHANGE ANYTHING AT THIS POINT :) #
-#=========================================#
+#============================================#
+# DO NOT CHANGE ANYTHING AFTER THIS POINT :) #
+#============================================#
 
 # --- Local Variables --- #
 EXEC=$0                                     # Executable Name
@@ -461,10 +461,7 @@ function nbuild() {
 }
 
 # niso(): Generate natickOS Live Image
-# $1: Option to force rebuild
 function niso() {
-    local arg=$1
-
     export PKG="iso"
     ltitle
 
@@ -586,6 +583,7 @@ case "${OPT}" in
         # This creates a dummy File System and populates it with
         # natickOS packages. Then it is dumped into an InitramFS
         # and stuffed into a LiveCD. ATM it is MBR only....
+        export ARG=${PKG}
         niso
         ;;
     "clean" )
