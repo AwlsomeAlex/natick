@@ -442,6 +442,8 @@ function nbuild() {
     # --- BTR Build --- #
     if [[ ${PKG} == "midstreams" ]] || [[ ${PKG} == "linux-headers" ]]; then
         echo "Skipping...." &>> /dev/null
+    elif [[ ${PKG} == *zulu* ]]; then
+        cd ${B_BUILDDIR}/zulu${PKG_VER}*
     else
         cd ${B_BUILDDIR}/${pkg_name}-${pkg_ver}
     fi
