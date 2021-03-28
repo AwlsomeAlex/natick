@@ -374,50 +374,50 @@ function nbuild() {
     echo "" &>> ${LOG}
     cat /etc/os-release &>> ${LOG}
     printf "\n========== natickOS: Directories ================\n" &>> ${LOG}
-	printf "ROOT:\t\t\t${N_ROOT}\n" &>> ${LOG}
-	printf "PKGS:\t\t\t${N_PKG}\n" &>> ${LOG}
-	printf "WORK:\t\t\t${N_WORK}\n" &>> ${LOG}
-	printf "OUT:\t\t\t${N_OUT}\n" &>> ${LOG}
+    printf "ROOT:\t\t\t${N_ROOT}\n" &>> ${LOG}
+    printf "PKGS:\t\t\t${N_PKG}\n" &>> ${LOG}
+    printf "WORK:\t\t\t${N_WORK}\n" &>> ${LOG}
+    printf "OUT:\t\t\t${N_OUT}\n" &>> ${LOG}
     printf "PKG:\t\t\t${PKG}\n" &>> ${LOG}
-	printf "LOG:\t\t\t${LOG}\n\n" &>> ${LOG}
-	printf "========== natickOS: Package Directories ==========\n" &>> ${LOG}
-	printf "N_TOP:\t\t\t${N_TOP}\n" &>> ${LOG}
-	printf "B_BUILDDIR:\t\t${B_BUILDDIR}\n" &>> ${LOG}
-	printf "B_SOURCEDIR:\t${B_SOURCEDIR}\n" &>> ${LOG}
-	printf "B_BUILDROOT:\t${B_BUILDROOT}\n\n" &>> ${LOG}
-	printf "========== mussel: Directories ==================\n" &>> ${LOG}
-	printf "M_PROJECT:\t\t${M_PROJECT}\n" &>> ${LOG}
-	printf "M_PREFIX:\t\t${M_PREFIX}\n" &>> ${LOG}
-	printf "M_SYSROOT:\t\t${M_SYSROOT}\n\n" &>> ${LOG}
-	printf "========== mussel: Host Information =============\n" &>> ${LOG}
-	printf "HOSTCC:\t\t\t${HOSTCC}\n" &>> ${LOG}
-	printf "HOSTCXX:\t\t${HOSTCXX}\n" &>> ${LOG}
-	printf "HOSTPATH:\t\t${HOSTPATH}\n" &>> ${LOG}
-	printf "ORIGMAKE:\t\t${ORIGMAKE}\n\n" &>> ${LOG}
-	printf "========== mussel: Platform Information =========\n" &>> ${LOG}
-	printf "XTARGET:\t\t${XTARGET}\n" &>> ${LOG}
-	printf "XHOST:\t\t\t${XHOST}\n\n" &>> ${LOG}
-	printf "========== mussel: Compiler Flags ===============\n" &>> ${LOG}
-	printf "CFLAGS:\t\t\t${CFLAGS}\n" &>> ${LOG}
-	printf "CXXFLAGS:\t\t${CXXFLAGS}\n" &>> ${LOG}
-	printf "LC_ALL:\t\t\t${LC_ALL}\n" &>> ${LOG}
-	printf "MAKEFLAGS:\t\t${MAKEFLAGS}\n\n" &>> ${LOG}
-	printf "========== mussel: Build Flags ==================\n" &>> ${LOG}
-	printf "PKG_CONFIG_PATH:\t\t\t\t${PKG_CONFIG_PATH}\n" &>> ${LOG} 
-	printf "PKG_CONFIG_LIBDIR:\t\t\t\t${PKG_CONFIG_LIBDIR}\n" &>> ${LOG} 
-	printf "PKG_CONFIG_SYSROOT:\t\t\t\t${PKG_CONFIG_SYSROOT}\n" &>> ${LOG}
-	printf "PKG_CONFIG_SYSTEM_INCLUDE_PATH:\t${PKG_CONFIG_SYSTEM_INCLUDE_PATH}\n" &>> ${LOG}
-	printf "PKG_CONFIG_SYSTEM_LIBRARY_PATH:\t${PKG_CONFIG_SYSTEM_LIBRARY_PATH}\n\n" &>> ${LOG}
-	printf "========== mussel: Executable Names =============\n" &>> ${LOG}
-	printf "PATH:\t\t\t${PATH}\n" &>> ${LOG}
-	printf "CROSS_COMPILE:\t${CROSS_COMPILE}\n" &>> ${LOG}
-	printf "CC:\t\t\t\t${CC}\n" &>> ${LOG}
-	printf "CXX:\t\t\t${CXX}\n" &>> ${LOG}
-	printf "AR:\t\t\t\t${AR}\n" &>> ${LOG}
-	printf "AS:\t\t\t\t${AS}\n" &>> ${LOG}
-	printf "RANLIB:\t\t\t${RANLIB}\n" &>> ${LOG}
-	printf "LD:\t\t\t\t${LD}\n" &>> ${LOG}
-	printf "STRIP:\t\t\t${STRIP}\n\n" &>> ${LOG}
+    printf "LOG:\t\t\t${LOG}\n\n" &>> ${LOG}
+    printf "========== natickOS: Package Directories ==========\n" &>> ${LOG}
+    printf "N_TOP:\t\t\t${N_TOP}\n" &>> ${LOG}
+    printf "B_BUILDDIR:\t\t${B_BUILDDIR}\n" &>> ${LOG}
+    printf "B_SOURCEDIR:\t${B_SOURCEDIR}\n" &>> ${LOG}
+    printf "B_BUILDROOT:\t${B_BUILDROOT}\n\n" &>> ${LOG}
+    printf "========== mussel: Directories ==================\n" &>> ${LOG}
+    printf "M_PROJECT:\t\t${M_PROJECT}\n" &>> ${LOG}
+    printf "M_PREFIX:\t\t${M_PREFIX}\n" &>> ${LOG}
+    printf "M_SYSROOT:\t\t${M_SYSROOT}\n\n" &>> ${LOG}
+    printf "========== mussel: Host Information =============\n" &>> ${LOG}
+    printf "HOSTCC:\t\t\t${HOSTCC}\n" &>> ${LOG}
+    printf "HOSTCXX:\t\t${HOSTCXX}\n" &>> ${LOG}
+    printf "HOSTPATH:\t\t${HOSTPATH}\n" &>> ${LOG}
+    printf "ORIGMAKE:\t\t${ORIGMAKE}\n\n" &>> ${LOG}
+    printf "========== mussel: Platform Information =========\n" &>> ${LOG}
+    printf "XTARGET:\t\t${XTARGET}\n" &>> ${LOG}
+    printf "XHOST:\t\t\t${XHOST}\n\n" &>> ${LOG}
+    printf "========== mussel: Compiler Flags ===============\n" &>> ${LOG}
+    printf "CFLAGS:\t\t\t${CFLAGS}\n" &>> ${LOG}
+    printf "CXXFLAGS:\t\t${CXXFLAGS}\n" &>> ${LOG}
+    printf "LC_ALL:\t\t\t${LC_ALL}\n" &>> ${LOG}
+    printf "MAKEFLAGS:\t\t${MAKEFLAGS}\n\n" &>> ${LOG}
+    printf "========== mussel: Build Flags ==================\n" &>> ${LOG}
+    printf "PKG_CONFIG_PATH:\t\t\t\t${PKG_CONFIG_PATH}\n" &>> ${LOG} 
+    printf "PKG_CONFIG_LIBDIR:\t\t\t\t${PKG_CONFIG_LIBDIR}\n" &>> ${LOG} 
+    printf "PKG_CONFIG_SYSROOT:\t\t\t\t${PKG_CONFIG_SYSROOT}\n" &>> ${LOG}
+    printf "PKG_CONFIG_SYSTEM_INCLUDE_PATH:\t${PKG_CONFIG_SYSTEM_INCLUDE_PATH}\n" &>> ${LOG}
+    printf "PKG_CONFIG_SYSTEM_LIBRARY_PATH:\t${PKG_CONFIG_SYSTEM_LIBRARY_PATH}\n\n" &>> ${LOG}
+    printf "========== mussel: Executable Names =============\n" &>> ${LOG}
+    printf "PATH:\t\t\t${PATH}\n" &>> ${LOG}
+    printf "CROSS_COMPILE:\t${CROSS_COMPILE}\n" &>> ${LOG}
+    printf "CC:\t\t\t\t${CC}\n" &>> ${LOG}
+    printf "CXX:\t\t\t${CXX}\n" &>> ${LOG}
+    printf "AR:\t\t\t\t${AR}\n" &>> ${LOG}
+    printf "AS:\t\t\t\t${AS}\n" &>> ${LOG}
+    printf "RANLIB:\t\t\t${RANLIB}\n" &>> ${LOG}
+    printf "LD:\t\t\t\t${LD}\n" &>> ${LOG}
+    printf "STRIP:\t\t\t${STRIP}\n\n" &>> ${LOG}
 
     # --- Download Package Tarballs --- #
     for i in "${!pkg_src[@]}"; do
@@ -425,9 +425,9 @@ function nbuild() {
         l_sum="${pkg_chk[i]}"
         l_archive=${l_src##*/}
         lprint "Downloading and Extracting ${l_archive}...." "...."
-		if [[ ! -f ${B_SOURCEDIR}/${l_archive} ]]; then
-        	(cd ${B_SOURCEDIR} && curl -LJO ${l_src})
-		fi
+	    if [[ ! -f ${B_SOURCEDIR}/${l_archive} ]]; then
+                (cd ${B_SOURCEDIR} && curl -LJO ${l_src})
+	    fi
         (cd ${B_SOURCEDIR} && echo "${l_sum}  ${l_archive}" | sha256sum -c -) > /dev/null || lprint "Bad Checksum: ${l_archive}: ${l_sum}" "fail"
         pv ${B_SOURCEDIR}/${l_archive} | bsdtar xf - -C ${B_BUILDDIR}/
     done
@@ -465,13 +465,13 @@ function niso() {
         rm -rf ${N_WORK}/iso
     elif [[ -d ${N_WORK}/iso ]]; then
         lprint "The ISO work directory seems to be occupied." "warn"
-	    read -p "Delete? (Y/n): " input
-	    if [[ ${input} == "Y" ]]; then
-		    rm -rf ${N_WORK}/iso/
-		    echo ""
-	    else
-		    lprint "Good call." "fail"
-	    fi
+	read -p "Delete? (Y/n): " input
+	if [[ ${input} == "Y" ]]; then
+            rm -rf ${N_WORK}/iso/
+            echo ""
+	else
+            lprint "Good call." "fail"
+	fi
     fi
     mkdir -p ${N_WORK}/iso/{sysroot,vanzille,boot}
 
@@ -591,19 +591,19 @@ case "${OPT}" in
         ;;
     "run" )
         if [[ ! -f ${N_OUT}/natickOS-${BARCH}.iso ]]; then
-			lprint "natickOS ISO not generated. Please generate with ./geniso.sh" "fail"
-		else
-			lprint "Starting natickOS in QEMU...." "...."
-			if [[ ${BARCH} == "x86_64" ]]; then
-				qemu-system-x86_64 -boot d -cdrom ${N_OUT}/natickOS-${BARCH}.iso -m 512
-			elif [[ ${BARCH} == "i686" ]]; then
-				qemu-system-i386 -boot d -cdrom ${N_OUT}/natickOS-${BARCH}.iso -m 512
-			else
-				lprint "Invalid Architecture: ${BARCH}" "fail"
-			fi
-		fi
-		lprint "QEMU finished running natickOS." "done"
-		;;
+            lprint "natickOS ISO not generated. Please generate with ./geniso.sh" "fail"
+	else
+            lprint "Starting natickOS in QEMU...." "...."
+            if [[ ${BARCH} == "x86_64" ]]; then
+                qemu-system-x86_64 -boot d -cdrom ${N_OUT}/natickOS-${BARCH}.iso -m 512
+            elif [[ ${BARCH} == "i686" ]]; then
+                qemu-system-i386 -boot d -cdrom ${N_OUT}/natickOS-${BARCH}.iso -m 512
+            else
+                lprint "Invalid Architecture: ${BARCH}" "fail"
+            fi
+        fi
+        lprint "QEMU finished running natickOS." "done"
+        ;;
     "usage" | "" | * )
         echo "${EXEC} [OPTION] [PACKAGE]"
         echo "natick.sh - natickOS Build Script"
