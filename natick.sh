@@ -29,6 +29,7 @@ export PKGS=("busybox" "musl" "linux" "linux-headers" "midstreams" "syslinux" "z
 EXEC=$0                                     # Executable Name
 OPT=$1                                      # Executable Function
 PKG=$2                                      # Desired Package
+ARG=$3
 
 #===========#
 # Variables #
@@ -354,7 +355,7 @@ function nbuild() {
     done
 
     # --- Check if package has been built --- #
-    if [[ -d ${N_WORK}/${PKG} ]] && [[ ${arg} == "--force" ]]; then
+    if [[ -d ${N_WORK}/${PKG} ]] && [[ ${ARG} == "--force" ]]; then
         rm -rf ${N_WORK}/${PKG}
     elif [[ -d ${N_WORK}/${PKG} ]]; then
         lprint "The specified package, ${PKG}, appears to already been built." "warn"
@@ -461,7 +462,7 @@ function niso() {
 
     # --- Check Directory --- #
 
-    if [[ -d ${N_WORK}/iso ]] && [[ ${arg} == "--force" ]]; then
+    if [[ -d ${N_WORK}/iso ]] && [[ ${ARG} == "--force" ]]; then
         rm -rf ${N_WORK}/iso
     elif [[ -d ${N_WORK}/iso ]]; then
         lprint "The ISO work directory seems to be occupied." "warn"
@@ -560,6 +561,7 @@ case "${OPT}" in
         ;;
     "all" )
         ntoolchain
+        export ARG="--force"
         for p in ${PKGS[@]}; do
             export PKG="${p}"
             nbuild --force
