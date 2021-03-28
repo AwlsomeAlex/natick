@@ -8,12 +8,12 @@ natickOS is currently targeted for x86 (32-bit and 64-bit) systems, but I plan o
 **THIS PROJECT IS FOR ADVANCED LINUX USERS AND SHOULD NOT BE USED ON PRODUCTION SYSTEMS**
 
 ## Compiling Packages
-### Dependencies (Fedora 33):
-**mussel fails to build in RHEL8. Needs further investigation.**
+### Dependencies (Fedora 33/34):
+**natickOS can not be built on RHEL8.3 due to a libarchive incompatibily. RHEL8.4 hopefully fixes this. If not a workaround will be developed. The issue is libarchive does not identify `.tar.zst` as valid tarballs for `tar xf`.**
 <br>
-`# dnf groupinstall "Development Tools" "C Development Tools and Libraries"`
+`$ sudo dnf groupinstall "Development Tools" "C Development Tools and Libraries"`
 <br>
-`# dnf install texinfo pv libisoburn bsdtar glibc-static xorriso xz-devel zlib-devel openssl-devel elfutils-libelf-devel qemu-system-x86 lzip fakeroot`
+`$ sudo dnf install texinfo pv libisoburn bsdtar glibc-static xorriso xz-devel zlib-devel openssl-devel elfutils-libelf-devel qemu-system-x86 lzip fakeroot`
 <br>
 ### Dependencies (Ubuntu 20.04/20.10)
 `# apt install build-essential m4 bison bsdtar flex texinfo bc pv rsync unzip libssl-dev libelf-dev fakeroot`
@@ -21,16 +21,11 @@ natickOS is currently targeted for x86 (32-bit and 64-bit) systems, but I plan o
 ### mussel Toolchain
 [GitHub](https://github.com/firasuke/mussel)
 <br>
-### nbs.sh (natickOS Build Script) Options:
-`./nbs.sh toolchain` - Compiles natickOS toolchain
-<br>
-`./nbs.sh build [package]` - Compiles defined package
-<br>
-`./nbs.sh clean` - Cleans build environment
 
 ## License
-natickOS, `/nbs.sh` and other scripts are licensed under the ISC license. <br>
-mussel is also licensed under the ISC license.
+natickOS, `./natick.sh` and Burnt Tavern Recipes (.btr) are licensed under the ISC license with Copyright to Alexander Barris (AwlsomeAlex). All Rights Reserved. <br>
+mussel is also licensed under the ISC license. <br>
+Linux® is the registered trademark of Linus Torvalds in the U.S. and other countries.
 
 ## Contributors
 - AwlsomeAlex (Lead Developer / mussel toolchain Developer)
