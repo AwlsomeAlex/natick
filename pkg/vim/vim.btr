@@ -1,0 +1,63 @@
+#===========================#
+# natickOS Build Script     #
+#---------------------------#
+# Burnt Tavern Recipe       #
+# ISC License               #
+#===========================#
+# Package: vim
+# Copyright (C) 2020-2021 Alexander Barris (AwlsomeAlex)
+# alex@awlsome.com
+# All Rights Reserved 
+#===========================#
+
+#===========#
+# Variables #
+#===========#
+pkg_name="vim"
+pkg_ver="8.2.2671"
+pkg_rel="1"
+pkg_src=("https://github.com/vim/vim/archive/refs/tags/v${pkg_ver}.tar.gz")
+pkg_chk="0d09336ebca1686224a8a762726fec04d2df19ca35084b274e5aaf25cc54621d"
+pkg_bld=("ncurses")
+pkg_req=()
+pkg_desc="Vim - The ubiquitous text editor"
+
+#============#
+# Build Area #
+#============#
+build() {
+    # --- VIM compiler flags --- #
+    export vim_cv_toupper_broken=no
+    export vim_cv_terminfo=yes
+    export vim_cv_tgetent=zero
+    export vim_cv_tty_group=world
+    export vim_cv_tty_mode=0620
+    export vim_cv_getcwd_broken=no
+    export vim_cv_stat_ignores_slash=yes
+    export vim_cv_memmove_handles_overlap=yes
+
+    # --- Configure --- #
+    mkdir ${B_BUILDROOT}/etc
+    ./configure ${BUILDFLAGS} \
+        --prefix=/usr \
+        --localstatedir=/var/lib/vim \
+        --with-compiledby='natickOS' \
+        --with-features=huge \
+        --with-tlib=ncursesw \
+        --without-x \
+        --enable-multibyte \
+        --disable-nls \
+        --disable-gui
+
+    # --- Compile --- #
+    make ${MAKEFLAGS}
+
+    # --- Install --- #
+    make DESTDIR=${B_BUILDROOT} install ${MAKEFLAGS}
+
+    # --- Copy Local Files to BUILDROOT --- #
+    cp ${N_PKG}/${pkg_name}/files/vimrc ${B_BUILDROOT}/etc/vimrc
+
+    # --- Symlink vim to vi --- #
+    ln -sf vim ${B_BUILDROOT}/usr/bin/vi
+}
