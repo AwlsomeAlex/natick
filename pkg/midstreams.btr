@@ -26,6 +26,7 @@ pkg_desc="Midstreams INIT for natickOSOS"
 # Build Area #
 #============#
 build() {
+    lprint "This package, ${PKG}, is disabled." "fail"
     # --- Copy local files to BUILDROOT --- #
-    cp -r ${N_PKG}/${pkg_name}/files/* ${B_BUILDROOT}
+    #cp -r ${N_PKG}/${pkg_name}/files/* ${B_BUILDROOT}
 }

@@ -27,8 +27,8 @@ pkg_desc="Fast init for Linux systems. Cookies included"
 #============#
 build() {
     # --- Copy Config Files --- #
-    cp ${N_PKG}/config.guess .
-    cp ${N_PKG}/config.sub .
+    cp ${N_FILES}/config.guess .
+    cp ${N_FILES}/config.sub .
 
     # --- Configure --- #
 
@@ -63,5 +63,5 @@ build() {
     ln -sf finit ${B_BUILDROOT}/usr/bin/init
     
     # --- Copy local files to BUILDROOT --- #
-    cp -r ${N_PKG}/${pkg_name}/files/* ${B_BUILDROOT}
+    cp -r ${B_FILES}/* ${B_BUILDROOT}
 }

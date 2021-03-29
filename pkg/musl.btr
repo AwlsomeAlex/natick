@@ -29,7 +29,7 @@ build() {
     mkdir -p ${B_BUILDROOT}/usr/bin
 
     # --- Test Toolchain --- #
-    ${CROSS_COMPILE}gcc ${CFLAGS} -c ${N_PKG}/${pkg_name}/files/__stack_chk_fail_local.c -o __stack_chk_fail_local.o
+    ${CROSS_COMPILE}gcc ${CFLAGS} -c ${B_FILES}/__stack_chk_fail_local.c -o __stack_chk_fail_local.o
     ${CROSS_COMPILE}ar r libssp_nonshared.a __stack_chk_fail_local.o
 
     # --- Configure --- #

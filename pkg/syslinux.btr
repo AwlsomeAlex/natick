@@ -35,7 +35,7 @@ build() {
     cp bios/com32/elflink/ldlinux/ldlinux.c32 ${B_BUILDROOT}/boot/isolinux
 
     # --- Copy local files to BUILDROOT --- #
-    cp ${N_PKG}/${pkg_name}/files/isohdpfx.bin ${B_BUILDROOT}/boot/isolinux
-    cp ${N_PKG}/${pkg_name}/files/isolinux.cfg ${B_BUILDROOT}/boot/isolinux
-    cp ${N_PKG}/${pkg_name}/files/syslinux.cfg ${B_BUILDROOT}/boot/syslinux
+    cp ${B_FILES}/isohdpfx.bin ${B_BUILDROOT}/boot/isolinux
+    cp ${B_FILES}/files/isolinux.cfg ${B_BUILDROOT}/boot/isolinux
+    cp ${B_FILES}/files/syslinux.cfg ${B_BUILDROOT}/boot/syslinux
 }

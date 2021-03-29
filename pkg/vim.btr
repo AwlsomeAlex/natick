@@ -56,7 +56,7 @@ build() {
     make DESTDIR=${B_BUILDROOT} install ${MAKEFLAGS}
 
     # --- Copy Local Files to BUILDROOT --- #
-    cp ${N_PKG}/${pkg_name}/files/vimrc ${B_BUILDROOT}/etc/vimrc
+    cp ${B_FILES}/vimrc ${B_BUILDROOT}/etc/vimrc
 
     # --- Symlink vim to vi --- #
     ln -sf vim ${B_BUILDROOT}/usr/bin/vi

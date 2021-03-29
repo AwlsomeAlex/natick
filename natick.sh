@@ -17,9 +17,9 @@ set -eE -o functrace
 # and defines which packages are included in 'all'
 # along with packages included in LiveCD
 
-#export BARCH="x86_64"
-export BARCH="i686"
-export PKGS=("busybox" "musl" "linux" "linux-headers" "zlib" "ncurses" "util-linux" "e2fsprogs" "vim" "dialog" "libuev" "libite" "finit")
+export BARCH="x86_64"
+#export BARCH="i686"
+export PKGS=("musl" "busybox" "linux" "linux-headers" "zlib" "ncurses" "util-linux" "e2fsprogs" "vim" "dialog" "libuev" "libite" "finit")
 
 #============================================#
 # DO NOT CHANGE ANYTHING AFTER THIS POINT :) #
@@ -39,7 +39,8 @@ ARG=$3
 # These are the main directories for the natickOS
 # Build Script. Including work, output, and packages
 export N_ROOT="$(pwd)"                      # natickOS Project Root
-export N_PKG="${N_ROOT}/pkg"                # natickOS Package Repository
+export N_PKG="${N_ROOT}/pkg"                # natickOS Burnt Tavern Recipe Repository
+export N_FILES="${N_ROOT}/files"            # natickOS Files Directory
 export N_WORK="${N_ROOT}/work"              # natickOS Work Directory
 export N_OUT="${N_ROOT}/out"                # natickOS Output Directory
 export LOG="${N_ROOT}/log.txt"              # natickOS Log File
@@ -320,6 +321,7 @@ function nbuild() {
     export B_BUILDDIR="${N_TOP}/build"          # PKG Build   (where packages are built)
     export B_SOURCEDIR="${N_TOP}/source"        # PKG Sources (where tarballs are stored)
     export B_BUILDROOT="${N_TOP}/root"          # PKG Sysroot (where packages are installed)
+    export B_FILES="${N_FILES}/${PKG}"          # PKG Files   (where extra files are stored)
     local arg=$1
 
     ltitle
@@ -337,12 +339,12 @@ function nbuild() {
     done
 
     # --- Check if defined package is valid --- #
-    if [[ ! -d ${N_PKG}/${PKG} ]]; then
-        lprint "The specified package, ${PKG}, does not exist in the source repository." "fail"
+    if [[ ! -f ${N_PKG}/${PKG}.btr ]]; then
+        lprint "A Burnt Tavern Recipe doesn't exist for ${PKG}." "fail"
     fi
 
     # --- Source Package's BTR --- #
-    source ${N_PKG}/${PKG}/${PKG}.btr
+    source ${N_PKG}/${PKG}.btr
 
     # --- Setup Script Trap --- #
     trap 'lfailure ${LINENO} "$BASH_COMMAND"' ERR
@@ -578,7 +580,7 @@ function nimg() {
     # --- Create and Format IMG --- #
     lprint "Preparing IMG...." "...."
     qemu-img create -f raw ${img} ${size} &>> ${LOG}
-    dd if=${N_PKG}/syslinux/files/mbr.bin of=${img} conv=notrunc bs=440 count=1 &>> ${LOG}
+    dd if=${N_FILES}/syslinux/mbr.bin of=${img} conv=notrunc bs=440 count=1 &>> ${LOG}
     parted -s ${img} mklabel msdos &>> ${LOG}
     parted -s -a none ${img} mkpart primary ext4 0 ${size} &>> ${LOG}
     parted -s -a none ${img} set 1 boot on &>> ${LOG}
@@ -618,7 +620,7 @@ function nimg() {
     # --- Install extlinux to IMG --- #
     lprint "Installing extlinux...." "...."
     mkdir ${mnt}/boot/extlinux > /dev/null
-    cp ${N_PKG}/syslinux/files/extlinux.conf ${mnt}/boot/extlinux &>> ${LOG}
+    cp ${N_FILES}/syslinux/extlinux.conf ${mnt}/boot/extlinux &>> ${LOG}
     extlinux --install ${mnt}/boot/extlinux &>> ${LOG}
 
     # --- Change owner to root:root --- #
@@ -630,8 +632,8 @@ function nimg() {
     umount -f ${mnt} &>> ${LOG}
     partx -d ${loop}
     losetup -d ${loop}
-    cp ${img} ${N_OUT}
-    chown -Rv $(whoami):$(whoami) ${N_WORK}/img > /dev/null
+    chown -Rv ${SUDO_USER}:${SUDO_USER} ${N_WORK}/img > /dev/null
+    cp -a ${img} ${N_OUT}
 
     lprint "Image successfully generated! It can now be found in ${N_OUT}/natickOS-${BARCH}.img!" "done"
 
@@ -675,8 +677,9 @@ case "${OPT}" in
         # This creates a dummy File System and populates it with
         # natickOS packages. Then it is dumped into an InitramFS
         # and stuffed into a LiveCD. ATM it is MBR only....
-        export ARG=${PKG}
-        niso
+        lprint "${EXEC} iso: Currently Disabled." "fail"
+        #export ARG=${PKG}
+        #niso
         ;;
     "img" )
         # This creates a natickOS System Image. It is different
@@ -711,10 +714,10 @@ case "${OPT}" in
             lprint "Starting natickOS in QEMU...." "...."
             if [[ ${BARCH} == "x86_64" ]]; then
                 #qemu-system-x86_64 -boot d -cdrom ${N_OUT}/natickOS-${BARCH}.iso -m 512
-                qemu-system-x86_64 -boot d -drive format=raw file=${N_OUT}/natickOS-${BARCH}.img -m 512
+                qemu-system-x86_64 -boot d -drive file=${N_OUT}/natickOS-${BARCH}.img -m 512
             elif [[ ${BARCH} == "i686" ]]; then
                 #qemu-system-i386 -boot d -cdrom ${N_OUT}/natickOS-${BARCH}.iso -m 512
-                qemu-system-i386 -boot d -drive format=raw file=${N_OUT}/natickOS-${BARCH}.img -m 512
+                qemu-system-i386 -boot d -drive file=${N_OUT}/natickOS-${BARCH}.img -m 512
             else
                 lprint "Invalid Architecture: ${BARCH}" "fail"
             fi

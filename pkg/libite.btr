@@ -4,7 +4,7 @@
 # Burnt Tavern Recipe       #
 # ISC License               #
 #===========================#
-# Package: libuev
+# Package: libite
 # Copyright (C) 2020-2021 Alexander Barris (AwlsomeAlex)
 # alex at awlsome dot com
 # All Rights Reserved 
@@ -13,22 +13,22 @@
 #===========#
 # Variables #
 #===========#
-pkg_name="libuev"
-pkg_ver="2.3.2"
+pkg_name="libite"
+pkg_ver="2.4.0"
 pkg_rel="1"
-pkg_src=("https://github.com/troglobit/libuev/releases/download/v${pkg_ver}/libuev-${pkg_ver}.tar.xz")
-pkg_chk="af31ffe1058a2ff6c56fee26ec8749688704d297189b6a898380a601efefbec9"
+pkg_src=("https://github.com/troglobit/libite/releases/download/v${pkg_ver}/libite-${pkg_ver}.tar.xz")
+pkg_chk="70e523fa4fbe35b936861cc3d9acfc5e9d2d2b3c7c48045ad0ab3551a5d728ef"
 pkg_bld=()
 pkg_req=()
-pkg_desc="Lightweight event loop library for Linux epoll() family APIs"
+pkg_desc="That missing frog DNA you've been looking for"
 
 #============#
 # Build Area #
 #============#
 build() {
     # --- Copy Config Files --- #
-    cp ${N_PKG}/config.guess aux
-    cp ${N_PKG}/config.sub aux
+    cp ${N_FILES}/config.guess aux
+    cp ${N_FILES}/config.sub aux
     
     # --- Configure --- #
     ./configure ${BUILDFLAGS} \
