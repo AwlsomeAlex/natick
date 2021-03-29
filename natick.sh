@@ -433,10 +433,9 @@ function nbuild() {
         fi
         lprint "Downloading and Extracting ${l_archive}...." "...."
 
-        
-	    if [[ ! -f ${B_SOURCEDIR}/${l_archive} ]]; then
-                (cd ${B_SOURCEDIR} && curl -LJO ${l_src})
-	    fi
+        if [[ ! -f ${B_SOURCEDIR}/${l_archive} ]]; then
+            (cd ${B_SOURCEDIR} && curl -LJO ${l_src})
+	fi
         (cd ${B_SOURCEDIR} && echo "${l_sum}  ${l_archive}" | sha256sum -c -) > /dev/null || lprint "Bad Checksum: ${l_archive}: ${l_sum}" "fail"
         pv ${B_SOURCEDIR}/${l_archive} | bsdtar xf - -C ${B_BUILDDIR}/
     done
@@ -472,14 +471,14 @@ function niso() {
     if [[ -d ${N_WORK}/iso ]] && [[ ${ARG} == "--force" ]]; then
         rm -rf ${N_WORK}/iso
     elif [[ -d ${N_WORK}/iso ]]; then
-        lprint "The ISO work directory seems to be occupied." "warn"
-	    read -p "Delete? (Y/n): " input
-	    if [[ ${input} == "Y" ]]; then
+    	lprint "The ISO work directory seems to be occupied." "warn"
+	read -p "Delete? (Y/n): " input
+	if [[ ${input} == "Y" ]]; then
             rm -rf ${N_WORK}/iso/
             echo ""
-	    else
+	else
             lprint "Good call." "fail"
-	    fi
+	fi
     fi
     mkdir -p ${N_WORK}/iso/{sysroot,vanzille,boot}
 
@@ -503,8 +502,6 @@ function niso() {
             lprint "${item} not compiled. Please compile it with '${EXEC} build ${item}" "fail"
         else
             file="${N_OUT}/${item}-[0-9]*.tar.zst"
-            #echo "${item}"
-            #pv ${file} | bsdtar xf - -C ${N_WORK}/iso/sysroot/
             tar -xf ${file} -C ${N_WORK}/iso/sysroot
         fi
     done
