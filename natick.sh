@@ -361,7 +361,7 @@ function nbuild() {
         lprint "The specified package, ${PKG}, appears to already been built." "warn"
         read -p "Rebuild? (Y/n): " input
         if [[ ${input} == "Y" ]]; then 
-            rm -rf ${N_WORK}/${PKG}
+            rm -rf ${B_BUILDROOT} ${B_BUILDDIR}
             echo ""
         else
             lprint "Good call." "fail"
