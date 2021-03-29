@@ -1,0 +1,67 @@
+#===========================#
+# natickOS Build Script     #
+#---------------------------#
+# Burnt Tavern Recipe       #
+# ISC License               #
+#===========================#
+# Package: finit
+# Copyright (C) 2020-2021 Alexander Barris (AwlsomeAlex)
+# alex@awlsome.com
+# All Rights Reserved 
+#===========================#
+
+#===========#
+# Variables #
+#===========#
+pkg_name="finit"
+pkg_ver="4.0-rc3"
+pkg_rel="1"
+pkg_src=("https://github.com/troglobit/finit/releases/download/${pkg_ver}/finit-${pkg_ver}.tar.xz")
+pkg_chk="f1eff576cfaf444742386671fdeb43b2ef6ca235f436cd07c5f9330c17de061c"
+pkg_bld=("libite" "libuev")
+pkg_req=()
+pkg_desc="Fast init for Linux systems. Cookies included"
+
+#============#
+# Build Area #
+#============#
+build() {
+    # --- Copy Config Files --- #
+    cp ${N_PKG}/config.guess .
+    cp ${N_PKG}/config.sub .
+
+    # --- Configure --- #
+
+    ./configure ${BUILDFLAGS} \
+        --prefix=/usr \
+        --exec-prefix=/usr \
+        --bindir=/usr/bin \
+        --sbindir=/usr/bin \
+        --libexecdir=/usr/lib/${pkg_name} \
+        --sysconfdir=/etc \
+        --sharedstatedir=/var/lib \
+        --localstatedir=/var \
+        --runstatedir=/run \
+        --libdir=/usr/lib \
+        --includedir=/usr/include \
+        --enable-auto-reload \
+        --enable-progress \
+        --disable-doc \
+        --disable-contrib \
+        --with-heading="natickOS ${BARCH}" \
+        --with-fifo=/var/run/initctl \
+        --with-hostname=natickos \
+        --with-random-seed=/dev/urandom
+
+    # --- Compile --- #
+    make ${MAKEFLAGS}
+
+    # --- Install --- #
+    make DESTDIR=${B_BUILDROOT} install-strip
+
+    # --- Make finit default init --- #
+    ln -sf finit ${B_BUILDROOT}/usr/bin/init
+    
+    # --- Copy local files to BUILDROOT --- #
+    cp -r ${N_PKG}/${pkg_name}/files/* ${B_BUILDROOT}
+}

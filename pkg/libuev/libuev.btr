@@ -1,0 +1,57 @@
+#===========================#
+# natickOS Build Script     #
+#---------------------------#
+# Burnt Tavern Recipe       #
+# ISC License               #
+#===========================#
+# Package: libuev
+# Copyright (C) 2020-2021 Alexander Barris (AwlsomeAlex)
+# alex@awlsome.com
+# All Rights Reserved 
+#===========================#
+
+#===========#
+# Variables #
+#===========#
+pkg_name="libuev"
+pkg_ver="2.3.2"
+pkg_rel="1"
+pkg_src=("https://github.com/troglobit/libuev/releases/download/v${pkg_ver}/libuev-${pkg_ver}.tar.xz")
+pkg_chk="af31ffe1058a2ff6c56fee26ec8749688704d297189b6a898380a601efefbec9"
+pkg_bld=()
+pkg_req=()
+pkg_desc="Lightweight event loop library for Linux epoll() family APIs"
+
+#============#
+# Build Area #
+#============#
+build() {
+    # --- Copy Config Files --- #
+    cp ${N_PKG}/config.guess aux
+    cp ${N_PKG}/config.sub aux
+    
+    # --- Configure --- #
+    ./configure ${BUILDFLAGS} \
+        --prefix=/usr \
+        --exec-prefix=/usr \
+        --bindir=/usr/bin \
+        --sbindir=/usr/bin \
+        --libexecdir=/usr/lib/${pkg_name} \
+        --sysconfdir=/etc \
+        --sharedstatedir=/var/lib \
+        --localstatedir=/var \
+        --runstatedir=/run \
+        --libdir=/usr/lib \
+        --includedir=/usr/include \
+        --disable-static
+
+
+    # --- Compile --- #
+    make ${MAKEFLAGS}
+
+    # --- Install --- #
+    make DESTDIR=${B_BUILDROOT} install-strip
+
+    # --- Remove Static Library --- #
+    rm ${B_BUILDROOT}/usr/lib/${pkg_name}.la
+}

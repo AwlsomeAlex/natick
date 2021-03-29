@@ -1,0 +1,13 @@
+root:x:0:
+kmem:x:1:
+tape:x:2:
+tty:x:3:
+disk:x:4:
+lp:x:5:
+dialout:x:6:
+audio:x:7:
+video:x:8:
+cdrom:x:9:
+input:x:10:
+kvm:x:11:
+s6log:x:983:

@@ -17,9 +17,9 @@ set -eE -o functrace
 # and defines which packages are included in 'all'
 # along with packages included in LiveCD
 
-export BARCH="x86_64"
-#export BARCH="i686"
-export PKGS=("busybox" "musl" "linux" "linux-headers" "midstreams" "syslinux" "zlib" "ncurses" "util-linux" "e2fsprogs" "vim" "dialog")
+#export BARCH="x86_64"
+export BARCH="i686"
+export PKGS=("busybox" "musl" "linux" "linux-headers" "zlib" "ncurses" "util-linux" "e2fsprogs" "vim" "dialog" "libuev" "libite" "finit")
 
 #============================================#
 # DO NOT CHANGE ANYTHING AFTER THIS POINT :) #
@@ -94,7 +94,7 @@ export PERLFLAGS="--target=${XTARGET}"
 # with mussel compiled libraries instead of system libs
 export PKG_CONFIG_PATH="${M_SYSROOT}/usr/lib/pkgconfig:${M_SYSROOT}/usr/share/pkgconfig"
 export PKG_CONFIG_LIBDIR="${M_SYSROOT}/usr/lib/pkgconfig:${M_SYSROOT}/usr/share/pkgconfig"
-export PKG_CONFIG_SYSROOT="${M_SYSROOT}"
+export PKG_CONFIG_SYSROOT_DIR="${M_SYSROOT}"
 export PKG_CONFIG_SYSTEM_INCLUDE_PATH="${M_SYSROOT}/usr/include"
 export PKG_CONFIG_SYSTEM_LIBRARY_PATH="${M_SYSROOT}/usr/lib"
 
@@ -406,7 +406,7 @@ function nbuild() {
     printf "========== mussel: Build Flags ==================\n" &>> ${LOG}
     printf "PKG_CONFIG_PATH:\t\t\t\t${PKG_CONFIG_PATH}\n" &>> ${LOG} 
     printf "PKG_CONFIG_LIBDIR:\t\t\t\t${PKG_CONFIG_LIBDIR}\n" &>> ${LOG} 
-    printf "PKG_CONFIG_SYSROOT:\t\t\t\t${PKG_CONFIG_SYSROOT}\n" &>> ${LOG}
+    printf "PKG_CONFIG_SYSROOT_DIR=\t\t\t${PKG_CONFIG_SYSROOT_DIR}\n/" &>> ${LOG}
     printf "PKG_CONFIG_SYSTEM_INCLUDE_PATH:\t${PKG_CONFIG_SYSTEM_INCLUDE_PATH}\n" &>> ${LOG}
     printf "PKG_CONFIG_SYSTEM_LIBRARY_PATH:\t${PKG_CONFIG_SYSTEM_LIBRARY_PATH}\n\n" &>> ${LOG}
     printf "========== mussel: Executable Names =============\n" &>> ${LOG}
@@ -424,7 +424,7 @@ function nbuild() {
     for i in "${!pkg_src[@]}"; do
         l_src="${pkg_src[i]}"
         l_sum="${pkg_chk[i]}"
-        if [[ ${l_src} == *github* ]]; then
+        if [[ ${l_src} == *github* ]] && [[ ${l_src} == *tag* ]]; then
             l_archive="${pkg_name}-${pkg_ver}.tar.gz" # Special case for GitHub because their URL doesn't match archive name....
         else
             l_archive=${l_src##*/}
@@ -595,7 +595,7 @@ function nimg() {
 
     # --- Create IMG File Sctructure --- #
     lprint "Occupying IMG...." "...."
-    mkdir -p ${mnt}/{boot,dev,etc,mnt/root,proc,root,sys,tmp,usr/{bin,lib,sbin,share,include},run}
+    mkdir -p ${mnt}/{boot,dev/pts,etc,mnt/root,proc,root,sys,tmp,usr/{bin,lib,sbin,share,include},run,var/{lib,run/initctl}}
     curr=$(pwd)
     cd ${mnt}
     ln -s usr/bin bin
@@ -631,7 +631,7 @@ function nimg() {
     partx -d ${loop}
     losetup -d ${loop}
     cp ${img} ${N_OUT}
-    chown -R ${USER}:${USER} ${N_WORK}/img
+    chown -Rv $(whoami):$(whoami) ${N_WORK}/img > /dev/null
 
     lprint "Image successfully generated! It can now be found in ${N_OUT}/natickOS-${BARCH}.img!" "done"
 
