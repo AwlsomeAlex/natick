@@ -208,9 +208,6 @@ function ncheck() {
     printf 'bison:     '
     bison --version | sed 1q | cut -d' ' -f4
 
-    printf 'bsdtar:    '
-    bsdtar --version | cut -d' ' -f2
-
     printf 'bzip2:     '
     bzip2 --version 2>&1 < /dev/null | sed 1q | cut -d' ' -f8 | sed s/,//
 
@@ -271,9 +268,6 @@ function ncheck() {
     printf 'perl:      '
     perl -V:version | cut -d"'" -f2
 
-    printf 'pv:        '
-    pv --version | sed 1q | cut -d' ' -f2
-
     printf 'qemu x86:  '
     qemu-system-i386 --version | sed 1q | cut -d' ' -f4
 
@@ -301,7 +295,7 @@ function ncheck() {
 
 # ntoolchain(): Builds mussel toolchain for natickOS
 function ntoolchain() {
-    if [[ -d ${M_TOOLCHAIN} ]] && [[ -d ${M_SYSROOT} ]]; then
+    if [[ -d ${M_PREFIX} ]] && [[ -d ${M_SYSROOT} ]]; then
         echo "${GREEN}=> ${NC}mussel for ${BARCH} already compiled."
     else
         cd ${M_PROJECT}
@@ -435,9 +429,9 @@ function nbuild() {
 
         if [[ ! -f ${B_SOURCEDIR}/${l_archive} ]]; then
             (cd ${B_SOURCEDIR} && curl -LJO ${l_src})
-	fi
+	    fi
         (cd ${B_SOURCEDIR} && echo "${l_sum}  ${l_archive}" | sha256sum -c -) > /dev/null || lprint "Bad Checksum: ${l_archive}: ${l_sum}" "fail"
-        pv ${B_SOURCEDIR}/${l_archive} | bsdtar xf - -C ${B_BUILDDIR}/
+        tar xf ${B_SOURCEDIR}/${l_archive} -C ${B_BUILDDIR}
     done
 
     # --- BTR Build --- #

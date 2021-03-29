@@ -13,10 +13,10 @@ natickOS is currently targeted for x86 (32-bit and 64-bit) systems, but I plan o
 <br>
 `$ sudo dnf groupinstall "Development Tools" "C Development Tools and Libraries"`
 <br>
-`$ sudo dnf install texinfo pv libisoburn bsdtar glibc-static xorriso xz-devel zlib-devel openssl-devel elfutils-libelf-devel qemu-system-x86 lzip fakeroot`
+`$ sudo dnf install texinfo libisoburn glibc-static xorriso xz-devel zlib-devel openssl-devel elfutils-libelf-devel qemu-system-x86 lzip fakeroot`
 <br>
 ### Dependencies (Ubuntu 20.04/20.10)
-`# apt install build-essential m4 bison bsdtar flex texinfo bc pv rsync unzip libssl-dev libelf-dev fakeroot`
+`$ sudo apt install build-essential m4 bison flex texinfo bc rsync unzip libssl-dev libelf-dev fakeroot`
 <br>
 ### mussel Toolchain
 [GitHub](https://github.com/firasuke/mussel)
@@ -25,7 +25,7 @@ natickOS is currently targeted for x86 (32-bit and 64-bit) systems, but I plan o
 ## License
 natickOS, `./natick.sh` and Burnt Tavern Recipes (.btr) are licensed under the ISC license with Copyright to Alexander Barris (AwlsomeAlex). All Rights Reserved. <br>
 mussel is also licensed under the ISC license. <br>
-Linux® is the registered trademark of Linus Torvalds in the U.S. and other countries.
+Linux® is the registered trademark of Linus Torvalds in the U.S. and other countries. <br>
 
 ## Contributors
 - AwlsomeAlex (Lead Developer / mussel toolchain Developer)
