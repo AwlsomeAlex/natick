@@ -7,6 +7,9 @@ natickOS is currently targeted for x86 (32-bit and 64-bit) systems, but I plan o
 
 **THIS PROJECT IS FOR ADVANCED LINUX USERS AND SHOULD NOT BE USED ON PRODUCTION SYSTEMS**
 
+### Public Service Announcement:
+IF YOU MODIFY **ANYTHING** IN VSCODE, MAKE SURE 'Insert Final Newline' IS ENABLED!
+
 ## Compiling Packages
 ### Dependencies (Fedora 33/34):
 **natickOS can not be built on RHEL8.3 due to a libarchive incompatibily. RHEL8.4 hopefully fixes this. If not a workaround will be developed. The issue is libarchive does not identify `.tar.zst` as valid tarballs for `tar xf`.**

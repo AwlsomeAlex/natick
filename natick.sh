@@ -17,8 +17,8 @@ set -eE -o functrace
 # and defines which packages are included in 'all'
 # along with packages included in LiveCD
 
-export BARCH="x86_64"
-#export BARCH="i686"
+#export BARCH="x86_64"
+export BARCH="i686"
 export PKGS=("musl" "busybox" "linux" "linux-headers" "zlib" "ncurses" "util-linux" "e2fsprogs" "vim" "dialog" "libuev" "libite" "finit")
 
 #============================================#
