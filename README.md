@@ -11,9 +11,13 @@ natickOS is currently targeted for x86 (32-bit and 64-bit) systems, but I plan o
 IF YOU MODIFY **ANYTHING** IN VSCODE, MAKE SURE 'Insert Final Newline' IS ENABLED!
 
 ## Compiling Packages
-### Dependencies (Fedora 33/34):
-**natickOS can not be built on RHEL8.3 due to a libarchive incompatibily. RHEL8.4 hopefully fixes this. If not a workaround will be developed. The issue is libarchive does not identify `.tar.zst` as valid tarballs for `tar xf`.**
+
+### Dependencies (Red Hat Enterprise Linux 8):
+GMP's link in mussel MUST be changed to .tar.xz or .tar.gz before using. The checksum will also need to be updated.
 <br>
+Follow the dependencies for Fedora.
+
+### Dependencies (Fedora 33/34):
 `$ sudo dnf groupinstall "Development Tools" "C Development Tools and Libraries"`
 <br>
 `$ sudo dnf install texinfo libisoburn glibc-static xorriso xz-devel zlib-devel openssl-devel elfutils-libelf-devel qemu-system-x86 lzip fakeroot`

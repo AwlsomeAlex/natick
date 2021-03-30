@@ -17,8 +17,8 @@ set -eE -o functrace
 # and defines which packages are included in 'all'
 # along with packages included in LiveCD
 
-export BARCH="x86_64"
-#export BARCH="i686"
+#export BARCH="x86_64"
+export BARCH="i686"
 export PKGS=("musl" "busybox" "linux" "linux-headers" "zlib" "ncurses" "util-linux" "e2fsprogs" "vim" "dialog" "libuev" "libite" "finit")
 
 #============================================#
@@ -288,9 +288,6 @@ function ncheck() {
 
     printf 'xz:        '
     xz --version | sed 1q | cut -d' ' -f4
-
-    printf 'zstd:      '
-    zstd --version | cut -d' ' -f7 | sed 's/,$//' | sed 's/v*//'
 }
 
 # ntoolchain(): Builds mussel toolchain for natickOS
@@ -448,7 +445,7 @@ function nbuild() {
     # --- BTR Pack --- #
     lprint "Packaging ${PKG}...." "...."
     cd ${B_BUILDROOT}
-    fakeroot tar --zstd -cf ${N_OUT}/${pkg_name}-${pkg_ver}-${pkg_rel}.tar.zst .
+    fakeroot tar -cJf ${N_OUT}/${pkg_name}-${pkg_ver}-${pkg_rel}.tar.xz .
     cp -r * ${M_SYSROOT}
 
     # --- Done --- #
@@ -598,7 +595,7 @@ function nimg() {
 
     # --- Copy Packages to IMG --- #
     for item in ${PKGS[@]}; do
-        if [ ! -f ${N_OUT}/${item}-[0-9]*.tar.zst ]; then
+        if [ ! -f ${N_OUT}/${item}-[0-9]*.tar.xz ]; then
             lprint "${item} not compiled. Please compile it with '${EXEC} build ${item}" "fail"
         elif [[ ${item} == "syslinux" ]]; then # syslinux conflicts with extlinux
             continue
@@ -696,7 +693,7 @@ case "${OPT}" in
         rm -rf ${N_OUT} &> /dev/null
         rm -rf ${N_WORK} &> /dev/null
         rm ${LOG} &> /dev/null
-        echo -e "${GREEN}=> ${NC}Cleaned natickOS Build Environment." "done"
+        echo -e "${GREEN}=> ${NC}Cleaned natickOS Build Environment."
         ;;
     "run" )
         if [[ ! -f ${N_OUT}/natickOS-${BARCH}.img ]]; then
