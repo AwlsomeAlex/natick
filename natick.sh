@@ -17,8 +17,8 @@ set -eE -o functrace
 # and defines which packages are included in 'all'
 # along with packages included in LiveCD
 
-#export BARCH="x86_64"
-export BARCH="i686"
+export BARCH="x86_64"
+#export BARCH="i686"
 export PKGS=("musl" "busybox" "linux" "linux-headers" "zlib" "ncurses" "util-linux" "e2fsprogs" "vim" "dialog" "libuev" "libite" "finit")
 
 #============================================#
@@ -296,7 +296,7 @@ function ncheck() {
 # ntoolchain(): Builds mussel toolchain for natickOS
 function ntoolchain() {
     if [[ -d ${M_PREFIX} ]] && [[ -d ${M_SYSROOT} ]]; then
-        echo "${GREEN}=> ${NC}mussel for ${BARCH} already compiled."
+        echo -e "${GREEN}=> ${NC}mussel for ${BARCH} already compiled."
     else
         cd ${M_PROJECT}
         env -i bash -l -c "time ./mussel.sh ${BARCH} -p -l -k"
@@ -474,7 +474,7 @@ function niso() {
             lprint "Good call." "fail"
 	fi
     fi
-    mkdir -p ${N_WORK}/iso/{sysroot,vanzille,boot}
+    mkdir -p ${N_WORK}/iso/{sysroot,natick,boot}
 
     # --- LOG Redirection --- #
     export LOG=${N_WORK}/iso/log.txt
@@ -511,12 +511,12 @@ function niso() {
     # --- Generate InitramFS --- #
     lprint "Generating InitramFS...." "...."
     cd ${N_WORK}/iso/sysroot
-    find . | cpio -R root:root -H newc -o | xz -9 --check=none > ${N_WORK}/iso/vanzille/initramfs.xz
+    find . | cpio -R root:root -H newc -o | xz -9 --check=none > ${N_WORK}/iso/natick/initramfs.xz
     cd ${curr}
 
     # --- Prepare Image --- #
     lprint "Preparing Image...." "...."
-    mv ${N_WORK}/iso/sysroot/boot/linux-*.xz ${N_WORK}/iso/vanzille/linux.xz
+    mv ${N_WORK}/iso/sysroot/boot/linux-*.xz ${N_WORK}/iso/natick/linux.xz
     cp -r ${N_WORK}/iso/sysroot/boot/* ${N_WORK}/iso/boot
     rm -rf /tmp/natickOS-sysroot
 
