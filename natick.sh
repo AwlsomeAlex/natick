@@ -597,7 +597,7 @@ function nimg() {
         elif [[ ${item} == "syslinux" ]]; then # syslinux conflicts with extlinux
             continue
         else
-            file="${N_OUT}/${item}-[0-9]*.tar.zst"
+            file="${N_OUT}/${item}-[0-9]*.tar.xz"
             tar -xf ${file} -C ${mnt}
         fi
     done
