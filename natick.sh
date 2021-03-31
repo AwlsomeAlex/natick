@@ -17,8 +17,8 @@ set -eE -o functrace
 # and defines which packages are included in 'all'
 # along with packages included in LiveCD
 
-#export BARCH="x86_64"
-export BARCH="i686"
+export BARCH="x86_64"
+#export BARCH="i686"
 export PKGS=("musl" "busybox" "linux" "linux-headers" "zlib" "ncurses" "util-linux" "e2fsprogs" "vim" "dialog" "libuev" "libite" "finit")
 
 #============================================#
@@ -182,8 +182,6 @@ function ltitle() {
     echo "| Created by AwlsomeAlex |"
     echo "| ISC License            |"
     echo "+========================+"
-    echo "| Building Package: ${PKG}"
-    echo "+========================+"
     echo ""
 }
 
@@ -315,7 +313,8 @@ function nbuild() {
     export B_FILES="${N_FILES}/${PKG}"          # PKG Files   (where extra files are stored)
     local arg=$1
 
-    ltitle
+    # --- Setup Script Trap --- #   
+    trap 'lfailure ${LINENO} "$BASH_COMMAND"' ERR
 
     # --- Check for mussel --- #
     if [[ ! -d ${M_PREFIX} ]]; then
@@ -323,6 +322,7 @@ function nbuild() {
     fi
 
     # --- Initialize Directories --- #
+    #mkdir ${N_WORK} ${N_OUT} &>/dev/null
     for dir in ${N_WORK} ${N_OUT}; do
         if [[ ! -d ${dir} ]]; then
             mkdir ${dir}
@@ -336,9 +336,6 @@ function nbuild() {
 
     # --- Source Package's BTR --- #
     source ${N_PKG}/${PKG}.btr
-
-    # --- Setup Script Trap --- #
-    trap 'lfailure ${LINENO} "$BASH_COMMAND"' ERR
 
     # --- Check Build Requirements --- #
     for p in "${pkg_bld[@]}"; do
@@ -650,15 +647,18 @@ case "${OPT}" in
     "all" )
         ntoolchain
         export ARG="--force"
+        ltitle
         for p in ${PKGS[@]}; do
             export PKG="${p}"
             nbuild --force
+            echo ""
         done
         ;;
     "build" )
         # This does directory and package checks, then compiles
         # and packs the specified package into a .tar.zst archive
         # ready to be used by natickOS
+        ltitle
         nbuild
         ;;
     "iso" )
@@ -685,6 +685,7 @@ case "${OPT}" in
         fi
         ;;
     "clean" )
+        ltitle
         cd ${M_PROJECT}
         if [[ ${PKG} != "--skip-toolchain" ]]; then
             ./mussel.sh -c
@@ -696,6 +697,7 @@ case "${OPT}" in
         echo -e "${GREEN}=> ${NC}Cleaned natickOS Build Environment."
         ;;
     "run" )
+        ltitle
         if [[ ! -f ${N_OUT}/natickOS-${BARCH}.img ]]; then
             lprint "natickOS IMG not generated. Please generate with '${EXEC} img'" "fail"
 	else
