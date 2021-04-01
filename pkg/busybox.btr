@@ -14,12 +14,12 @@
 # Variables #
 #===========#
 pkg_name="busybox"
-pkg_ver="1195782d79d282639f54ef9620a9211c96c572f1"
+pkg_ver="24198f652f10dca5603df7c704263358ca21f5ce"
 #pkg_ver="1.31.1"
 pkg_rel="1"
-pkg_src=("https://git.busybox.net/busybox/snapshot/busybox-1195782d79d282639f54ef9620a9211c96c572f1.tar.gz")
+pkg_src=("https://git.busybox.net/busybox/snapshot/busybox-${pkg_ver}.tar.gz")
 #pkg_src=("https://busybox.net/downloads/busybox-${pkg_ver}.tar.bz2")
-pkg_chk="27f635ef6309a51cf1d4904f2140abb781f7ea59164424d245f12f7c14e2ab91"
+pkg_chk="37dd5880af125aa278d9826c871ceb03d9d184d8bceb6785d2d1af5989efdd66"
 #pkg_chk="d0f940a72f648943c1f2211e0e3117387c31d765137d92bd8284a3fb9752a998"
 pkg_bld=()
 pkg_req=()

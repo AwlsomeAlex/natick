@@ -26,6 +26,8 @@ pkg_desc="Fast init for Linux systems. Cookies included"
 # Build Area #
 #============#
 build() {
+    local SERVICES=("getty" "klogd" "syslogd" "dhcpcd")
+
     # --- Copy Config Files --- #
     cp ${N_FILES}/config.guess .
     cp ${N_FILES}/config.sub .
@@ -64,4 +66,10 @@ build() {
     
     # --- Copy local files to BUILDROOT --- #
     cp -r ${B_FILES}/* ${B_BUILDROOT}
+
+    # --- Services Enabled by Default --- #
+    cd ${B_BUILDROOT}/etc/finit.d/available
+    for service in ${SERVICES[@]}; do
+        ln -sf available/${service}.conf ${B_BUILDROOT}/etc/finit.d/${service}.conf
+    done
 }
