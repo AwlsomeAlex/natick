@@ -20,7 +20,7 @@ pkg_src=()
 pkg_chk=""
 pkg_bld=()
 pkg_req=()
-pkg_desc="Midstreams INIT for natickOSOS"
+pkg_desc="Midstreams INIT for natickOS"
 
 #============#
 # Build Area #
