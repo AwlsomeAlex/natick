@@ -214,3 +214,17 @@ mkdir build && cd build
     libc_cv_slibdir=/usr/lib
 make -j${JOBS}
 make DESTDIR=${SYS_DIR} install
+
+# 5 - Binutils (Pass II)
+cd ${WRK_DIR}/binutils-${binutils_ver}
+mkdir build2 && cd build2
+../configure                                \
+    --prefix=${PFX_DIR}                     \
+    --build=${HOST}                         \
+    --host=${TARGET}                        \
+    --disable-nls                           \
+    --enable-shared                         \
+    --disable-werror                        \
+    --enable-64-bit-bfd
+make -j${JOBS}
+make install -j${JOBS}
