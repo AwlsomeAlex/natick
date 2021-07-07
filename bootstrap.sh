@@ -52,25 +52,35 @@ ROOT_DIR="${CUR_DIR}/bootstrap"
 SRC_DIR="${ROOT_DIR}/source"
 WRK_DIR="${ROOT_DIR}/work"
 
-PFX_DIR="${ROOT_DIR}/toolchain"
 SYS_DIR="${ROOT_DIR}/sysroot"
+TOOL_DIR="${SYS_DIR}/toolchain"
+LOG=${ROOT_DIR}/log.txt
 
 #===========================#
 # ----- Compile Flags ----- #
 #===========================#
-PATH=${PFX_DIR}/bin:/usr/bin:/bin
-CFLAGS=-O2
-CXXFLAGS=${CFLAGS}
-JOBS="$(expr 3 \* $(nproc))"
-HOST="$(echo ${MACHTYPE} | sed -e 's/-[^-]*/-cross/')"
+export PATH=${TOOL_DIR}/bin:/usr/bin:/bin
+export LC_ALL="POSIX"
+export CFLAGS=-O2
+export CXXFLAGS=${CFLAGS}
+export JOBS="$(expr 3 \* $(nproc))"
+export HOST="$(echo ${MACHTYPE} | sed -e 's/-[^-]*/-cross/')"
 
 # Architecture Specific Flags
 case ${ARCH} in 
     "x86_64")
-        TARGET="x86_64-linux-gnu"
+        export TARGET="x86_64-natick-linux-gnu"
+        export CROSS_ARCH="x86-64"
+        export LINUX_ARCH="x86_64"
+        export MACH_ARCH="${LINUX_ARCH}"
+        export GCC_ARGS="--with-arch=${CROSS_ARCH} --with-tune=generic"
         ;;
     "i686")
-        TARGET="i686-linux-gnu"
+        export TARGET="i686-natick-linux-gnu"
+        export CROSS_ARCH="i686"
+        export LINUX_ARCH="i386"
+        export MACH_ARCH="${LINUX_ARCH}"
+        export GCC_ARGS="--with-arch=${CROSS_ARCH} --with-tune=generic"
         ;;
     *)
         echo "Invalid architecture: ${ARCH}"
@@ -99,7 +109,19 @@ function boot_dl() {
     }
 
     # Extract tarball
-    bsdtar -xf ${SRC_DIR}/${tar} -C ${WRK_DIR}
+    pv ${SRC_DIR}/${tar} | bsdtar -xf - -C ${WRK_DIR}/
+    #bsdtar -xf ${SRC_DIR}/${tar} -C ${WRK_DIR}
+}
+function boot_patch() {
+    local last=$(pwd)
+    local base=${1}
+    local pkg=${2}
+    local ver=${3}
+    local name=${4}
+
+    cd ${WRK_DIR}/${pkg}-${ver}
+    patch -p${base} -i ${CUR_DIR}/patch/${name}.patch
+    cd ${last}
 }
 
 #================================#
@@ -117,114 +139,213 @@ done
 # ----- Download/Extract Packages ----- #
 #=======================================#
 # Check if Work/Toolchain directories exist
-if [[ -d ${WRK_DIR} ]] || [[ -d ${PFX_DIR} ]] || [[ -d ${SYS_DIR} ]]; then
+if [[ -d ${WRK_DIR} ]] || [[ -d ${TOOL_DIR} ]] || [[ -d ${SYS_DIR} ]]; then
     echo "Bootstrap directories already exist."
     read -p "Clean? [Y/n] " opt
     if [[ ${opt} == "Y" ]]; then
-        rm -rf ${WRK_DIR} ${PFX_DIR} ${SYS_DIR}
+        rm -rf ${WRK_DIR} ${TOOL_DIR} ${SYS_DIR}
     else
         echo "Bye."
         exit 1
     fi
 fi
 mkdir -p ${ROOT_DIR}/{source,work,toolchain,sysroot}
+mkdir -p ${SYS_DIR}/{bin,etc,lib,sbin,usr,var,lib64}
 
 # Download source tarballs
-boot_dl "binutils" "${binutils_lnk}" "${binutils_ver}" "${binutils_chk}"
-boot_dl "gcc" "${gcc_lnk}" "${gcc_ver}" "${gcc_chk}"
-boot_dl "linux" "${linux_lnk}" "${linux_ver}" "${linux_chk}"
+#boot_dl "binutils" "${binutils_lnk}" "${binutils_ver}" "${binutils_chk}"
+#boot_dl "gcc" "${gcc_lnk}" "${gcc_ver}" "${gcc_chk}"
+#boot_dl "mpfr" "${mpfr_lnk}" "${mpfr_ver}" "${mpfr_chk}"
+#boot_dl "gmp" "${gmp_lnk}" "${gmp_ver}" "${gmp_chk}"
+#boot_dl "mpc" "${mpc_lnk}" "${mpc_ver}" "${mpc_chk}"
+#boot_dl "linux" "${linux_lnk}" "${linux_ver}" "${linux_chk}"
+#boot_dl "glibc" "${glibc_lnk}" "${glibc_ver}" "${glibc_chk}"
 
 #=================================#
 # ----- Bootstrap Toolchain ----- #
 #=================================#
-# 1 - binutils (Pass I)
+set -e
+# 1 - Binutils
+boot_dl "binutils" "${binutils_lnk}" "${binutils_ver}" "${binutils_chk}"
+echo "$(date) - Compile Binutils - START" >> ${LOG} 2>&1
 cd ${WRK_DIR}/binutils-${binutils_ver}
 mkdir build && cd build
-../configure --prefix="${PFX_DIR}"          \
-    --with-sysroot="${SYS_DIR}"             \
-    --target=${TARGET}                      \
-    --disable-nls                           \
-    --disable-werror
-make -j${JOBS}
-make install -j1
+echo "Compiling Binutils...."
+../configure                    \
+    --prefix=${TOOL_DIR}        \
+    --with-sysroot=${SYS_DIR}   \
+    --target=${TARGET}          \
+    --disable-nls               \
+    --disable-multilib          \
+    --disable-werror >> ${LOG} 2>&1
+make -j${JOBS}                  \
+    all-binutils                \
+    all-gas                     \
+    all-ld >> ${LOG} 2>&1
+make -j${JOBS}                  \
+    install-strip-binutils      \
+    install-strip-gas           \
+    install-strip-ld >> ${LOG} 2>&1
+echo "$(date) - Compile Binutils - STOP" >> ${LOG} 2>&1
 
-# 2 - GCC (Pass I)
+# 2 - Linux Headers
+echo "$(date) - Compile Linux Headers - START" >> ${LOG} 2>&1
+boot_dl "linux" "${linux_lnk}" "${linux_ver}" "${linux_chk}"
+cd ${WRK_DIR}/linux-${linux_ver}
+echo "Compiling Linux Headers...."
+make -j${JOBS} mrproper >> ${LOG} 2>&1
+make -j${JOBS} ARCH=${LINUX_ARCH} headers >> ${LOG} 2>&1
+make -j${JOBS}                      \
+    ARCH=${LINUX_ARCH}              \
+    INSTALL_HDR_PATH=${SYS_DIR}/usr \
+    headers_install >> ${LOG} 2>&1
+echo "$(date) - Compile Linux Headers - STOP" >> ${LOG} 2>&1
+
+# 3 - Glibc Headers
+echo "$(date) - Compile Glibc Headers - START" >> ${LOG} 2>&1
+boot_dl "glibc" "${glibc_lnk}" "${glibc_ver}" "${glibc_chk}"
+cd ${WRK_DIR}/glibc-${glibc_ver}
+echo "Compiling Glibc Headers...."
+mkdir build-headers && cd build-headers
+ARCH=${MACH_ARCH} ../configure                              \
+    --prefix=/usr                                           \
+    --host=${TARGET}                                        \
+    --build=$(../scripts/config.guess)                      \
+    --enable-kernel=3.2                                     \
+    --with-headers=${SYS_DIR}/usr/include                   \
+    libc_cv_slibdir=/lib >> ${LOG} 2>&1
+make -j${JOBS} DESTDIR=${SYS_DIR} install-headers >> ${LOG} 2>&1
+echo "$(date) - Compile Glibc Headers - STOP" >> ${LOG} 2>&1
+
+# 4 - GCC (Compiler)
+echo "$(date) - Compile GCC (Compiler) - START" >> ${LOG} 2>&1
+boot_dl "gcc" "${gcc_lnk}" "${gcc_ver}" "${gcc_chk}"
+boot_dl "mpfr" "${mpfr_lnk}" "${mpfr_ver}" "${mpfr_chk}"
+boot_dl "gmp" "${gmp_lnk}" "${gmp_ver}" "${gmp_chk}"
+boot_dl "mpc" "${mpc_lnk}" "${mpc_ver}" "${mpc_chk}"
 cd ${WRK_DIR}/gcc-${gcc_ver}
 cp -r ../mpfr-${mpfr_ver} mpfr
 cp -r ../gmp-${gmp_ver} gmp
 cp -r ../mpc-${mpc_ver} mpc
-case ${ARCH} in 
-    x86_64)
-        sed -e '/m64=/s/lib64/lib'          \
-            -i.orig gcc/config/i386/t-linux64
-        ;;
-esac
-mkdir build && cd build
-../configure                                \
-    --target=${TARGET}                      \
-    --prefix="${PFX_DIR}"                   \
-    --with-glibc-version=2.11               \
-    --with-sysroot="${SYS_DIR}"             \
-    --with-newlib                           \
-    --without-headers                       \
-    --enable-initfini-array                 \
-    --disable-nls                           \
-    --disable-shared                        \
-    --disable-multilib                      \
-    --disable-decimal-float                 \
-    --disable-threads                       \
-    --disable-libatomic                     \
-    --disable-libgomp                       \
-    --disable-libquadmath                   \
-    --disable-libssp                        \
-    --disable-libvtv                        \
-    --disable-libstdcxx                     \
-    --enable-languages=c,c++
-make -j${JOBS}
-make install
-cd ..
-cat gcc/limitx.h gcc/glimits.h gcc/limity.h > \
-    `dirname $(${TARGET}-gcc -print-libgcc-file-name)`/install-tools/include/limits.h
-
-# 3 - Linux Headers
-cd ${WRK_DIR}/linux-${linux_ver}
-make mrproper -j${JOBS}
-make headers_check -j${JOBS}
-make headers_install INSTALL_HDR_PATH=${SYS_DIR}/usr -j${JOBS}
-
-# 4 - Glibc
-cd ${WRK_DIR}/glibc-${glibc_ver}
 case ${ARCH} in
-    i686)
-        ln -sf ld-linux.so.2 ${SYS_DIR}/lib64
+    "x86-64")
+        sed -e '/m64=/s/lib64/lib/' \
+            -i.orig gcc/config/i386/t-linux64
+    ;;
+esac
+mkdir build && cd build
+echo "Compiling GCC (Compiler)...."
+../configure                    \
+    --target=${TARGET}          \
+    --prefix=${TOOL_DIR}        \
+    --with-glibc-version=2.11   \
+    --with-sysroot=${SYS_DIR}   \
+    --enable-languages=c,c++    \
+    --disable-multilib          \
+    --disable-bootstrap         \
+    --disable-libsanitizer      \
+    --disable-werror            \
+    --enable-initfini-array ${GCC_ARGS} >> ${LOG} 2>&1
+
+make -j${JOBS} all-gcc >> ${LOG} 2>&1
+make -j${JOBS} install-strip-gcc >> ${LOG} 2>&1
+echo "$(date) - Compile GCC (Compiler) - STOP" >> ${LOG} 2>&1
+
+# 4.5 - GCC (libgcc-static)
+echo "$(date) - Compile GCC (libgcc-static) - START" >> ${LOG} 2>&1
+echo "Compiling GCC (libgcc-static)...."
+CFLAGS='g0 -O0'         \
+CXXFLAGS='g0 -O0'       \
+make -j${JOBS}          \
+    enable_shared=no    \
+    all-target-libgcc >> ${LOG} 2>&1
+make -j${JOBS} \
+    install-strip-target-libgcc >> ${LOG} 2>&1
+echo "$(date) - Compile GCC (libgcc-static) - STOP" >> ${LOG} 2>&1
+
+# 5 - Glibc
+echo "$(date) - Compile Glibc - START" >> ${LOG} 2>&1
+cd ${WRK_DIR}/glibc-${glibc_ver}
+echo "Compiling Glibc...."
+case ${ARCH} in
+    "x86-64")
+        ln -sfv ../lib/ld-linux-x86-64.so.2 ${SYS_DIR}/lib64 >> ${LOG} 2>&1
+        ln -sfv ../lib/ld-linux-x86-64.so.2 ${SYS_DIR}/lib64/ld-lsb-x86-64.so.3 >> ${LOG} 2>&1
         ;;
-    x86_64)
-        ln -sf ../lib/ld-linux-x86-64.so.2 ${SYS_DIR}/lib64
-        ln -sf ../lib/ld-linux-x86-64.so.2 ${SYS_DIR}/lib64/ld-lsb-x86-64.so.3
+    "i686")
+        ln -sfv ld-linux.so.2 ${SYS_DIR}/lib/ld-lsb.so.3 >> ${LOG} 2>&1
         ;;
 esac
-sed 's/amx_/amx-/' -i sysdeps/x86/tst-cpu-features-supports.c
 mkdir build && cd build
-../configure                                \
-    --prefix=/usr                           \
-    --host=${TARGET}                        \
-    --build=${HOST}                         \
-    --enable-kernel=3.2                     \
-    --with-headers=${SYS_DIR}/usr/include   \
-    libc_cv_slibdir=/usr/lib
-make -j${JOBS}
-make DESTDIR=${SYS_DIR} install
+ARCH=${MACH_ARCH} CC=${TARGET}-gcc                          \
+CROSS_COMPILE=${TARGET}-                                    \
+LIBCC="${TOOL_DIR}/lib/gcc/${TARGET}/${gcc_ver}/libgcc.a"   \
+../configure                                                \
+    --prefix=/usr                                           \
+    --host=${TARGET}                                        \
+    --build=$(../scripts/config.guess)                      \
+    --enable-kernel=3.2                                     \
+    --with-headers=${SYS_DIR}/usr/include                   \
+    libc_cv_slibdir=/lib >> ${LOG} 2>&1
+make -j${JOBS}      \
+    AR=${TARGET}-ar \
+    RANLIB=${TARGET}-ranlib >> ${LOG} 2>&1
+make -j${JOBS}              \
+    AR=${TARGET}-ar         \
+    RANLIB=${TARGET}-ranlib \
+    DESTDIR=${SYS_DIR} install >> ${LOG} 2>&1
+#${TOOL_DIR}/libexec/gcc/${TARGET}/${gcc_ver}/install-tools/mkheaders >> ${LOG} 2>&1
+echo "$(date) - Compile Glibc - STOP" >> ${LOG} 2>&1
 
-# 5 - Binutils (Pass II)
-cd ${WRK_DIR}/binutils-${binutils_ver}
-mkdir build2 && cd build2
-../configure                                \
-    --prefix=${PFX_DIR}                     \
-    --build=${HOST}                         \
-    --host=${TARGET}                        \
-    --disable-nls                           \
-    --enable-shared                         \
-    --disable-werror                        \
-    --enable-64-bit-bfd
-make -j${JOBS}
-make install -j${JOBS}
+# 6 - GCC (libgcc-shared)
+echo "$(date) - Compile GCC (libgcc-shared) - START" >> ${LOG} 2>&1
+cd ${WRK_DIR}/gcc-${gcc_ver}/build
+echo "Compiling GCC (libgcc-shared)...."
+make -j${JOBS} \
+    -C ${TARGET}/libgcc distclean >> ${LOG} 2>&1
+make -j${JOBS}          \
+    enable_shared=yes   \
+    all-target-libgcc >> ${LOG} 2>&1
+make -j${JOBS} install-strip-target-libgcc >> ${LOG} 2>&1
+echo "$(date) - Compile GCC (libgcc-shared) - STOP" >> ${LOG} 2>&1
+
+# 6.5 - GCC (libstdc++-v3)
+echo "$(date) - Compile GCC (libstdc++-v3) - START" >> ${LOG} 2>&1
+echo "Compiling GCC (libstdc++-v3)...."
+make -j${JOBS} all-target-libstdc++-v3 >> ${LOG} 2>&1
+make -j${JOBS} install-strip-target-libstdc++-v3 >> ${LOG} 2>&1
+echo "$(date) - Compile GCC (libstdc++-v3) - STOP" >> ${LOG} 2>&1
+
+# 7 - pkgconf
+echo "$(date) - Compile pkgconf - START" >> ${LOG} 2>&1
+boot_dl "pkgconf" "${pkgconf_lnk}" "${pkgconf_ver}" "${pkgconf_chk}"
+cd ${WRK_DIR}/pkgconf-${pkgconf_ver}
+mkdir build && cd build
+CFLAGS="${CFLAGS} -fcommon"                                                                 \
+../configure                                                                                \
+    --prefix=${TOOL_DIR}                                                                    \
+    --with-sysroot=${SYS_DIR}                                                               \
+    --with-pkg-config-dir="${SYS_DIR}/usr/lib/pkgconfig:${SYS_DIR}/usr/share/pkgconfig"     \
+    --with-system-libdir="${SYS_DIR}/usr/lib"                                               \
+    --with-system-includedir="${SYS_DIR}/usr/include" >> ${LOG} 2>&1
+make -j${JOBS} >> ${LOG} 2>&1
+make -j${JOBS} install-strip >> ${LOG} 2>&1
+ln -sv pkgconf ${TOOL_DIR}/bin/pkg-config >> ${LOG} 2>&1
+echo "$(date) - Compile pkgconf - STOP" >> ${LOG} 2>&1
+    
+#     --with-newlib               \
+#    --without-headers           \
+#    --enable-initfini-array     \
+#    --disable-nls               \
+#    --disable-shared            \
+#    --disable-multilib          \
+#    --disable-decimal-float     \
+#    --disable-threads           \
+#    --disable-libatomic         \
+#    --disable-libgomp           \
+#    --disable-libquadmath       \
+#    --disable-libssp            \
+#    --disable-libvtv            \
+#    --disable-libstdcxx         \
+#    --disable-bootstrap         \
+#    --enable-languages=c,c++ >> ${LOG} 2>&1
