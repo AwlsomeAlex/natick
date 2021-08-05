@@ -1,0 +1,28 @@
+# Copyright (C) AJ Barris (AwlsomeAlex) <aj at awlsome dot com>
+# ISC License - All Rights Reserved
+# linux Burnt Tavern Recipe
+# Maintainer: AwlsomeAlex
+
+name="linux"
+version="5.13.8"
+url="https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-${version}.tar.xz"
+shasum="d088c2b84d9813f415a1d8dcfadb02d27d03f709c8b989d8c11b7b56c3c9a428"
+
+host_configure() {
+    ${MAKE} ARCH=${LINUX_ARCH} mrproper
+}
+
+host_build() {
+    ${MAKE} \
+        O=${WORK_DIR}/linux \
+        ARCH=${LINUX_ARCH} \
+        headers_check
+}
+
+host_install() {
+    ${MAKE} \
+        O=${WORK_DIR}/linux \
+        ARCH=${LINUX_ARCH} \
+        INSTALL_HDR_PATH=${SYSROOT_DIR}/usr \
+        headers_install
+}

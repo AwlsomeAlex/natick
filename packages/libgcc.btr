@@ -1,0 +1,22 @@
+# Copyright (C) AJ Barris (AwlsomeAlex) <aj at awlsome dot com>
+# ISC License - All Rights Reserved
+# libgcc Burnt Tavern Recipe
+# Maintainer: AwlsomeAlex
+
+name="libgcc"
+version="11.2.0"
+url=""
+shasum=""
+
+host_configure() {
+    cd ${WORK_DIR}/host/gcc-${version}/build
+    ${MAKE} -C ${TARGET}/libgcc distclean
+}
+
+host_build() {
+    ${MAKE} enable_shared=yes all-target-libgcc
+}
+
+host_install() {
+    ${MAKE} install-strip-target-libgcc
+}

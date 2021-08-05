@@ -1,0 +1,45 @@
+# Copyright (C) AJ Barris (AwlsomeAlex) <aj at awlsome dot com>
+# ISC License - All Rights Reserved
+# gcc Burnt Tavern Recipe
+# Maintainer: AwlsomeAlex
+
+name="gcc"
+version="11.2.0"
+url="https://ftpmirror.gnu.org/gcc/gcc-${version}/gcc-${version}.tar.xz"
+shasum="d08edc536b54c372a1010ff6619dd274c0f1603aa49212ba20f7aa2cda36fa8b"
+
+host_configure() {
+    for p in gmp mpfr mpc isl; do
+        cp -ar ${WORK_DIR}/host/${p}* ${p}
+    done
+    mkdir build && cd build
+    ../configure \
+        --prefix=${TOOLCHAIN_DIR} \
+        --target=${TARGET} \
+        --with-sysroot=${SYSROOT_DIR} \
+        --enable-languages=c,c++ \
+        --disable-multilib \
+        --disable-bootstrap \
+        --disable-libsanitizer \
+        --disable-werror \
+        --enable-initfini-array ${GCC_ARGS}
+    mkdir -p ${SYSROOT_DIR}/usr/include
+}
+
+# This btr is weird because build & install share similar components
+# It all has to do with which part of GCC is compiled first
+# build: gcc executables
+# install: libgcc libraries
+host_build() {
+    ${MAKE} all-gcc
+    ${MAKE} install-strip-gcc
+}
+
+host_install() {
+    CFLAGS='-g0 -O0' \
+    CXXFLAGS='-g0 -O0' \
+    ${MAKE} \
+        enable_shared=no \
+        all-target-libgcc
+    ${MAKE} install-strip-target-libgcc
+}

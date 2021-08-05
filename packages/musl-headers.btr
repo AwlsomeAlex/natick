@@ -1,0 +1,29 @@
+# Copyright (C) AJ Barris (AwlsomeAlex) <aj at awlsome dot com>
+# ISC License - All Rights Reserved
+# musl-headers Burnt Tavern Recipe
+# Maintainer: AwlsomeAlex
+
+name="musl-headers"
+version="1.2.2"
+url="https://musl.libc.org/releases/musl-${version}.tar.gz"
+shasum="9b969322012d796dc23dda27a35866034fa67d8fb67e0e2c45c913c3d43219dd"
+
+host_configure() {
+    # This is different because musl install is
+    # different from header install
+    cd ..
+    cp -ar musl-${version}/* musl-headers-${version}
+    rm -rf musl-${version}
+    cd musl-headers-${version}
+    mkdir -p ${SYSROOT_DIR}/usr/include
+}
+
+host_build() {
+    ${MAKE} \
+        ARCH=${MACHINE_ARCH} \
+        prefix=/usr \
+        DESTDIR=${SYSROOT_DIR} \
+        install-headers
+}
+
+host_install() { : }

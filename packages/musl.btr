@@ -1,0 +1,33 @@
+# Copyright (C) AJ Barris (AwlsomeAlex) <aj at awlsome dot com>
+# ISC License - All Rights Reserved
+# musl Burnt Tavern Recipe
+# Maintainer: AwlsomeAlex
+
+name="musl"
+version="1.2.2"
+url="https://musl.libc.org/releases/musl-${version}.tar.gz"
+shasum="9b969322012d796dc23dda27a35866034fa67d8fb67e0e2c45c913c3d43219dd"
+
+host_configure() {
+    ARCH=${MACHINE_ARCH} \
+    CC=${TARGET}-gcc \
+    CROSS_COMPILE=${TARGET}- \
+    LIBCC="${TOOLCHAIN_DIR}/lib/gcc/${TARGET}/11.2.0/libgcc.a" \
+    ./configure \
+        --host=${TARGET} \
+        --prefix=/usr
+}
+
+host_build() {
+    ${MAKE} \
+        AR=${TARGET}-ar \
+        RANLIB=${TARGET}-ranlib
+}
+
+host_install() {
+    ${MAKE} \
+        AR=${TARGET}-ar \
+        RANLIB=${TARGET}-ranlib \
+        DESTDIR=${SYSROOT_DIR} \
+        install
+}

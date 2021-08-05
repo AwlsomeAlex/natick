@@ -1,0 +1,13 @@
+# Copyright (C) AJ Barris (AwlsomeAlex) <aj at awlsome dot com>
+# ISC License - All Rights Reserved
+# isl Burnt Tavern Recipe
+# Maintainer: AwlsomeAlex
+
+name="isl"
+version="0.24"
+url="http://isl.gforge.inria.fr/isl-${version}.tar.xz"
+shasum="043105cc544f416b48736fff8caf077fb0663a717d06b1113f16e391ac99ebad"
+
+host_configure() { : }
+host_build() { : }
+host_install() { : }

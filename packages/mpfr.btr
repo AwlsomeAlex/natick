@@ -1,0 +1,13 @@
+# Copyright (C) AJ Barris (AwlsomeAlex) <aj at awlsome dot com>
+# ISC License - All Rights Reserved
+# mpfr Burnt Tavern Recipe
+# Maintainer: AwlsomeAlex
+
+name="mpfr"
+version="4.1.0"
+url="https://www.mpfr.org/mpfr-current/mpfr-${version}.tar.xz"
+shasum="0c98a3f1732ff6ca4ea690552079da9c597872d30e96ec28414ee23c95558a7f"
+
+host_configure() { : }
+host_build() { : }
+host_install() { : }
