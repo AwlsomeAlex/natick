@@ -1,3 +1,4 @@
 [submodule "toolchain"]
 	path = toolchain
 	url = https://github.com/AwlsomeAlex/mussel.git
+	branch = master
