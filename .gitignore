@@ -1,4 +1,9 @@
-/.vscode
-/x86_64
-/aarch64
-/i686
+# ----- Directories ----- #
+sources/
+.vscode/
+# Sue me. VSCode is a solid editor.
+
+# ----- Build Directories ----- #
+x86-64/
+i686/
+aarch64/
