@@ -9,6 +9,8 @@
 # All Rights Reserved
 #=======================#
 
+set -e
+umask 022
 #========================#
 # ----- Variables ------ #
 #========================#
@@ -18,7 +20,7 @@ ARGUMENT=${2}
 
 # Basic Directory Structure
 export ROOT_DIR="$(pwd)"
-export SOURCE_DIR="${ROOT_DIR}/source"
+export SOURCE_DIR="${ROOT_DIR}/sources"
 export PKG_DIR="${ROOT_DIR}/pkg"
 
 #========================#
@@ -76,8 +78,8 @@ function define_env() {
 
     # Compiler Architecture
     export HOST="$(echo ${MACHTYPE} | sed -e 's/-[^-]*/-cross/')"
-    case "${ARCH}" in
-        x86_64)
+    case "${arch}" in
+        x86-64)
             export TARGET="x86_64-linux-musl"
             export CROSS_ARCH="x86-64"
             export LINUX_ARCH="x86_64"
@@ -90,6 +92,13 @@ function define_env() {
             export LINUX_ARCH="i386"
             export MACHINE_ARCH="${LINUX_ARCH}"
             export GCC_ARGS="--with-arch=${CROSS_ARCH} --with-tune=generic"
+            ;;
+        aarch64)
+            export TARGET="aarch64-linux-musl"
+            export CROSS_ARCH="aarch64"
+            export LINUX_ARCH="arm64"
+            export MACHINE_ARCH="${CROSS_ARCH}"
+            export GCC_ARGS="--with-arch=armv8-a --with-abi=lp64 --enable-fix-cortex-a53-835769 --enable-fix-cortex-a53-843419"
             ;;
         *)
             show_usage
@@ -122,7 +131,67 @@ function define_env() {
     export PKG_CONFIG_SYSTEM_LIBRARY_PATH="${SYSROOT_DIR}/usr/lib"
 }
 
+# check_dep($1: Package Name)
+# Checks to see if a build dependency is met
+function check_dep() {
+    local pkg=${1}
+    if [[ ! -d ${WORK_DIR}/${pkg} ]]; then
+        fail_print "Dependency ${pkg} not built. Please build with '${EXEC} build ${pkg}."
+    fi
+}
 
+# prepare_tarball()
+# Downloads and extracts a tarball to the source directory
+function prepare_tarball() {
+    # Download tarball
+    local archive=$(basename ${url})
+    if [[ ! -f ${SOURCE_DIR}/${archive} ]]; then
+        wait_print "Downloading ${archive}"
+        wget -q --show-progress ${url} ${SOURCE_DIR}
+    else
+        done_print "${archive} already downloaded"
+    fi
+
+    # Checksum check
+    (cd ${SOURCE_DIR} && echo "${shasum}  ${archive}" } sha256sum -c -) > /dev/null || { 
+        fail_print "Bad Checksum: ${archive}: ${sum}"
+    }
+
+    # Untar tarball
+    wait_print "Extracting ${archive}"
+    pv ${SOURCE_DIR}/${archive} | bsdtar -xf - -C ${WORK_DIR}
+}
+
+# build_package($1: Package Name)
+# Builds a package for natickOS
+function build_package {
+    local pkg_name=${1}
+    if [[ -f ${PKG_DIR}/${pkg_name}/${pkg_name}.btr ]]; then
+        source ${PKG_DIR}/${pkg_name}/${pkg_name}.btr
+    else
+        fail_print "Specified package ${pkg_name} does not have a BTR."
+    fi
+
+    # Check all dependencies
+    for pkg in "${bld_deps[@]}"; do
+        check_dep ${pkg}
+    done
+
+    # Build Package
+    if [[ ${arch} == "all" ]]; then
+        for a in i686 x86-64 aarch64; do
+            define_env ${a}
+            mkdir ${WORK_DIR}/${name}-${version}
+            prepare_tarball ${url}
+            cd ${WORK_DIR}/${name}-${version}
+            prerun >> ${WORK_DIR}/${name}-${version}/log.txt 2>&1
+            configure >> ${WORK_DIR}/${name}-${version}/log.txt 2>&1
+            build >> ${WORK_DIR}/${name}-${version}/log.txt 2>&1
+            install >> ${WORK_DIR}/${name}-${version}/log.txt 2>&1
+            postrun >> ${WORK_DIR}/${name}-${version}/log.txt 2>&1
+        done
+    fi
+}
 
 #=======================#
 # ----- Execution ----- #
@@ -131,17 +200,18 @@ function main() {
     # Match Command Argument
     case "${COMMAND}" in
         build)
-            build_package
+            build_package ${ARGUMENT}
             ;;
         clean)
             wait_print "Cleaning natickOS Build Environment"
             set +e
-            rm -rf x86-64
             rm -rf i686
+            rm -rf x86-64
+            rm -rf aarch64
             done_print "Cleaned natickOS Build Environment"
             ;;
         toolchain)
-            for arch in i686 x86_64 aarch64; do
+            for arch in i686 x86-64 aarch64; do
                 env -i HOME="$HOME" LC_CTYPE="${LC_ALL:-${LC_CTYPE:-$LANG}}" PATH="$PATH" USER="$USER" mussel/mussel.sh ${arch} ${ROOT_DIR}
             done
             ;;
