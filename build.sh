@@ -162,6 +162,30 @@ function prepare_tarball() {
     pv ${SOURCE_DIR}/${archive} | bsdtar -xf - -C ${WORK_DIR}
 }
 
+# build_toolchain()
+# Builds the mussel toolchain for multiple arches
+function build_toolchain {
+    for arch in i686 x86-64 aarch64; do
+        if [[ -d ${arch} ]]; then
+            warn_print "Toolchain for ${arch} already built. Skipping"
+        else
+            mkdir ${arch} && cd ${arch}
+            wait_print "Downloading latest mussel toolchain script & required patches"
+            wget -q --show-progress https://raw.githubusercontent.com/firasuke/mussel/master/mussel.sh
+            if [[ $arch == "x86-64" ]] || [[ $arch == "aarch64" ]]; then
+                mkdir -p patches/gcc/glaucus
+                wget -q --show-progress https://raw.githubusercontent.com/firasuke/mussel/master/patches/gcc/glaucus/0001-pure64-for-${arch}.patch -P patches/gcc/glaucus
+            fi
+            mkdir work
+            wait_print "Building toolchain for ${arch}"
+            chmod +x mussel.sh
+            env -i HOME="$HOME" LC_CTYPE="${LC_ALL:-${LC_CTYPE:-$LANG}}" PATH="$PATH" USER="$USER" ./mussel.sh -k -l -o -p ${arch}
+            done_print "Toolchain built for ${arch}"
+            cd ${ROOT_DIR}
+        fi
+    done
+}
+
 # build_package($1: Package Name)
 # Builds a package for natickOS
 function build_package {
@@ -211,9 +235,7 @@ function main() {
             done_print "Cleaned natickOS Build Environment"
             ;;
         toolchain)
-            for arch in i686 x86-64 aarch64; do
-                env -i HOME="$HOME" LC_CTYPE="${LC_ALL:-${LC_CTYPE:-$LANG}}" PATH="$PATH" USER="$USER" mussel/mussel.sh ${arch} ${ROOT_DIR}
-            done
+            build_toolchain
             ;;
         help | *)
             show_usage
