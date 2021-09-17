@@ -147,7 +147,7 @@ function prepare_tarball() {
     local archive=$(basename ${url})
     if [[ ! -f ${SOURCE_DIR}/${archive} ]]; then
         wait_print "Downloading ${archive}"
-        wget -q --show-progress ${url} ${SOURCE_DIR}
+        wget -q --show-progress ${url} -P ${SOURCE_DIR}
     else
         done_print "${archive} already downloaded"
     fi
@@ -156,6 +156,19 @@ function prepare_tarball() {
     (cd ${SOURCE_DIR} && echo "${shasum}  ${archive}" } sha256sum -c -) > /dev/null || { 
         fail_print "Bad Checksum: ${archive}: ${sum}"
     }
+
+    if [[ -d ${WORK_DIR}/${name}-${version} ]]; then
+        warn_print "The build directory for ${name} already exists."
+        read -p "Delete? (Y/n): " OPT
+        if [[ $OPT == "Y" ]]; then
+            rm -rf ${WORK_DIR}/${name}-${version}
+            rm -rf ${FINAL_DIR}
+        else
+            fail_print "Build for ${name} aborted."
+        fi
+    else
+        mkdir ${WORK_DIR}/${name}-${version}
+    fi
 
     # Untar tarball
     wait_print "Extracting ${archive}"
@@ -176,11 +189,12 @@ function build_toolchain {
                 mkdir -p patches/gcc/glaucus
                 wget -q --show-progress https://raw.githubusercontent.com/firasuke/mussel/master/patches/gcc/glaucus/0001-pure64-for-${arch}.patch -P patches/gcc/glaucus
             fi
-            mkdir work
+            mkdir work final
             wait_print "Building toolchain for ${arch}"
             chmod +x mussel.sh
             env -i HOME="$HOME" LC_CTYPE="${LC_ALL:-${LC_CTYPE:-$LANG}}" PATH="$PATH" USER="$USER" ./mussel.sh -k -l -o -p ${arch}
             done_print "Toolchain built for ${arch}"
+            rm mussel.sh
             cd ${ROOT_DIR}
         fi
     done
@@ -205,14 +219,21 @@ function build_package {
     if [[ ${arch} == "all" ]]; then
         for a in i686 x86-64 aarch64; do
             define_env ${a}
-            mkdir ${WORK_DIR}/${name}-${version}
+            export FINAL_DIR=${BUILD_DIR}/final/${pkg_name}
             prepare_tarball ${url}
             cd ${WORK_DIR}/${name}-${version}
+            wait_print "Building ${name} for ${a}"
             prerun >> ${WORK_DIR}/${name}-${version}/log.txt 2>&1
             configure >> ${WORK_DIR}/${name}-${version}/log.txt 2>&1
             build >> ${WORK_DIR}/${name}-${version}/log.txt 2>&1
             install >> ${WORK_DIR}/${name}-${version}/log.txt 2>&1
             postrun >> ${WORK_DIR}/${name}-${version}/log.txt 2>&1
+            done_print "Built ${name} for ${a}"
+            wait_print "Packaging ${name} for ${a}"
+            cd ${FINAL_DIR}
+            fakeroot tar -cJf ${BUILD_DIR}/final/${name}-${version}-${release}.natick.${a}.txz .
+            cp -r * ${SYSROOT_DIR}
+            done_print "Packaged ${name} for ${a}"
         done
     fi
 }
@@ -224,6 +245,9 @@ function main() {
     # Match Command Argument
     case "${COMMAND}" in
         build)
+            if [[ ! -d ${ROOT_DIR}/sources ]]; then
+                mkdir sources
+            fi
             build_package ${ARGUMENT}
             ;;
         clean)
