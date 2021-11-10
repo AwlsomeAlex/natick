@@ -194,7 +194,6 @@ function build_toolchain {
             chmod +x mussel.sh
             env -i HOME="$HOME" LC_CTYPE="${LC_ALL:-${LC_CTYPE:-$LANG}}" PATH="$PATH" USER="$USER" ./mussel.sh -k -l -o -p ${arch}
             rm -rf builds sources
-            mkdir sources builds
             tar caf toolchain.tar.zst toolchain/ sysroot/
             done_print "Toolchain built for ${arch}"
             rm mussel.sh
@@ -220,7 +219,7 @@ function build_package {
 
     # Build Package
     if [[ ${arch} == "all" ]]; then
-        for a in i686 x86-64 aarch64; do
+        for a in aarch64; do
             define_env ${a}
             export FINAL_DIR=${BUILD_DIR}/final/${pkg_name}
             prepare_tarball ${url}
@@ -236,6 +235,8 @@ function build_package {
             cd ${FINAL_DIR}
             fakeroot tar -cJf ${BUILD_DIR}/final/${name}-${version}-${release}.natick.${a}.txz .
             cp -r * ${SYSROOT_DIR}
+            cd ..
+            rm -r ${pkg_name}
             done_print "Packaged ${name} for ${a}"
         done
     fi
