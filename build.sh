@@ -153,7 +153,7 @@ function prepare_tarball() {
     fi
 
     # Checksum check
-    (cd ${SOURCE_DIR} && echo "${shasum}  ${archive}" } sha256sum -c -) > /dev/null || { 
+    (cd ${SOURCE_DIR} && echo "${shasum}  ${archive}" } sha256sum -c -) > /dev/null || {
         fail_print "Bad Checksum: ${archive}: ${sum}"
     }
 
@@ -178,7 +178,7 @@ function prepare_tarball() {
 # build_toolchain()
 # Builds the mussel toolchain for multiple arches
 function build_toolchain {
-    for arch in i686 x86-64 aarch64; do
+    for arch in aarch64; do
         if [[ -d ${arch} ]]; then
             warn_print "Toolchain for ${arch} already built. Skipping"
         else
@@ -193,6 +193,9 @@ function build_toolchain {
             wait_print "Building toolchain for ${arch}"
             chmod +x mussel.sh
             env -i HOME="$HOME" LC_CTYPE="${LC_ALL:-${LC_CTYPE:-$LANG}}" PATH="$PATH" USER="$USER" ./mussel.sh -k -l -o -p ${arch}
+            rm -rf builds sources
+            mkdir sources builds
+            tar caf toolchain.tar.zst toolchain/ sysroot/
             done_print "Toolchain built for ${arch}"
             rm mussel.sh
             cd ${ROOT_DIR}
