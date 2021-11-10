@@ -225,11 +225,11 @@ function build_package {
             prepare_tarball ${url}
             cd ${WORK_DIR}/${name}-${version}
             wait_print "Building ${name} for ${a}"
-            prerun >> ${WORK_DIR}/${name}-${version}/log.txt 2>&1
-            configure >> ${WORK_DIR}/${name}-${version}/log.txt 2>&1
-            build >> ${WORK_DIR}/${name}-${version}/log.txt 2>&1
-            install >> ${WORK_DIR}/${name}-${version}/log.txt 2>&1
-            postrun >> ${WORK_DIR}/${name}-${version}/log.txt 2>&1
+            prerun_f >> ${WORK_DIR}/${name}-${version}/log.txt 2>&1
+            configure_f >> ${WORK_DIR}/${name}-${version}/log.txt 2>&1
+            build_f >> ${WORK_DIR}/${name}-${version}/log.txt 2>&1
+            install_f >> ${WORK_DIR}/${name}-${version}/log.txt 2>&1
+            postrun_f >> ${WORK_DIR}/${name}-${version}/log.txt 2>&1
             done_print "Built ${name} for ${a}"
             wait_print "Packaging ${name} for ${a}"
             cd ${FINAL_DIR}

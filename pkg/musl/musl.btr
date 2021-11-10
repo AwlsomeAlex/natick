@@ -10,7 +10,7 @@ url="https://musl.libc.org/releases/musl-${version}.tar.gz"
 shasum="9b969322012d796dc23dda27a35866034fa67d8fb67e0e2c45c913c3d43219dd"
 bld_deps=()
 
-prerun() {
+prerun_f() {
     # Guarantee this directory exists
     mkdir -p ${FINAL_DIR}/usr/bin
     # Sanity Check Toolchain
@@ -18,7 +18,7 @@ prerun() {
     ${CROSS_COMPILE}ar r libssp_nonshared.a __stack_chk_fail_local.o
 }
 
-configure() {
+configure_f() {
     ./configure ${TOOLFLAGS}    \
         --prefix=/usr           \
         --libdir=/usr/lib       \
@@ -26,15 +26,15 @@ configure() {
         --enable-optimize=size
 }
 
-build() {
+build_f() {
     ${MAKE} DESTDIR=${FINAL_DIR}
 }
 
-install() {
+install_f() {
     ${MAKE} DESTDIR=${FINAL_DIR} install
 }
 
-postrun() {
+postrun_f() {
     # Copy static library
     cp libssp_nonshared.a ${FINAL_DIR}/usr/lib
     # Symlink ldd

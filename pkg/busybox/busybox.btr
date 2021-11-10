@@ -10,11 +10,11 @@ url="https://busybox.net/downloads/busybox-${version}.tar.bz2"
 shasum="415fbd89e5344c96acf449d94a6f956dbed62e18e835fc83e064db33a34bd549"
 bld_deps=()
 
-prerun() {
+prerun_f() {
     :
 }
 
-configure() {
+configure_f() {
     # Prepare Configuration
     ${MAKE} ARCH=${LINUX_ARCH} CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="${CFLAGS}" defconfig
     
@@ -24,17 +24,17 @@ configure() {
     # Create final directory
     mkdir -p ${FINAL_DIR}/usr/bin
 }
-build() {
+build_f() {
     ${MAKE} ARCH=${LINUX_ARCH} CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="${CFLAGS}"
     ${MAKE} ARCH=${LINUX_ARCH} CROSS_COMPILE=${CROSS_COMPILE} EXTRA_CFLAGS="${CFLAGS}" busybox.links
 }
 
-install() {
+install_f() {
     install -D -m 755 busybox ${FINAL_DIR}/usr/bin/busybox
 
     # Create symlinks for all busybox applets
     for applet in `cat busybox.links|sed 's|^.*/||'`; do ln -sf busybox ${FINAL_DIR}/usr/bin/$applet || true; done
 }
-postrun() {
+postrun_f() {
     :
 }
