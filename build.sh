@@ -233,7 +233,7 @@ function build_package {
             done_print "Built ${name} for ${a}"
             wait_print "Packaging ${name} for ${a}"
             cd ${FINAL_DIR}
-            fakeroot tar -cJf ${BUILD_DIR}/final/${name}-${version}-${release}.natick.${a}.txz .
+            fakeroot tar -I "zstd -19" -cpf ${BUILD_DIR}/final/${name}-${version}-${release}.natick.${a}.tzst .
             cp -r * ${SYSROOT_DIR}
             cd ..
             rm -r ${pkg_name}
