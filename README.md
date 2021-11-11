@@ -3,10 +3,10 @@
 natickOS is an ongoing research project about how Linux distributions work and what it takes to make a successful one. 
 
 ## Dependencies
-### Fedora 34
+### Fedora 34/35
 `sudo dnf groupinstall "Development Tools" "Development Libraries" "C Development Tools and Libraries"`
 <br>
-`sudo dnf install texinfo libisoburn glibc-static xorriso xz-devel zlib-devel openssl-devel elfutils-libelf-devel qemu-system-x86 lzip fakeroot`
+`sudo dnf install texinfo libisoburn glibc-static xorriso xz-devel zlib-devel openssl-devel elfutils-libelf-devel qemu-system-x86 lzip fakeroot pv bsdtar wget zstd bc`
 
 ### Ubuntu 20.04/21.04
 `sudo apt install build-essential m4 bison flex texinfo bc rsync unzip libssl-dev libelf-dev fakeroot`
