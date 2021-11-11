@@ -1,0 +1,71 @@
+# Copyright (C) AJ Barris (AwlsomeAlex) <aj at awlsome dot com>
+# ISC License
+# Maintainer: AJB <aj at awlsome dot com>
+
+name="linux"
+arch="all"
+version="5.15.1"
+release="1"
+url="https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-${version}.tar.xz"
+shasum="32fdcd33c8ac571b9a7a297f33860f6171327961f2a2ea6bd54bf82275b614c8"
+bld_deps=()
+
+prerun_f() {
+    # Extra kernel cases
+    case "${LINUX_ARCH}" in
+        x86_64)
+            export SUBARCH="x86"
+            export DEFCONF="x86_64_defconfig"
+            export IMAGE="arch/x86/boot/bzImage"
+            ;;
+        i386)
+            export SUBARCH="x86"
+            export DEFCONF="i386_defconfig"
+            export IMAGE="arch/x86/boot/bzImage"
+            ;;
+        arm64)
+            export SUBARCH="arm64"
+            export DEFCONF="defconfig"
+            export IMAGE="arch/arm64/boot/Image"
+            ;;
+    esac
+
+    # Create directories
+    mkdir -p ${FINAL_DIR}/boot
+}
+configure_f() {
+    ${MAKE} ARCH=${LINUX_ARCH} CROSS_COMPILE=${CROSS_COMPILE} ${DEFCONF}
+
+    # Manual configuration stuff
+    sed -i "s/.*CONFIG_DEFAULT_HOSTNAME.*/CONFIG_DEFAULT_HOSTNAME=\"natickOS\"/" .config    # Changes Hostname
+    sed -i 's:# CONFIG_LOCALVERSION is not set :CONFIG_LOCALVERSION="-natick":g' .config    # Adds -natickOS to Kernel Version
+    sed -i "s/.*\\(CONFIG_KERNEL_.*\\)=y/\\#\\ \\1 is not set/" .config                     # Resets compression
+    sed -i "s/.*CONFIG_KERNEL_XZ.*/CONFIG_KERNEL_XZ=y/" .config                             # Defaults to XZ compression
+    sed -i "s/.*CONFIG_FB_VESA.*/CONFIG_FB_VESA=y/" .config                                 # Enables VESA Framebuffer
+    sed -i 's:# CONFIG_UEVENT_HELPER is not set:CONFIG_UEVENT_HELPER=y:g' .config           # Enable mdev support
+    echo 'CONFIG_UEVENT_HELPER_PATH="/bin/mdev"' >> .config                                 # Set mdev path to "/bin/mdev"
+    sed -i "s/.*CONFIG_LOGO_LINUX_CLUT224.*/CONFIG_LOGO_LINUX_CLUT224=y/" .config           # Show Linux Kernel Logo on boot
+    sed -i "s/^CONFIG_DEBUG_KERNEL.*/\\# CONFIG_DEBUG_KERNEL is not set/" .config           # Disable debug symbols (smaller kernel binary)
+    sed -i "s/.*CONFIG_EFI_STUB.*/CONFIG_EFI_STUB=y/" .config                               # Enable EFI stub
+    echo "CONFIG_RESET_ATTACK_MITIGATION=y" >> .config                                      # Requests RAM clearing after reboot (Attack Migration)
+    echo "CONFIG_APPLE_PROPERTIES=y" >> .config                                             # Enable Mac Properties
+    if [[ ${arch} == 'x86-64' ]]; then
+        echo -e "64-bit Detected"
+        echo "CONFIG_EFI_MIXED=y" >> .config                                                # Enable Mixed EFI
+    elif [[ ${arch} == 'i686' ]]; then
+        echo -e "32-bit Detected"
+    fi
+}
+build_f() {
+    unset LDFLAGS
+
+    # Generate bzImage
+    ${MAKE} ARCH=${LINUX_ARCH} CROSS_COMPILE=${CROSS_COMPILE} CFLAGS="${CFLAGS}"
+}
+install_f() {
+    cp -r ${IMAGE} ${FINAL_DIR}/boot/linux-${version}-${release}.xz
+    chmod 755 ${FINAL_DIR}/boot/linux-${version}-${release}.xz
+}
+postrun_f() {
+    :
+}
