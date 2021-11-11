@@ -17,16 +17,19 @@ prerun_f() {
             export SUBARCH="x86"
             export DEFCONF="x86_64_defconfig"
             export IMAGE="arch/x86/boot/bzImage"
+            export KERNIMAGE="bzImage"
             ;;
         i386)
             export SUBARCH="x86"
             export DEFCONF="i386_defconfig"
             export IMAGE="arch/x86/boot/bzImage"
+            export KERNIMAGE="bzImage"
             ;;
         arm64)
             export SUBARCH="arm64"
             export DEFCONF="defconfig"
             export IMAGE="arch/arm64/boot/Image"
+            export KERNIMAGE="Image"
             ;;
     esac
 
@@ -34,7 +37,7 @@ prerun_f() {
     mkdir -p ${FINAL_DIR}/boot
 }
 configure_f() {
-    ${MAKE} ARCH=${LINUX_ARCH} CROSS_COMPILE=${CROSS_COMPILE} ${DEFCONF}
+    make ARCH=${LINUX_ARCH} CROSS_COMPILE=${CROSS_COMPILE} ${DEFCONF}
 
     # Manual configuration stuff
     sed -i "s/.*CONFIG_DEFAULT_HOSTNAME.*/CONFIG_DEFAULT_HOSTNAME=\"natickOS\"/" .config    # Changes Hostname
@@ -60,7 +63,7 @@ build_f() {
     unset LDFLAGS
 
     # Generate bzImage
-    ${MAKE} ARCH=${LINUX_ARCH} CROSS_COMPILE=${CROSS_COMPILE} CFLAGS="${CFLAGS}"
+    make ARCH=${LINUX_ARCH} CROSS_COMPILE=${CROSS_COMPILE} CFLAGS="${CFLAGS}" ${KERN_IMAGE}
 }
 install_f() {
     cp -r ${IMAGE} ${FINAL_DIR}/boot/linux-${version}-${release}.xz
