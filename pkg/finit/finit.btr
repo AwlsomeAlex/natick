@@ -1,0 +1,61 @@
+# Copyright (C) AJ Barris (AwlsomeAlex) <aj at awlsome dot com>
+# ISC License
+# Maintainer: AJB <aj at awlsome dot com>
+
+name="finit"
+arch="all"
+version="4.1"
+release="1"
+url="https://github.com/troglobit/finit/releases/download/${version}/finit-${version}.tar.xz"
+shasum="4996a52633dbbc30ba1363397a69601c903b3ed3336c2f0e72794cc2398f39b3"
+bld_deps=("libite" "libuev")
+
+prerun_f() {
+    # Get newer, better config.guess/sub
+    cp ${PKG_DIR}/config.guess aux
+    cp ${PKG_DIR}/config.sub aux
+}
+configure_f() {
+    ./configure ${BUILDFLAGS} \
+        --prefix=/usr \
+        --exec-prefix=/usr \
+        --bindir=/usr/bin \
+        --sbindir=/usr/bin \
+        --libexecdir=/usr/lib/${version} \
+        --sysconfdir=/etc \
+        --sharedstatedir=/var/lib \
+        --localstatedir=/var \
+        --runstatedir=/run \
+        --libdir=/usr/lib \
+        --includedir=/usr/include \
+        --enable-auto-reload \
+        --enable-progress \
+        --disable-doc \
+        --disable-contrib \
+        --with-heading="natickOS ${CROSS_ARCH}" \
+        --with-fifo=/var/run/initctl \
+        --with-hostname=natickos \
+        --with-random-seed=/dev/urandom
+
+}
+build_f() {
+    ${MAKE}
+}
+install_f() {
+    ${MAKE} DESTDIR=${FINAL_DIR} install-strip
+}
+postrun_f() {
+    local LSERVICES=("getty" "klogd" "syslogd" "dhcpcd")
+
+    # Make finit default init
+    ln -sf finit ${FINAL_DIR}/usr/bin/init
+
+    # Copy local filesystem to finaldir
+    cp -r ${PKG_DIR}/finit/fs/* ${FINAL_DIR}
+
+    # Enable services by default
+    cd ${FINAL_DIR}/etc/finit.d/available
+    for service in ${SERVICES[@]}; do
+        ln -sf available/${service}.conf ${FINAL_DIR}/etc/finit.d/${service}.conf
+    done
+}

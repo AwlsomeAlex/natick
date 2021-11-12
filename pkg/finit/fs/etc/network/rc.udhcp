@@ -1,0 +1,20 @@
+#!/bin/sh
+# vim: tabstop=4: shiftwidth=4: expandtab: set filetype=bash:
+#============================#
+# midstreams - natickOS INIT #
+#----------------------------#
+# init.d Function            #
+# ISC License                #
+#============================#
+# DHCP
+#============================#
+# Copyright (C) 2019-2021 Alexander Barris (AwlsomeAlex)
+# alex at awlsome dot com
+# All Rights Reserved
+#============================#
+
+ip addr add $ip/$mask dev $interface 
+
+if [ "$router" ]; then
+    ip route add default via $router dev $interface
+fi

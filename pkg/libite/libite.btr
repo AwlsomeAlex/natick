@@ -1,0 +1,42 @@
+# Copyright (C) AJ Barris (AwlsomeAlex) <aj at awlsome dot com>
+# ISC License
+# Maintainer: AJB <aj at awlsome dot com>
+
+name="libite"
+arch="all"
+version="2.4.1"
+release="1"
+url="https://github.com/troglobit/libite/releases/download/v${version}/libite-${version}.tar.xz"
+shasum="8fad6b8a1e7e0d6b546863104dfe25dfe0bb2d2a9b98ec8e155d23392ef58514"
+bld_deps=()
+
+prerun_f() {
+    # Get newer, better config.guess/sub
+    cp ${PKG_DIR}/config.guess aux
+    cp ${PKG_DIR}/config.sub aux
+}
+configure_f() {
+    ./configure ${BUILDFLAGS} \
+        --prefix=/usr \
+        --exec-prefix=/usr \
+        --bindir=/usr/bin \
+        --sbindir=/usr/bin \
+        --libexecdir=/usr/lib/${name} \
+        --sysconfdir=/etc \
+        --sharedstatedir=/var/lib \
+        --localstatedir=/var \
+        --runstatedir=/run \
+        --libdir=/usr/lib \
+        --includedir=/usr/include \
+        --disable-static
+}
+build_f() {
+    ${MAKE}
+}
+install_f() {
+    ${MAKE} DESTDIR=${FINAL_DIR} install-strip
+}
+postrun_f() {
+    # Remove static library
+    rm ${FINAL_DIR}/usr/lib/${name}.la
+}

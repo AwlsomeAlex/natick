@@ -1,0 +1,7 @@
+auto lo
+iface lo inet loopback 
+
+auto eth0
+iface eth0 inet manual
+    pre-up /bin/ip link set eth0 up
+    pre-up /bin/udhcpc -q -n -i eth0 -s /etc/network/rc.udhcp

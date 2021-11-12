@@ -1,0 +1,3 @@
+/dev/sda1            /                    ext4       defaults              1  1
+tmpfs                /var                 tmpfs      defaults              0  0
+tmpfs                /run                 tmpfs      defaults              0  0
