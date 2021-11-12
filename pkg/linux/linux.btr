@@ -37,6 +37,7 @@ prerun_f() {
     mkdir -p ${FINAL_DIR}/boot
 }
 configure_f() {
+    make ARCH=${LINUX_ARCH} CROSS_COMPILE=${CROSS_COMPILE} mrproper
     make ARCH=${LINUX_ARCH} CROSS_COMPILE=${CROSS_COMPILE} ${DEFCONF}
 
     # Manual configuration stuff
@@ -63,7 +64,7 @@ build_f() {
     unset LDFLAGS
 
     # Generate bzImage
-    make ARCH=${LINUX_ARCH} CROSS_COMPILE=${CROSS_COMPILE} CFLAGS="${CFLAGS}" ${KERN_IMAGE}
+    ${MAKE} -l ${JOB_FACTOR} ARCH=${LINUX_ARCH} CROSS_COMPILE=${CROSS_COMPILE} CFLAGS="${CFLAGS}" ${KERN_IMAGE}
 }
 install_f() {
     cp -r ${IMAGE} ${FINAL_DIR}/boot/linux-${version}-${release}.xz

@@ -73,7 +73,8 @@ function define_env() {
     export CFLAGS="-O2"
     export CXXFLAGS="${CFLAGS}"
     export LC_ALL="POSIX"
-    export JOBS="-j$(expr $(nproc) + 1)"
+    export JOB_FACTOR="$(nproc)"
+    export JOBS="-j${JOB_FACTOR}"
     export MAKE="make ${JOBS}"
     export PKG_CONFIG="$(which pkg-config)"
 
@@ -216,7 +217,7 @@ function build_package {
 
     # Build Package
     if [[ ${arch} == "all" ]]; then
-        for a in x86-64 i686; do
+        for a in x86_64 i686; do
             define_env ${a}
             # Check all dependencies
             for pkg in "${bld_deps[@]}"; do
