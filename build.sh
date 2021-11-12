@@ -15,6 +15,7 @@ umask 022
 # ----- Variables ------ #
 #========================#
 # Input
+EXEC=${0}
 COMMAND=${1}
 ARGUMENT=${2}
 
@@ -135,7 +136,7 @@ function define_env() {
 # Checks to see if a build dependency is met
 function check_dep() {
     local pkg=${1}
-    if [[ ! -d ${WORK_DIR}/${pkg} ]]; then
+    if ! grep -q ${pkg} ${WORK_DIR}/built.txt; then
         fail_print "Dependency ${pkg} not built. Please build with '${EXEC} build ${pkg}."
     fi
 }
@@ -178,7 +179,7 @@ function prepare_tarball() {
 # build_toolchain()
 # Builds the mussel toolchain for multiple arches
 function build_toolchain {
-    for arch in aarch64; do
+    for arch in x86-64 i686; do
         if [[ -d ${arch} ]]; then
             warn_print "Toolchain for ${arch} already built. Skipping"
         else
@@ -212,15 +213,14 @@ function build_package {
         fail_print "Specified package ${pkg_name} does not have a BTR."
     fi
 
-    # Check all dependencies
-    for pkg in "${bld_deps[@]}"; do
-        check_dep ${pkg}
-    done
-
     # Build Package
     if [[ ${arch} == "all" ]]; then
-        for a in aarch64; do
+        for a in x86-64 i686; do
             define_env ${a}
+            # Check all dependencies
+            for pkg in "${bld_deps[@]}"; do
+                check_dep ${pkg}
+            done
             export FINAL_DIR=${BUILD_DIR}/final/${pkg_name}
             prepare_tarball ${url}
             cd ${WORK_DIR}/${name}-${version}
@@ -237,6 +237,7 @@ function build_package {
             cp -r * ${SYSROOT_DIR}
             cd ..
             rm -r ${pkg_name}
+            echo "${name}" >> ${WORK_DIR}/built.txt
             done_print "Packaged ${name} for ${a}"
         done
     fi
