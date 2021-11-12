@@ -185,7 +185,8 @@ function build_toolchain {
         else
             mkdir ${arch} && cd ${arch}
             wait_print "Downloading latest mussel toolchain script & required patches"
-            wget -q --show-progress https://raw.githubusercontent.com/firasuke/mussel/master/mussel.sh
+            #wget -q --show-progress https://raw.githubusercontent.com/firasuke/mussel/master/mussel.sh
+            wget -q --show-progress https://raw.githubusercontent.com/AwlsomeAlex/mussel/master/mussel.sh
             if [[ $arch == "x86-64" ]] || [[ $arch == "aarch64" ]]; then
                 mkdir -p patches/gcc/glaucus
                 wget -q --show-progress https://raw.githubusercontent.com/firasuke/mussel/master/patches/gcc/glaucus/0001-pure64-for-${arch}.patch -P patches/gcc/glaucus
