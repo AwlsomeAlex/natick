@@ -45,4 +45,4 @@ Linux® is the registered trademark of Linus Torvalds in the U.S. and other coun
 
 #### Check out these others musl-libc distros!
 - [Ataraxia](https://github.com/ataraxialinux/ataraxia)
-- [glaucus](https://www.glaucuslinux.org/)
+- [glaucus](https://glaucuslinux.org/)
