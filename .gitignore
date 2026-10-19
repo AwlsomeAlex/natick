@@ -1,9 +1,7 @@
 # ----- Directories ----- #
 sources/
 .vscode/
-# Sue me. VSCode is a solid editor.
+# Sue me. VSCode is a suboptimal editor.
 
-# ----- Build Directories ----- #
-x86-64/
-i686/
-aarch64/
+# ----- Build Directory ----- #
+build/
