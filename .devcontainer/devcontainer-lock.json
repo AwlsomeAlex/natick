@@ -1,0 +1,19 @@
+{
+  "features": {
+    "ghcr.io/awlsomealex/devcontainer-features/base:latest": {
+      "version": "0.1.2",
+      "resolved": "ghcr.io/awlsomealex/devcontainer-features/base@sha256:e2e92dac3130ab8fd6aabaf62e1c8b5157b73e5853dd1e2b9f29d464a986fa71",
+      "integrity": "sha256:e2e92dac3130ab8fd6aabaf62e1c8b5157b73e5853dd1e2b9f29d464a986fa71"
+    },
+    "ghcr.io/awlsomealex/devcontainer-features/codex:latest": {
+      "version": "0.2.1",
+      "resolved": "ghcr.io/awlsomealex/devcontainer-features/codex@sha256:201c0093c5cefff33b39bc9feab61e9ab4ba750404d6ce27f0896b43ae9a0762",
+      "integrity": "sha256:201c0093c5cefff33b39bc9feab61e9ab4ba750404d6ce27f0896b43ae9a0762"
+    },
+    "ghcr.io/awlsomealex/devcontainer-features/lazygit:latest": {
+      "version": "0.1.3",
+      "resolved": "ghcr.io/awlsomealex/devcontainer-features/lazygit@sha256:9cbb5421749eed6ea9bb4fcf99a73253cfbcfee3e1bf516d466a1d9caf1388a4",
+      "integrity": "sha256:9cbb5421749eed6ea9bb4fcf99a73253cfbcfee3e1bf516d466a1d9caf1388a4"
+    }
+  }
+}

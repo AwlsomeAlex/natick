@@ -1,0 +1,24 @@
+{
+  "name": "natick",
+  "image": "ubuntu:26.04",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "telemetry.telemetryLevel": "off",
+        "workbench.enableExperiments": false,
+        "chat.disableAIFeatures": true
+      }
+    }
+  },
+  "features": {
+    "ghcr.io/awlsomealex/devcontainer-features/base:latest": {},
+    "ghcr.io/awlsomealex/devcontainer-features/codex:latest": {},
+    "ghcr.io/awlsomealex/devcontainer-features/lazygit:latest": {}
+  },
+  "mounts": [
+    "source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
+    "source=codex-home,target=/home/vscode/.codex,type=volume"
+  ],
+  "containerUser": "vscode",
+  "remoteUser": "vscode"
+}
