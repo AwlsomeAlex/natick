@@ -1,49 +1,60 @@
-# Copyright (C) AJ Barris (AwlsomeAlex) <aj at awlsome dot com>
+# --------
+# natickOS - musl BTR
+# --------
 # ISC License
-# Maintainer: AJB <aj at awlsome dot com>
+# Copyright (C) 2017-2026 Alexander Barris
+# All Rights Reserved
+
+# Maintainer: AJB <alex at awlsome dot com>
 
 name="musl"
 arch="all"
-version="1.2.2"
+version="1.2.6"
 release="1"
 url="https://musl.libc.org/releases/musl-${version}.tar.gz"
-shasum="9b969322012d796dc23dda27a35866034fa67d8fb67e0e2c45c913c3d43219dd"
+shasum="d585fd3b613c66151fc3249e8ed44f77020cb5e6c1e635a616d3f9f82460512a"
 bld_deps=()
+patches=(
+    "0001-slowness-mapping-icov.patch"
+)
 
 prerun_f() {
-    # Guarantee this directory exists
-    mkdir -p ${FINAL_DIR}/usr/bin
-    # Sanity Check Toolchain
-    ${CROSS_COMPILE}gcc ${CFLAGS} -c ${PKG_DIR}/musl/__stack_chk_fail_local.c -o __stack_chk_fail_local.o
-    ${CROSS_COMPILE}ar r libssp_nonshared.a __stack_chk_fail_local.o
+    :
 }
 
 configure_f() {
-    ./configure ${TOOLFLAGS}    \
-        --prefix=/usr           \
-        --libdir=/usr/lib       \
-        --syslibdir=/usr/lib    \
-        --enable-optimize=size
+    local builtins
+    builtins=$(
+        "$CC" \
+            --target="$TARGET" \
+            --sysroot="$SYSROOT_DIR" \
+            --rtlib=compiler-rt \
+            --print-libgcc-file-name
+    )
+
+    [[ -s "$builtins" ]] \
+        || die "Compiler-rt builtins missing: $builtins"
+
+    ./configure \
+        --target="$TARGET" \
+        --prefix=/usr \
+        --libdir=/usr/lib \
+        --syslibdir=/lib \
+        --disable-gcc-wrapper \
+        CC="ccache $CC --target=$TARGET --sysroot=$SYSROOT_DIR --ld-path=$TOOLCHAIN_DIR/bin/ld.lld" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        LIBCC="$builtins"
 }
 
 build_f() {
-    ${MAKE} DESTDIR=${FINAL_DIR}
+    make -j"$(nproc)"
 }
 
 install_f() {
-    ${MAKE} DESTDIR=${FINAL_DIR} install
+    make DESTDIR="$staging_dir" install
 }
 
 postrun_f() {
-    # Copy static library
-    cp libssp_nonshared.a ${FINAL_DIR}/usr/lib
-    # Symlink ldd
-    ln -sf ../lib/libc.so ${FINAL_DIR}/usr/bin/ldd
-    # Dummy ldconfig
-    cat > ${FINAL_DIR}/usr/bin/ldconfig << "EOF"
-#!/bin/sh
-echo "adjusting libs..."
-true
-EOF
-	chmod +x ${FINAL_DIR}/usr/bin/ldconfig
+    :
 }

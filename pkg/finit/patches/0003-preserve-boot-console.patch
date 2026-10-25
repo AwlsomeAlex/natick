@@ -1,0 +1,10 @@
+--- a/src/helpers.c
++++ b/src/helpers.c
+@@ -90,6 +90,6 @@
+ 
+ 	/* Reset attributes, background and foreground color  */
+-	dprint(STDOUT_FILENO, "\033[49m\033[39m\e[2J", 14);
++	dprint(STDOUT_FILENO, "\033[49m\033[39m", 10);
+ 
+ 	/* Hide cursor while we boot up.  */
+ 	dprint(STDOUT_FILENO, "\033[?25l", 6);

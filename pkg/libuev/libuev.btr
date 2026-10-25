@@ -1,42 +1,53 @@
-# Copyright (C) AJ Barris (AwlsomeAlex) <aj at awlsome dot com>
+# --------
+# natickOS - libeuv BTR
+# --------
 # ISC License
-# Maintainer: AJB <aj at awlsome dot com>
+# Copyright (C) 2017-2026 Alexander Barris
+# All Rights Reserved
+
+# Maintainer: AJB <alex at awlsome dot com>
 
 name="libuev"
 arch="all"
-version="2.4.0"
+version="2.4.1"
 release="1"
 url="https://github.com/troglobit/libuev/releases/download/v${version}/libuev-${version}.tar.xz"
-shasum="8fad6b8a1e7e0d6b546863104dfe25dfe0bb2d2a9b98ec8e155d23392ef58514"
+shasum="1d171c572ca48ddd6763f76c54e77d021d4ca7beb007610f7c1fec903511977b"
 bld_deps=()
 
 prerun_f() {
-    # Get newer, better config.guess/sub
-    cp ${PKG_DIR}/config.guess aux
-    cp ${PKG_DIR}/config.sub aux
+    :
 }
+
 configure_f() {
-    ./configure ${BUILDFLAGS} \
+    local build_triplet
+    build_triplet=$(sh ./aux/config.guess)
+
+    ./configure \
+        --build="$build_triplet" \
+        --host="$TARGET" \
         --prefix=/usr \
-        --exec-prefix=/usr \
-        --bindir=/usr/bin \
-        --sbindir=/usr/bin \
-        --libexecdir=/usr/lib/${name} \
-        --sysconfdir=/etc \
-        --sharedstatedir=/var/lib \
-        --localstatedir=/var \
-        --runstatedir=/run \
         --libdir=/usr/lib \
-        --includedir=/usr/include \
-        --disable-static
+        --sysconfdir=/etc \
+        --localstatedir=/var \
+        --enable-shared \
+        --disable-static \
+        --disable-doxygen-doc \
+        CC="ccache $CC --target=$TARGET --sysroot=$SYSROOT_DIR" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        STRIP="$STRIP"
 }
+
 build_f() {
-    ${MAKE}
+    make -j"$(nproc)"
 }
+
 install_f() {
-    ${MAKE} DESTDIR=${FINAL_DIR} install-strip
+    make DESTDIR="$staging_dir" install
 }
+
 postrun_f() {
-    # Remove static library
-    rm ${FINAL_DIR}/usr/lib/${name}.la
+    # Remove libtool metadata
+    rm -f -- "$staging_dir/usr/lib/libuev.la"
 }

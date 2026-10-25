@@ -1,0 +1,12 @@
+Subject: [PATCH] cgroup: include declaration of sm_reload
+
+--- a/src/cgroup.c
++++ b/src/cgroup.c
+@@ -43,6 +43,7 @@
+ #include "conf.h"
+ #include "service.h"
+ #include "log.h"
++#include "sm.h"
+ #include "util.h"
+ 
+ struct cg {

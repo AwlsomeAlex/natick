@@ -1,0 +1,41 @@
+# --------
+# natickOS - natick-milestone1 BTR
+# --------
+# ISC License
+# Copyright (C) 2017-2026 Alexander Barris
+# All Rights Reserved
+
+# Maintainer: AJB <alex at awlsome dot com>
+
+name="natick-milestone1"
+arch="all"
+version="0.0.1"
+release="1"
+source_type="local"
+bld_deps=()
+
+prerun_f() {
+    :
+}
+
+configure_f() {
+    :
+}
+
+build_f() {
+    :
+}
+
+install_f() {
+    install -D -m 755 \
+        "$files_dir/init" \
+        "$staging_dir/init"
+
+    install -D -m 644 \
+        "$files_dir/etc/finit.d/serial.conf" \
+        "$staging_dir/etc/finit.d/serial.conf"
+}
+
+postrun_f() {
+    :
+}

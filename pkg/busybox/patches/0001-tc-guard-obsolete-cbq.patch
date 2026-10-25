@@ -1,0 +1,161 @@
+Linux commit 33241dca4862 ("net/sched: Remove uapi support for CBQ
+qdisc"), first released in v6.8-rc1 (2024-01-02), dropped all CBQ
+related definitions (TCA_CBQ_*, struct tc_cbq_*, TC_CBQ_MAXPRIO, ...)
+from include/uapi/linux/pkt_sched.h. The CBQ qdisc itself had already
+been retired from the kernel earlier, in v6.3 (commit 051d44209842,
+"net/sched: Retire CBQ qdisc").
+
+Building tc.c against >= 6.8 kernel headers fails with:
+
+    networking/tc.c: In function 'cbq_print_opt':
+    networking/tc.c:236:27: error: 'TCA_CBQ_MAX' undeclared (first
+    use in this function); did you mean 'TCA_CBS_MAX'?
+      236 |   struct rtattr *tb[TCA_CBQ_MAX+1];
+          |                     ^~~~~~~~~~~
+    (and further errors for TCA_CBQ_RATE, struct tc_cbq_lssopt, etc.)
+
+Guard cbq_print_opt() with '#ifdef TCA_CBQ_MAX', the same pattern
+already used a few lines above for the deprecated TCA_PRIO_MAX
+multiqueue interface, and guard its two call sites in print_qdisc()
+and print_class(). print_rate() is only ever called from
+cbq_print_opt(), so move it under the same #ifdef too, to avoid a new
+"defined but not used" warning once CBQ support is compiled out.
+
+This is essentially the same fix independently proposed by Uwe
+Kleine-Koenig on the mailing list in March 2024, which was never
+applied:
+  http://lists.busybox.net/pipermail/busybox/2024-March/090678.html
+
+Already reported twice, but never fixed:
+  https://bugs.busybox.net/show_bug.cgi?id=15931
+    "CBQ support removed from Linux kernel"
+  https://bugs.busybox.net/show_bug.cgi?id=15934
+    "Busybox fails to build with linux kernels >= 6.8"
+  https://lists.busybox.net/pipermail/busybox-cvs/2024-January/041752.html
+
+Root cause double-checked directly against a local clone of
+torvalds/linux: commit 33241dca486264193ed68167c8eeae1fb197f3df
+removes struct tc_cbq_*/TCA_CBQ_* from
+include/uapi/linux/pkt_sched.h, and `git describe --contains` places
+it at v6.8-rc1~131^2~60^2^2 (2024-01-02).
+
+Build tested on:
+  OS:      Fedora Linux 44 (Forty Four), x86_64
+  Kernel:  Linux 7.1.8-200.fc44.x86_64
+  Headers: kernel-headers-7.1.3-200.fc44.x86_64
+           (/usr/include/linux/pkt_sched.h has no CBQ symbols)
+  gcc:     gcc (GCC) 15.3.1 20260729
+
+Before this patch, `make defconfig && make` failed while compiling
+networking/tc.c on the above system. With this patch, the build
+completes cleanly and "busybox tc" still builds and runs normally.
+
+Fixes: https://bugs.busybox.net/show_bug.cgi?id=15931
+Fixes: https://bugs.busybox.net/show_bug.cgi?id=15934
+
+Signed-off-by: Muhammad Bilal <meatuni001 at gmail.com>
+---
+ networking/tc.c | 55 ++++++++++++++++++++++++++++++-------------------
+ 1 file changed, 34 insertions(+), 21 deletions(-)
+
+diff --git a/networking/tc.c b/networking/tc.c
+index 3a79fd2d9..337d499b4 100644
+--- a/networking/tc.c
++++ b/networking/tc.c
+@@ -176,27 +176,6 @@ static int get_tc_classid(uint32_t *h, const char *str)
+ 	return 0;
+ }
+ 
+-static void print_rate(char *buf, int len, uint32_t rate)
+-{
+-	double tmp = (double)rate*8;
+-
+-	if (use_iec) {
+-		if (tmp >= 1000*1024*1024)
+-			snprintf(buf, len, "%.0fMibit", tmp/(1024*1024));
+-		else if (tmp >= 1000*1024)
+-			snprintf(buf, len, "%.0fKibit", tmp/1024);
+-		else
+-			snprintf(buf, len, "%.0fbit", tmp);
+-	} else {
+-		if (tmp >= 1000*1000000)
+-			snprintf(buf, len, "%.0fMbit", tmp/1000000);
+-		else if (tmp >= 1000*1000)
+-			snprintf(buf, len, "%.0fKbit", tmp/1000);
+-		else
+-			snprintf(buf, len, "%.0fbit",  tmp);
+-	}
+-}
+-
+ #if 0
+ /* This is "pfifo_fast".  */
+ static int prio_parse_opt(int argc, char **argv, struct nlmsghdr *n)
+@@ -231,6 +210,35 @@ static int cbq_parse_opt(int argc, char **argv, struct nlmsghdr *n)
+ 	return 0;
+ }
+ #endif
++
++#ifndef TCA_CBQ_MAX
++/*
++ * Linux v6.8-rc1~131^2~60^2^2 removed the uapi definitions for CBQ.
++ * See https://git.kernel.org/linus/33241dca48626
++ */
++#else
++/* Used only by CBQ; other qdiscs print rates without this helper. */
++static void print_rate(char *buf, int len, uint32_t rate)
++{
++	double tmp = (double)rate*8;
++
++	if (use_iec) {
++		if (tmp >= 1000*1024*1024)
++			snprintf(buf, len, "%.0fMibit", tmp/(1024*1024));
++		else if (tmp >= 1000*1024)
++			snprintf(buf, len, "%.0fKibit", tmp/1024);
++		else
++			snprintf(buf, len, "%.0fbit", tmp);
++	} else {
++		if (tmp >= 1000*1000000)
++			snprintf(buf, len, "%.0fMbit", tmp/1000000);
++		else if (tmp >= 1000*1000)
++			snprintf(buf, len, "%.0fKbit", tmp/1000);
++		else
++			snprintf(buf, len, "%.0fbit",  tmp);
++	}
++}
++
+ static int cbq_print_opt(struct rtattr *opt)
+ {
+ 	struct rtattr *tb[TCA_CBQ_MAX+1];
+@@ -322,6 +330,7 @@ static int cbq_print_opt(struct rtattr *opt)
+  done:
+ 	return 0;
+ }
++#endif
+ 
+ static FAST_FUNC int print_qdisc(
+ 		const struct sockaddr_nl *who UNUSED_PARAM,
+@@ -372,8 +381,10 @@ static FAST_FUNC int print_qdisc(
+ 		int qqq = index_in_strings(_q_, name);
+ 		if (qqq == 0) { /* pfifo_fast aka prio */
+ 			prio_print_opt(tb[TCA_OPTIONS]);
++#ifdef TCA_CBQ_MAX
+ 		} else if (qqq == 1) { /* class based queuing */
+ 			cbq_print_opt(tb[TCA_OPTIONS]);
++#endif
+ 		} else {
+ 			/* don't know how to print options for this qdisc */
+ 			printf("(options for %s)", name);
+@@ -442,9 +453,11 @@ static FAST_FUNC int print_class(
+ 		int qqq = index_in_strings(_q_, name);
+ 		if (qqq == 0) { /* pfifo_fast aka prio */
+ 			/* nothing. */ /*prio_print_opt(tb[TCA_OPTIONS]);*/
++#ifdef TCA_CBQ_MAX
+ 		} else if (qqq == 1) { /* class based queuing */
+ 			/* cbq_print_copt() is identical to cbq_print_opt(). */
+ 			cbq_print_opt(tb[TCA_OPTIONS]);
++#endif
+ 		} else {
+ 			/* don't know how to print options for this class */
+ 			printf("(options for %s)", name);
+-- 
+2.55.0

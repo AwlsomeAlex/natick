@@ -1,75 +1,126 @@
-# Copyright (C) AJ Barris (AwlsomeAlex) <aj at awlsome dot com>
+# --------
+# natickOS - linux BTR
+# --------
 # ISC License
-# Maintainer: AJB <aj at awlsome dot com>
+# Copyright (C) 2017-2026 Alexander Barris
+# All Rights Reserved
+
+# Maintainer: AJB <alex at awlsome dot com>
 
 name="linux"
 arch="all"
-version="5.15.1"
+version="7.2.12"
 release="1"
-url="https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-${version}.tar.xz"
-shasum="32fdcd33c8ac571b9a7a297f33860f6171327961f2a2ea6bd54bf82275b614c8"
+url="https://cdn.kernel.org/pub/linux/kernel/v7.x/linux-${version}.tar.xz"
+shasum="bb18468a8dc8978aa00caa6446e753f7b6da3fee56b6b7f38b16f9430ba02d4f"
 bld_deps=()
 
+# Local function to help variables
+linux_make() {
+    env \
+        -u PKG_CONFIG_SYSROOT_DIR \
+        -u PKG_CONFIG_LIBDIR \
+        -u PKG_CONFIG_PATH \
+        make \
+            ARCH="$LINUX_ARCH" \
+            LLVM="$TOOLCHAIN_DIR/bin/" \
+            KBUILD_BUILD_TIMESTAMP="1970-01-01 00:00:00 UTC" \
+            CC="ccache $TOOLCHAIN_DIR/bin/clang" \
+            HOSTCC="$HOSTCC" \
+            HOSTCXX="$HOSTCXX" \
+            "$@"
+}
+
 prerun_f() {
-    # Extra kernel cases
-    case "${LINUX_ARCH}" in
-        x86_64)
-            export SUBARCH="x86"
-            export DEFCONF="x86_64_defconfig"
-            export IMAGE="arch/x86/boot/bzImage"
-            export KERNIMAGE="bzImage"
-            ;;
-        i386)
-            export SUBARCH="x86"
-            export DEFCONF="i386_defconfig"
-            export IMAGE="arch/x86/boot/bzImage"
-            export KERNIMAGE="bzImage"
+    case "$LINUX_ARCH" in
+        x86)
+            defconfig="x86_64_defconfig"
+            image_target="bzImage"
+            image_path="arch/x86/boot/bzImage"
             ;;
         arm64)
-            export SUBARCH="arm64"
-            export DEFCONF="defconfig"
-            export IMAGE="arch/arm64/boot/Image"
-            export KERNIMAGE="Image"
+            defconfig="defconfig"
+            image_target="Image"
+            image_path="arch/arm64/boot/Image"
+            ;;
+        *)
+            die "Unsupported kernel architecture: $LINUX_ARCH"
             ;;
     esac
-
-    # Create directories
-    mkdir -p ${FINAL_DIR}/boot
 }
+
 configure_f() {
-    make ARCH=${LINUX_ARCH} CROSS_COMPILE=${CROSS_COMPILE} mrproper
-    make ARCH=${LINUX_ARCH} CROSS_COMPILE=${CROSS_COMPILE} ${DEFCONF}
+    linux_make "$defconfig"
+
+    scripts/config \
+        --set-str DEFAULT_HOSTNAME "natickOS" \
+        --set-str LOCALVERSION "-${release}.natick.${TARGET%%-*}" \
+        --disable LOCALVERSION_AUTO \
+        --enable DEVTMPFS \
+        --enable DEVTMPFS_MOUNT
+
+    if [[ "$LINUX_ARCH" == arm64 ]]; then
+        scripts/config --disable COMPAT
+    fi
+
+    linux_make olddefconfig
 
     # Manual configuration stuff
-    sed -i "s/.*CONFIG_DEFAULT_HOSTNAME.*/CONFIG_DEFAULT_HOSTNAME=\"natickOS\"/" .config    # Changes Hostname
-    sed -i 's:# CONFIG_LOCALVERSION is not set :CONFIG_LOCALVERSION="-natick":g' .config    # Adds -natickOS to Kernel Version
-    sed -i "s/.*\\(CONFIG_KERNEL_.*\\)=y/\\#\\ \\1 is not set/" .config                     # Resets compression
-    sed -i "s/.*CONFIG_KERNEL_XZ.*/CONFIG_KERNEL_XZ=y/" .config                             # Defaults to XZ compression
-    sed -i "s/.*CONFIG_FB_VESA.*/CONFIG_FB_VESA=y/" .config                                 # Enables VESA Framebuffer
-    sed -i 's:# CONFIG_UEVENT_HELPER is not set:CONFIG_UEVENT_HELPER=y:g' .config           # Enable mdev support
-    echo 'CONFIG_UEVENT_HELPER_PATH="/bin/mdev"' >> .config                                 # Set mdev path to "/bin/mdev"
-    sed -i "s/.*CONFIG_LOGO_LINUX_CLUT224.*/CONFIG_LOGO_LINUX_CLUT224=y/" .config           # Show Linux Kernel Logo on boot
-    sed -i "s/^CONFIG_DEBUG_KERNEL.*/\\# CONFIG_DEBUG_KERNEL is not set/" .config           # Disable debug symbols (smaller kernel binary)
-    sed -i "s/.*CONFIG_EFI_STUB.*/CONFIG_EFI_STUB=y/" .config                               # Enable EFI stub
-    echo "CONFIG_RESET_ATTACK_MITIGATION=y" >> .config                                      # Requests RAM clearing after reboot (Attack Migration)
-    echo "CONFIG_APPLE_PROPERTIES=y" >> .config                                             # Enable Mac Properties
-    if [[ ${arch} == 'x86-64' ]]; then
-        echo -e "64-bit Detected"
-        echo "CONFIG_EFI_MIXED=y" >> .config                                                # Enable Mixed EFI
-    elif [[ ${arch} == 'i686' ]]; then
-        echo -e "32-bit Detected"
+    #sed -i "s/.*CONFIG_DEFAULT_HOSTNAME.*/CONFIG_DEFAULT_HOSTNAME=\"natickOS\"/" .config    # Changes Hostname
+    #sed -i 's:# CONFIG_LOCALVERSION is not set :CONFIG_LOCALVERSION="-natick":g' .config    # Adds -natickOS to Kernel Version
+    #sed -i "s/.*\\(CONFIG_KERNEL_.*\\)=y/\\#\\ \\1 is not set/" .config                     # Resets compression
+    #sed -i "s/.*CONFIG_KERNEL_XZ.*/CONFIG_KERNEL_XZ=y/" .config                             # Defaults to XZ compression
+    #sed -i "s/.*CONFIG_FB_VESA.*/CONFIG_FB_VESA=y/" .config                                 # Enables VESA Framebuffer
+    #sed -i 's:# CONFIG_UEVENT_HELPER is not set:CONFIG_UEVENT_HELPER=y:g' .config           # Enable mdev support
+    #echo 'CONFIG_UEVENT_HELPER_PATH="/bin/mdev"' >> .config                                 # Set mdev path to "/bin/mdev"
+    #sed -i "s/.*CONFIG_LOGO_LINUX_CLUT224.*/CONFIG_LOGO_LINUX_CLUT224=y/" .config           # Show Linux Kernel Logo on boot
+    #sed -i "s/^CONFIG_DEBUG_KERNEL.*/\\# CONFIG_DEBUG_KERNEL is not set/" .config           # Disable debug symbols (smaller kernel binary)
+    #sed -i "s/.*CONFIG_EFI_STUB.*/CONFIG_EFI_STUB=y/" .config                               # Enable EFI stub
+    #echo "CONFIG_RESET_ATTACK_MITIGATION=y" >> .config                                      # Requests RAM clearing after reboot (Attack Migration)
+    #echo "CONFIG_APPLE_PROPERTIES=y" >> .config                                             # Enable Mac Properties
+    #if [[ ${arch} == 'x86-64' ]]; then
+    #    echo -e "64-bit Detected"
+    #    echo "CONFIG_EFI_MIXED=y" >> .config                                                # Enable Mixed EFI
+    #elif [[ ${arch} == 'i686' ]]; then
+    #    echo -e "32-bit Detected"
+    #fi
+}
+
+build_f() {
+    local -a targets=("$image_target")
+
+    if grep -qx 'CONFIG_MODULES=y' .config; then
+        targets+=(modules)
+    fi
+
+    linux_make -j"$(nproc)" "${targets[@]}"
+}
+
+install_f() {
+    local kernel_release
+    kernel_release=$(linux_make -s kernelrelease)
+
+    install -D -m 644 "$image_path" \
+        "$staging_dir/boot/vmlinuz-$kernel_release"
+
+    install -D -m 644 .config \
+        "$staging_dir/boot/config-$kernel_release"
+
+    install -D -m 644 System.map \
+        "$staging_dir/boot/System.map-$kernel_release"
+
+    if grep -qx 'CONFIG_MODULES=y' .config; then
+        linux_make \
+            INSTALL_MOD_PATH="$staging_dir" \
+            modules_install
+
+        # This package contains runtime modules, not a development tree.
+        rm -f -- \
+            "$staging_dir/lib/modules/$kernel_release/build" \
+            "$staging_dir/lib/modules/$kernel_release/source"
     fi
 }
-build_f() {
-    unset LDFLAGS
 
-    # Generate bzImage
-    ${MAKE} -l ${JOB_FACTOR} ARCH=${LINUX_ARCH} CROSS_COMPILE=${CROSS_COMPILE} CFLAGS="${CFLAGS}" ${KERN_IMAGE}
-}
-install_f() {
-    cp -r ${IMAGE} ${FINAL_DIR}/boot/linux-${version}-${release}.xz
-    chmod 755 ${FINAL_DIR}/boot/linux-${version}-${release}.xz
-}
 postrun_f() {
     :
 }

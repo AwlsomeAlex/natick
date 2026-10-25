@@ -1,61 +1,90 @@
-# Copyright (C) AJ Barris (AwlsomeAlex) <aj at awlsome dot com>
+# --------
+# natickOS - finit BTR
+# --------
 # ISC License
-# Maintainer: AJB <aj at awlsome dot com>
+# Copyright (C) 2017-2026 Alexander Barris
+# All Rights Reserved
+
+# Maintainer: AJB <alex at awlsome dot com>
 
 name="finit"
 arch="all"
-version="4.1"
+version="4.17"
 release="1"
-url="https://github.com/troglobit/finit/releases/download/${version}/finit-${version}.tar.xz"
-shasum="4996a52633dbbc30ba1363397a69601c903b3ed3336c2f0e72794cc2398f39b3"
+url="https://github.com/troglobit/finit/releases/download/${version}/finit-${version}.tar.gz"
+shasum="ca8b489a0ed99c17c0288e9e65e325a8f14af3734dfecf58f516c0a6f884e903"
 bld_deps=("libite" "libuev")
+patches=(
+    "0001-cgroup-include-sm-header.patch"
+    "0002-conf-include-sm-header.patch"
+    "0003-preserve-boot-console.patch"
+)
 
 prerun_f() {
-    # Get newer, better config.guess/sub
-    cp ${PKG_DIR}/config.guess aux
-    cp ${PKG_DIR}/config.sub aux
+    :
 }
+
 configure_f() {
-    ./configure ${BUILDFLAGS} \
+    local build_triplet
+    build_triplet=$(sh ./aux/config.guess)
+
+    ./configure \
+        --build="$build_triplet" \
+        --host="$TARGET" \
         --prefix=/usr \
-        --exec-prefix=/usr \
         --bindir=/usr/bin \
-        --sbindir=/usr/bin \
-        --libexecdir=/usr/lib/${version} \
+        --sbindir=/usr/sbin \
+        --libdir=/usr/lib \
+        --libexecdir=/usr/lib \
         --sysconfdir=/etc \
-        --sharedstatedir=/var/lib \
         --localstatedir=/var \
         --runstatedir=/run \
-        --libdir=/usr/lib \
-        --includedir=/usr/include \
         --enable-auto-reload \
-        --enable-progress \
         --disable-doc \
         --disable-contrib \
-        --with-heading="natickOS ${CROSS_ARCH}" \
-        --with-fifo=/var/run/initctl \
+        --disable-libcap \
+        --without-keventd \
+        --without-sulogin \
+        --without-watchdog \
+        --without-libsystemd \
+        --with-bash-completion-dir=no \
+        --with-heading="natickOS" \
         --with-hostname=natickos \
-        --with-random-seed=/dev/urandom
+        --with-random-seed=/var/lib/finit/random-seed \
+        CC="ccache $CC --target=$TARGET --sysroot=$SYSROOT_DIR" \
+        AR="$AR" \
+        RANLIB="$RANLIB" \
+        STRIP="$STRIP"
+}
 
-}
 build_f() {
-    ${MAKE}
+    make -j"$(nproc)"
 }
+
 install_f() {
-    ${MAKE} DESTDIR=${FINAL_DIR} install-strip
+    make DESTDIR="$staging_dir" install
 }
+
 postrun_f() {
-    local LSERVICES=("getty" "klogd" "syslogd" "dhcpcd")
+    install -D -m 644 \
+        "$files_dir/etc/finit.conf" \
+        "$staging_dir/etc/finit.conf"
+
+    install -d -m 755 \
+        "$staging_dir/etc/finit.d/available" \
+        "$staging_dir/var/lib/finit"
+    #install -d -m 755 "$staging_dir/var/lib/finit"
+    #local LSERVICES=("getty" "klogd" "syslogd" "dhcpcd")
 
     # Make finit default init
-    ln -sf finit ${FINAL_DIR}/usr/bin/init
+    #ln -sf finit ${FINAL_DIR}/usr/bin/init
 
     # Copy local filesystem to finaldir
-    cp -r ${PKG_DIR}/finit/fs/* ${FINAL_DIR}
+    #cp -r ${PKG_DIR}/finit/fs/* ${FINAL_DIR}
 
     # Enable services by default
-    cd ${FINAL_DIR}/etc/finit.d/available
-    for service in ${SERVICES[@]}; do
-        ln -sf available/${service}.conf ${FINAL_DIR}/etc/finit.d/${service}.conf
-    done
+    #cd ${FINAL_DIR}/etc/finit.d/available
+    #for service in ${SERVICES[@]}; do
+    #    ln -sf available/${service}.conf ${FINAL_DIR}/etc/finit.d/${service}.conf
+    #done
 }

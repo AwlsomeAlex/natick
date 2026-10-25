@@ -1,7 +1,11 @@
 # ----- Directories ----- #
-sources/
+/sources/
 .vscode/
 # Sue me. VSCode is a suboptimal editor.
 
 # ----- Build Directory ----- #
-build/
+/build/
+/out/
+
+# ----- Local Build Logs ----- #
+/*.log

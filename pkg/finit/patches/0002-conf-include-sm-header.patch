@@ -1,0 +1,12 @@
+Subject: [PATCH] conf: include declaration of sm_reload
+
+--- a/src/conf.c
++++ b/src/conf.c
+@@ -44,6 +44,7 @@
+ #include "iwatch.h"
+ #include "private.h"
+ #include "service.h"
++#include "sm.h"
+ #include "tty.h"
+ #include "helpers.h"
+ #include "util.h"

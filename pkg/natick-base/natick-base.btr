@@ -1,0 +1,42 @@
+# --------
+# natickOS - natick-base BTR
+# --------
+# ISC License
+# Copyright (C) 2017-2026 Alexander Barris
+# All Rights Reserved
+
+# Maintainer: AJB <alex at awlsome dot com>
+
+name="natick-base"
+arch="all"
+version="0.0.1"
+release="1"
+source_type="local"
+bld_deps=()
+
+prerun_f() {
+    :
+}
+
+configure_f() {
+    :
+}
+
+build_f() {
+    :
+}
+
+install_f() {
+    cp -a -- "$files_dir/." "$staging_dir/" \
+        || die "Cannot install natick-base files"
+
+    chmod 755 "$staging_dir/etc"
+    chmod 644 \
+        "$staging_dir/etc/passwd" \
+        "$staging_dir/etc/group" \
+        "$staging_dir/etc/fstab"
+}
+
+postrun_f() {
+    :
+}
