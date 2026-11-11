@@ -34,8 +34,9 @@ usage() {
     echo "  help  ==> Shows this message"
     echo ""
     echo "build option:"
-    echo "  --target ARCH ==> (x86_64/aarch64)"
-    echo "  --overwrite   ==> Overwrite existing image"
+    echo "  --target ARCH  ==> x86_64/aarch64"
+    echo "  --profile NAME ==> initramfs/disk (default: initramfs)"
+    echo "  --overwrite    ==> Overwrite existing image"
     echo ""
     echo "natickOS: <https://github.com/awlsomealex/natick>"
 }
@@ -133,7 +134,7 @@ install_package() (
 # ----- Core Functions ----- #
 
 assemble_rootfs() (
-    local -a packages=(natick-base busybox musl libite libuev finit natick-milestone1)
+    local -a packages=("${image_packages[@]}")
     local -a archives=()
     local package archive
     local command
@@ -192,6 +193,213 @@ build_initramfs() (
         || die "Cannot finalize initramfs"
 )
 
+build_ext4() (
+    local output="$IMAGE_DIR/rootfs.ext4"
+    local temporary
+
+    if [[ -e "$output" || -L "$output" ]]; then
+        (( overwrite == 1 )) \
+            || die "Disk image exists: $output; use --overwrite"
+    fi
+
+    temporary=$(mktemp "${output}.tmp.XXXXXX") \
+        || die "Cannot create temporary disk image"
+    trap 'rm -f -- "$temporary"' EXIT
+
+    echo "[....] Creating ext4 root filesystem...."
+    truncate -s 1G "$temporary" \
+        || die "Cannot size disk image"
+
+    fakeroot -- bash -eou pipefail -c '
+        chown -hR 0:0 -- "$1"
+
+        mke2fs \
+            -t ext4 \
+            -F \
+            -b 4096 \
+            -m 0 \
+            -L natick-root \
+            -E root_owner=0:0 \
+            -d "$1" \
+            "$2"
+    ' bash "$ROOTFS_DIR" "$temporary" \
+        || die "Cannot populate ext4 image"
+
+    chmod 644 "$temporary" \
+        || die "Cannot populate ext4 image"
+
+    mv -f -- "$temporary" "$output" \
+        || die "Cannot finalize disk image"
+)
+
+prepare_efi() (
+    local platform bootfile console
+    local modules_dir kernel
+    local temporary
+    local -a kernels
+
+    case "$TARGET" in
+        x86_64-linux-musl)
+            platform=x86_64-efi
+            bootfile=BOOTX64.EFI
+            console=ttyS0
+            ;;
+        aarch64-linux-musl)
+            platform=arm64-efi
+            bootfile=BOOTAA64.EFI
+            console=ttyAMA0
+            ;;
+        *)
+            die "Unsupported EFI target: $TARGET"
+            ;;
+    esac
+
+    modules_dir="/usr/lib/grub/$platform"
+    [[ -f "$modules_dir/modinfo.sh" ]] \
+        || die "GRUB platform modules missing: $platform"
+
+    shopt -s nullglob
+    kernels=("$ROOTFS_DIR"/boot/vmlinuz-*)
+    (( ${#kernels[@]} == 1 )) \
+        || die "Expected exactly one installed kernel"
+    kernel=${kernels[0]##*/}
+
+    mkdir -p -- \
+        "$ROOTFS_DIR/boot/grub" \
+        "$IMAGE_DIR/efi/EFI/BOOT"
+
+    temporary=$(mktemp -d "$IMAGE_DIR/grub.XXXXXX") \
+        || die "Cannot create GRUB work directory"
+    trap 'rm -rf -- "$temporary"' EXIT
+
+    cat > "$ROOTFS_DIR/boot/grub/grub.cfg" <<EOF
+set default=0
+set timeout=5
+
+menuentry "natickOS" {
+    linux /boot/$kernel console=$console,115200 root=/dev/vda2 rootfstype=ext4 rootwait ro init=/sbin/init
+}
+EOF
+
+    cat > "$temporary/early.cfg" <<'EOF'
+search --no-floppy --label natick-root --set=root
+set prefix=($root)/boot/grub
+EOF
+
+    echo "[....] Creating $platform EFI bootloader...."
+    grub2-mkimage \
+        -O "$platform" \
+        -d "$modules_dir" \
+        -p /boot/grub \
+        -c "$temporary/early.cfg" \
+        -o "$temporary/$bootfile" \
+        part_gpt fat ext2 normal linux search search_label \
+        || die "EFI bootloader generation failed"
+
+    install -m 644 "$temporary/$bootfile" \
+        "$IMAGE_DIR/efi/EFI/BOOT/$bootfile" \
+        || die "Cannot install EFI bootloader"
+)
+
+build_esp() (
+    local output="$IMAGE_DIR/esp.fat"
+    local temporary
+
+    if [[ -e "$output" || -L "$output" ]]; then
+        (( overwrite == 1 )) \
+            || die "EFI partition image exists; use --overwrite"
+    fi
+
+    temporary=$(mktemp "${output}.tmp.XXXXXX") \
+        || die "Cannot create temporary EFI partition image"
+    trap 'rm -f -- "$temporary"' EXIT
+
+    echo "[....] Creating EFI system partition...."
+    truncate -s 128M "$temporary" \
+        || die "Cannot size EFI partition image"
+
+    mkfs.fat -F 32 -n NATICK_EFI "$temporary" \
+        || die "Cannot format EFI partition image"
+
+    mcopy -i "$temporary" -s "$IMAGE_DIR/efi/EFI" ::/ \
+        || die "Cannot copy EFI boot files"
+
+    chmod 644 "$temporary" \
+        || die "Cannot set EFI partition image permissions"
+
+    mv -f -- "$temporary" "$output" \
+        || die "Cannot finalize EFI partition image"
+)
+
+build_disk() (
+    local output="$IMAGE_DIR/natick.img"
+    local esp="$IMAGE_DIR/esp.fat"
+    local rootfs="$IMAGE_DIR/rootfs.ext4"
+    local temporary
+    local esp_bytes root_bytes
+    local esp_start esp_end root_start root_end disk_bytes
+
+    if [[ -e "$output" || -L "$output" ]]; then
+        (( overwrite == 1 )) \
+            || die "Disk image exists; use --overwrite"
+    fi
+
+    esp_bytes=$(stat -c %s -- "$esp") \
+        || die "Cannot determine EFI partition size"
+
+    root_bytes=$(stat -c %s -- "$rootfs") \
+        || die "Cannot determine root partition size"
+
+    # Partition calculations use 512-byte sectors.
+    (( esp_bytes > 0 && root_bytes > 0 &&
+       esp_bytes % 512 == 0 && root_bytes % 512 == 0 )) \
+        || die "Partition images must contain whole sectors"
+
+    # Start partitions on 1 MiB boundaries
+    esp_start=2048
+    esp_end=$((esp_start + esp_bytes / 512 - 1))
+    root_start=$(((esp_end + 1 + 2047) / 2048 * 2048))
+    root_end=$((root_start + root_bytes / 512 - 1))
+
+    # Leave space after the root partition for the backup GPT.
+    disk_bytes=$(((root_end + 1 + 2048) * 512))
+
+    temporary=$(mktemp "${output}.tmp.XXXXXX") \
+        || die "Cannot create temporary disk image"
+    trap 'rm -f -- "$temporary"' EXIT
+
+    echo "[....] Creating GPT disk image...."
+    truncate -s "$disk_bytes" "$temporary" \
+        || die "Cannot size disk image"
+
+    sfdisk "$temporary" <<EOF || die "Cannot create partition table"
+label: gpt
+unit: sectors
+
+start=$esp_start, size=$((esp_bytes / 512)), type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B, name="EFI"
+start=$root_start, size=$((root_bytes / 512)), type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, name="natick-root"
+EOF
+
+    dd if="$esp" of="$temporary" \
+        bs=1M seek="$((esp_start / 2048))" \
+        conv=notrunc,sparse status=progress \
+        || die "Cannot write EFI partition"
+
+    dd if="$rootfs" of="$temporary" \
+        bs=1M seek="$((root_start / 2048))" \
+        conv=notrunc,sparse status=progress \
+        || die "Cannot write root partition"
+
+    sfdisk --verify "$temporary" \
+        || die "Disk partition verification failed"
+
+    chmod 644 "$temporary" \
+        || die "Cannot set disk image permissions"
+
+    mv -f -- "$temporary" "$output" \
+        || die "Cannot finalize disk image."
+)
+
 # ----- Execution ----- #
 (($#)) || { usage >&2; exit 1; }
 
@@ -206,6 +414,7 @@ esac
 
 target=''
 overwrite=0
+profile=initramfs
 while (($#)); do
     case $1 in
         --target)
@@ -217,6 +426,17 @@ while (($#)); do
             ;;
         --target=*)
             target=${1#*=}
+            shift
+            ;;
+        --profile)
+            if (($# < 2)) || [[ $2 == -* ]]; then
+                die "--profile requires a value"
+            fi
+            profile=$2
+            shift 2
+            ;;
+        --profile=*)
+            profile=${1#*=}
             shift
             ;;
         --overwrite)
@@ -254,18 +474,42 @@ case "$target" in
         ;;
 esac
 
+image_packages=(natick-base busybox musl libite libuev finit)
+case "$profile" in
+    initramfs)
+        image_packages+=(natick-initramfs)
+        ;;
+    disk)
+        image_packages+=(linux eudev natick-disk)
+        ;;
+    *)
+        die "Unsupported image profile: $profile"
+        ;;
+esac
+
 export SYSROOT_DIR="${BUILDROOT}/${TARGET}/sysroot"
 
 export RECIPE_DIR="${SCRIPT_DIR}/pkg"
 export PKG_DIR="${OUTPUT_DIR}/${TARGET}/packages"
 
-export IMAGE_DIR="${OUTPUT_DIR}/${TARGET}/images"
-export ROOTFS_DIR="${OUTPUT_DIR}/${TARGET}/rootfs"
+export IMAGE_DIR="${OUTPUT_DIR}/${TARGET}/${profile}/images"
+export ROOTFS_DIR="${OUTPUT_DIR}/${TARGET}/${profile}/rootfs"
 
 case $subcommand in
     build)
-        assemble_rootfs
-        build_initramfs
+        case "$profile" in
+            initramfs)
+                assemble_rootfs
+                build_initramfs
+                ;;
+            disk)
+                assemble_rootfs
+                prepare_efi
+                build_esp
+                build_ext4
+                build_disk
+                ;;
+        esac
         ;;
     clean)
         rm -rf -- "$ROOTFS_DIR" "$IMAGE_DIR" \

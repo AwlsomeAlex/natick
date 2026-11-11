@@ -1,5 +1,5 @@
 # --------
-# natickOS - natick-milestone1 BTR
+# natickOS - natick-initramfs BTR
 # --------
 # ISC License
 # Copyright (C) 2017-2026 Alexander Barris
@@ -7,7 +7,7 @@
 
 # Maintainer: AJB <alex at awlsome dot com>
 
-name="natick-milestone1"
+name="natick-initramfs"
 arch="all"
 version="0.0.1"
 release="1"

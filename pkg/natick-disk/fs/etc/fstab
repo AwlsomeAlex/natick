@@ -1,0 +1,2 @@
+# Root filesystem on the whole virtio block device.
+/dev/vda2 / ext4 defaults 0 0
