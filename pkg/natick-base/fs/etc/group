@@ -1,2 +1,14 @@
 root:x:0:
 tty:x:5:
+disk:x:100:
+kmem:x:101:
+dialout:x:102:
+input:x:103:
+video:x:104:
+render:x:105:
+audio:x:106:
+lp:x:107:
+cdrom:x:108:
+tape:x:109:
+kvm:x:110:
+sgx:x:111:
