@@ -56,12 +56,26 @@ configure_f() {
         --set-str DEFAULT_HOSTNAME "natickOS" \
         --set-str LOCALVERSION "-${release}.natick.${TARGET%%-*}" \
         --disable LOCALVERSION_AUTO \
+        --enable BLOCK \
+        --enable BLK_DEV \
+        --enable VIRTIO_MENU \
+        --enable VIRTIO_BLK \
+        --enable EXT4_FS \
         --enable DEVTMPFS \
         --enable DEVTMPFS_MOUNT
 
-    if [[ "$LINUX_ARCH" == arm64 ]]; then
-        scripts/config --disable COMPAT
-    fi
+    case "$LINUX_ARCH" in
+        x86)
+            scripts/config \
+                --enable PCI \
+                --enable VIRTIO_PCI
+            ;;
+        arm64)
+            scripts/config \
+                --disable COMPAT \
+                --enable VIRTIO_MMIO
+            ;;
+    esac
 
     linux_make olddefconfig
 
@@ -112,6 +126,7 @@ install_f() {
     if grep -qx 'CONFIG_MODULES=y' .config; then
         linux_make \
             INSTALL_MOD_PATH="$staging_dir" \
+            INSTALL_MOD_STRIP=1 \
             modules_install
 
         # This package contains runtime modules, not a development tree.
