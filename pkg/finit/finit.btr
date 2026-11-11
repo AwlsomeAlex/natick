@@ -70,6 +70,10 @@ postrun_f() {
         "$files_dir/etc/finit.conf" \
         "$staging_dir/etc/finit.conf"
 
+    install -D -m 644 \
+        "$files_dir/etc/finit.d/logging.conf" \
+        "$staging_dir/etc/finit.d/logging.conf"
+
     install -d -m 755 \
         "$staging_dir/etc/finit.d/available" \
         "$staging_dir/var/lib/finit"
