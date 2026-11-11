@@ -5,13 +5,13 @@ natickOS is an ongoing research project about how Linux distributions work and w
 ## Dependencies
 
 ### Ubuntu 26.04
-`sudo apt install build-essential bc clang lld llvm cmake ninja-build ccache git curl xz-utils bzip2 zstd patch python3 pkg-config gzip cpio flex bison libssl-dev libelf-dev qemu-system-x86 jq`
+`sudo apt install build-essential bc clang lld llvm cmake ninja-build ccache git curl xz-utils bzip2 zstd patch python3 pkg-config gzip cpio flex bison libssl-dev libelf-dev qemu-system-x86 jq e2fsprogs fakeroot`
 
 ### Rocky Linux 10
 `sudo dnf install epel-release`
 `sudo dnf config-manager --set-enabled crb`
 `sudo dnf groupinstall "Development Tools"`
-`sudo dnf install llvm-toolset bc cmake ccache ninja-build llvm-devel cpio gzip bzip2 zstd patch flex bison openssl-devel elfutils-libelf-devel qemu-kvm jq`
+`sudo dnf install llvm-toolset bc cmake ccache ninja-build llvm-devel cpio gzip bzip2 zstd patch flex bison openssl-devel elfutils-libelf-devel qemu-kvm jq e2fsprogs fakeroot grub2-efi-aa64-modules dosfstools mtools gdisk util-linux`
 
 ## Milestone 1: serial shell
 
@@ -34,7 +34,7 @@ For an existing build, you can add `--overwrite` which will rebuild the toolchai
 # build.sh has rudimentary dependency resolution
 # meaning running 'build' on finit also builds
 # libite and libuev if they were not built yet
-for package in natick-base busybox musl finit linux natick-milestone1; do
+for package in natick-base busybox musl finit linux natick-initramfs; do
     ./build.sh build --target [ARCH] --package "$package"
 done
 
@@ -56,7 +56,7 @@ done
     -m 512M \
     -smp 2 \
     -kernel out/x86_64-linux-musl/staging/linux-7.2.12-1/boot/vmlinuz-7.2.12-1.natick.x86_64 \
-    -initrd out/x86_64-linux-musl/images/initramfs.cpio.gz \
+    -initrd out/x86_64-linux-musl/initramfs/images/initramfs.cpio.gz \
     -append "console=ttyS0,115200 rdinit=/init" \
     -nographic \
     -no-reboot
@@ -69,7 +69,7 @@ qemu-system-aarch64 \
     -m 1G \
     -smp 2 \
     -kernel out/aarch64-linux-musl/staging/linux-7.2.12-1/boot/vmlinuz-7.2.12-1.natick.aarch64 \
-    -initrd out/aarch64-linux-musl/images/initramfs.cpio.gz \
+    -initrd out/aarch64-linux-musl/initramfs/images/initramfs.cpio.gz \
     -append "console=ttyAMA0,115200 rdinit=/init" \
     -nographic \
     -no-reboot
