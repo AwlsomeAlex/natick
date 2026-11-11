@@ -13,10 +13,12 @@
   "features": {
     "ghcr.io/awlsomealex/devcontainer-features/base:latest": {},
     "ghcr.io/awlsomealex/devcontainer-features/codex:latest": {},
-    "ghcr.io/awlsomealex/devcontainer-features/lazygit:latest": {}
+    "ghcr.io/awlsomealex/devcontainer-features/lazygit:latest": {},
+    "ghcr.io/awlsomealex/devcontainer-features/pi:latest": {}
   },
   "mounts": [
     "source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.pi,target=/home/vscode/.pi,type=bind,consistency=cached",
     "source=codex-home,target=/home/vscode/.codex,type=volume"
   ],
   "containerUser": "vscode",
