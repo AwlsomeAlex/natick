@@ -191,6 +191,15 @@ package_output() (
 
 # ----- Dependency Handling ----- #
 
+check_host_deps() {
+    local tool
+
+    for tool in "$@"; do
+        command -v "$tool" >/dev/null 2>&1 \
+            || die "Missing build-host tool: $tool"
+    done
+}
+
 read_build_deps() (
     local requested=$1
 
@@ -329,7 +338,7 @@ build_pkg() (
     local name=$1
     local overwrite=$2
     local source_type=archive
-    local -a patches=() bld_deps=()
+    local -a patches=() bld_deps=() host_deps=()
     local filename='' archive=''
 
     local recipe_dir="$RECIPE_DIR/$name"
@@ -337,6 +346,8 @@ build_pkg() (
     local files_dir="$recipe_dir/fs"
     [[ -f "$recipe" ]] || die "Package '$name' does not have a BTR."
     source "$recipe"
+
+    check_host_deps "${host_deps[@]}"
 
     local source_dir="$WORK_DIR/$name-$version"
     local staging_dir="$STAGING_DIR/$name-$version-$release"
