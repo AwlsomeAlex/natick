@@ -13,11 +13,9 @@ arch="all"
 version="3.3.0"
 release="1"
 url="https://github.com/eudev-project/eudev/releases/download/v${version}/eudev-${version}.tar.gz"
-# TODO: Package 'kmod' and 'libblkid'
-#bld_deps=("kmod" "libblkid")
-bld_deps=()
 shasum="8fba6e4f49ea4b1938828a3c2e7cc48874816c68621386e527076b6477f5d6ef"
 host_deps=("gperf" "pkg-config")
+bld_deps=("kmod" "libblkid")
 patches=()
 
 
@@ -41,11 +39,11 @@ configure_f() {
         --localstatedir=/var \
         --runstatedir=/run \
         --enable-shared \
+        --enable-blkid \
+        --enable-kmod \
         --disable-static \
-        --disable-blkid \
         --disable-selinux \
         --disable-manpages \
-        --disable-kmod \
         --with-system-uid-max=999 \
         --with-system-gid-max=999 \
         --with-bashcompletiondir=no \
