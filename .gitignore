@@ -9,3 +9,5 @@
 
 # ----- Local Build Logs ----- #
 /*.log
+
+.DS_Store
