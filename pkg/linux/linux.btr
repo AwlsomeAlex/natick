@@ -10,10 +10,10 @@
 
 name="linux"
 arch="all"
-version="7.2.12"
+version="7.3.4"
 release="1"
 url="https://cdn.kernel.org/pub/linux/kernel/v7.x/linux-${version}.tar.xz"
-shasum="bb18468a8dc8978aa00caa6446e753f7b6da3fee56b6b7f38b16f9430ba02d4f"
+shasum="b11b6df8295e8e991ff040b71aaa4994a8b55caa23b6b092907f195b5840fd1f"
 bld_deps=()
 
 # Local function to help variables
