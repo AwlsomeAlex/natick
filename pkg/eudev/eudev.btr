@@ -10,14 +10,14 @@
 
 name="eudev"
 arch="all"
-version="3.2.15"
+version="3.3.0"
 release="1"
 url="https://github.com/eudev-project/eudev/releases/download/v${version}/eudev-${version}.tar.gz"
-shasum="eb69809fc0d1187f2463ab2149c53aa9f42a78e59f14ebea68eae6cb6b4fc1c3"
-host_deps=("gperf")
 # TODO: Package 'kmod' and 'libblkid'
 #bld_deps=("kmod" "libblkid")
 bld_deps=()
+shasum="8fba6e4f49ea4b1938828a3c2e7cc48874816c68621386e527076b6477f5d6ef"
+host_deps=("gperf" "pkg-config")
 patches=()
 
 
@@ -27,7 +27,7 @@ prerun_f() {
 
 configure_f() {
     local build_triplet
-    build_triplet=$(sh ./config.guess)
+    build_triplet=$(sh ./build-aux/config.guess)
 
     ./configure \
         --build="$build_triplet" \
@@ -46,8 +46,11 @@ configure_f() {
         --disable-selinux \
         --disable-manpages \
         --disable-kmod \
-        CC="ccache $CC --target=$TARGET --sysroot=$SYSROOT_DIR" \
-        CXX="ccache $CXX --target=$TARGET --sysroot=$SYSROOT_DIR"
+        --with-system-uid-max=999 \
+        --with-system-gid-max=999 \
+        --with-bashcompletiondir=no \
+        --with-zshcompletiondir=no \
+        CC="ccache $CC --target=$TARGET --sysroot=$SYSROOT_DIR"
 }
 
 build_f() {

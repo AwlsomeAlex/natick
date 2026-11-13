@@ -12,3 +12,4 @@ cdrom:x:108:
 tape:x:109:
 kvm:x:110:
 sgx:x:111:
+clock:x:112:
