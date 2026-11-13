@@ -1,0 +1,89 @@
+# --------
+# natickOS - kmod BTR
+# --------
+# ISC License
+# Copyright (C) 2017-2026 Alexander Barris
+# All Rights Reserved
+
+# https://github.com/kmod-project/kmod
+# Maintainer: AJB <alex at awlsome dot com>
+
+name="kmod"
+arch="all"
+version="34"
+release="1"
+url="https://github.com/kmod-project/kmod/archive/refs/tags/v${version}.tar.gz"
+shasum="cb47be49366b596e4554eeeb7595b128feb261619c7675603e004b07c5ebbd5b"
+bld_deps=()
+host_deps=("meson" "ninja" "pkg-config")
+
+# TODO: Package module-compression libraries (zlib, xz, zstd)
+#       along with OpenSSL for modinfo signature inspection
+#       and enable corresponding features.
+
+prerun_f() {
+    :
+}
+
+configure_f() {
+    local cpu_family
+
+    case "$TARGET" in
+        x86_64-linux-musl)  cpu_family=x86_64 ;;
+        aarch64-linux-musl) cpu_family=aarch64 ;;
+        *) die "Unsupported kmod target: $TARGET" ;;
+    esac
+
+    cat > "$source_dir/cross.ini" <<EOF
+[binaries]
+c = ['ccache', '$CC', '--target=$TARGET', '--sysroot=$SYSROOT_DIR']
+ar = '$AR'
+strip = '$STRIP'
+pkg-config = 'pkg-config'
+
+[host_machine]
+system = 'linux'
+cpu_family = '$cpu_family'
+cpu = '$cpu_family'
+endian = 'little'
+
+[properties]
+needs_exe_wrapper = true
+sys_root = '$SYSROOT_DIR'
+pkg_config_libdir = ['$SYSROOT_DIR/usr/lib/pkgconfig', '$SYSROOT_DIR/usr/share/pkgconfig']
+EOF
+
+    meson setup "$source_dir/build" "$source_dir" \
+        --cross-file="$source_dir/cross.ini" \
+        --buildtype=release \
+        --prefix=/usr \
+        --bindir=bin \
+        --sbindir=sbin \
+        --libdir=lib \
+        --sysconfdir=/etc \
+        --localstatedir=/var \
+        --default-library=shared \
+        -Dzlib=disabled \
+        -Dxz=disabled \
+        -Dzstd=disabled \
+        -Dopenssl=disabled \
+        -Dmanpages=false \
+        -Ddocs=false \
+        -Dbashcompletiondir=no \
+        -Dfishcompletiondir=no \
+        -Dzshcompletiondir=no \
+        -Dtools=true
+}
+
+build_f() {
+    meson compile -C "$source_dir/build" -j "$(nproc)"
+}
+
+install_f() {
+    DESTDIR="$staging_dir" \
+        meson install -C "$source_dir/build" --no-rebuild
+}
+
+postrun_f() {
+    :
+}
