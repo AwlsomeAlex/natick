@@ -35,7 +35,8 @@ install_f() {
     chmod 644 \
         "$staging_dir/etc/passwd" \
         "$staging_dir/etc/group" \
-        "$staging_dir/etc/fstab"
+        "$staging_dir/etc/fstab" \
+        "$staging_dir/usr/lib/os-release"
 }
 
 postrun_f() {
