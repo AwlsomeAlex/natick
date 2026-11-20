@@ -1,1 +1,1 @@
-UDEVD_ARGS="--debug"
+UDEVD_ARGS=""
