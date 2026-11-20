@@ -120,24 +120,13 @@ prep() {
 }
 
 download() {
-    local actual_commit
-
     cd "$SOURCES"
 
-    if [[ ! -d llvm-project ]]; then
-        git clone \
-            --progress \
-            --depth 1 \
-            --branch "llvmorg-${LLVM_VER}" \
-            https://github.com/llvm/llvm-project.git \
-            || die "LLVM clone failed"
-    fi
-
-    actual_commit=$(git -C llvm-project rev-parse --verify 'HEAD^{commit}') \
-        || die "Cannot determine LLVM checkout commit"
-
-    [[ "$actual_commit" == "$LLVM_COMMIT" ]] \
-        || die "LLVM commit mismatch: expected $LLVM_COMMIT, got $actual_commit"
+    fetch_source \
+        "https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VER}/llvm-project-${LLVM_VER}.src.tar.xz" \
+        "llvm-project-${LLVM_VER}.src.tar.xz" \
+        "llvm-project-${LLVM_VER}.src" \
+        "$LLVM_SHA256"
 
     fetch_source \
         "https://cdn.kernel.org/pub/linux/kernel/v${LINUX_VER%%.*}.x/linux-${LINUX_VER}.tar.xz" \
@@ -153,10 +142,10 @@ download() {
 }
 
 llvm_build() {
-    local build_dir="$BUILD/llvm"
+    local build_dir="$BUILD/llvm-project-${LLVM_VER}"
 
     echo "[....] Configuring bootstrap Clang/LLVM...."
-    cmake -S "$SOURCES/llvm-project/llvm" \
+    cmake -S "$SOURCES/llvm-project-${LLVM_VER}.src/llvm" \
           -B "$build_dir" \
           -G Ninja \
           -DCMAKE_BUILD_TYPE=Release \
@@ -228,7 +217,7 @@ compiler_rt_builtins() {
         || die "Cannot locate Clang resource directory"
 
     echo "[....] Configuring compiler-rt builtins...."
-    cmake -S "$SOURCES/llvm-project/compiler-rt/lib/builtins" \
+    cmake -S "$SOURCES/llvm-project-${LLVM_VER}.src/compiler-rt/lib/builtins" \
         -B "$build_dir" \
         -G Ninja \
         -DCMAKE_BUILD_TYPE=Release \
@@ -393,7 +382,7 @@ llvm_runtimes() {
     local link_flags="--rtlib=compiler-rt --unwindlib=none --ld-path=$TOOLCHAIN/bin/ld.lld"
 
     echo "[....] Configuring LLVM C++ runtimes...."
-    cmake -S "$SOURCES/llvm-project/runtimes" \
+    cmake -S "$SOURCES/llvm-project-${LLVM_VER}.src/runtimes" \
         -B "$build_dir" \
         -G Ninja \
         -DCMAKE_BUILD_TYPE=Release \
