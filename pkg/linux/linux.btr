@@ -25,7 +25,6 @@ linux_make() {
         make \
             ARCH="$LINUX_ARCH" \
             LLVM="$TOOLCHAIN_DIR/bin/" \
-            KBUILD_BUILD_TIMESTAMP="1970-01-01 00:00:00 UTC" \
             CC="ccache $TOOLCHAIN_DIR/bin/clang" \
             HOSTCC="$HOSTCC" \
             HOSTCXX="$HOSTCXX" \
