@@ -81,13 +81,30 @@ prepare_rootfs() (
 
 package_archive_path() (
     local requested=$1
-    local name='' version='' release=''
+    local name='' version='' release='' arch filename outputs archive
     local -a patches=() bld_deps=()
-
+    local spec="$RECIPE_DIR/$requested/$requested.spec"
     local recipe="$RECIPE_DIR/$requested/$requested.btr"
+    local top="$BUILDROOT/rpm/$TARGET/$requested"
+
+    if [[ -f "$spec" && -d "$top/RPMS" ]]; then
+        outputs=$(rpmspec --target "${TARGET%%-*}" --define "_topdir $top" \
+            --define '_libdir /usr/lib' --define 'dist .natick' -q --rpms \
+            --qf '%{NAME} %{ARCH} %{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}.rpm\n' "$spec") \
+            || die "Cannot query RPM outputs: $spec"
+        while read -r name arch filename; do
+            [[ "$name" == "$requested" ]] || continue
+            [[ "$arch" == "${TARGET%%-*}" || "$arch" == noarch ]] || continue
+            archive="$top/RPMS/$arch/$filename"
+            if [[ -f "$archive" ]]; then
+                printf '%s\n' "$archive"
+                return
+            fi
+        done <<< "$outputs"
+    fi
 
     [[ -f "$recipe" ]] \
-        || die "Recipe missing: $requested"
+        || die "No built runtime RPM or BTR recipe for $requested"
 
     source "$recipe" >&2 \
         || die "Cannot read recipe: $requested"
@@ -107,12 +124,15 @@ install_package() (
     trap 'rm -rf -- "$temporary"' EXIT
 
     echo "[....] Installing ${archive##*/}"
-    tar --zstd \
-        --extract \
-        --no-same-owner \
-        --file="$archive" \
-        --directory="$temporary" \
-        || die "Cannot extract package: $archive"
+    if [[ "$archive" == *.rpm ]]; then
+        rpm2cpio "$archive" | (
+            cd -- "$temporary"
+            cpio -idm --quiet --no-absolute-filenames --no-preserve-owner
+        ) || die "Cannot extract RPM: $archive"
+    else
+        tar --zstd --extract --no-same-owner --file="$archive" --directory="$temporary" \
+            || die "Cannot extract package: $archive"
+    fi
 
     for directory in bin sbin lib; do
         [[ ! -L "$temporary/$directory" ]] \
@@ -146,6 +166,10 @@ assemble_rootfs() (
 
         [[ -f "$archive" ]] \
             || die "Package archive missing: $archive"
+        if [[ "$archive" == *.rpm ]]; then
+            command -v rpm2cpio >/dev/null && command -v cpio >/dev/null \
+                || die "RPM extraction requires rpm2cpio and cpio"
+        fi
 
         archives+=("$archive")
     done
