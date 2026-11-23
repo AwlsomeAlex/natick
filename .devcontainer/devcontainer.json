@@ -1,6 +1,6 @@
 {
   "name": "natick",
-  "image": "ubuntu:26.04",
+  "image": "rockylinux/rockylinux:10",
   "customizations": {
     "vscode": {
       "settings": {
