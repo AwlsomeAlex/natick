@@ -39,7 +39,8 @@ usage() {
     echo ""
     echo "build option:"
     echo "  --target ARCH ==> (x86_64/aarch64)"
-    echo "  --package PKG ==> Package name (BTR)"
+    echo "  --package PKG ==> Package name"
+    echo "  --format FMT  ==> Build format (btr|rpm, default: btr)"
     echo "  --overwrite   ==> Overwrite existing package"
     echo ""
     echo "natickOS: <https://github.com/awlsomealex/natick>"
@@ -464,6 +465,172 @@ clean_pkg() (
         || die "Cannot remove package build"
 )
 
+# ----- RPM Backend ----- #
+
+# These helpers share the package-local context set by build_rpm_pkg.
+rpm_output_paths() {
+    local spec_file=$1 output_top=$2 outputs filename
+
+    outputs=$(rpmspec "${args[@]}" --define "_topdir $output_top" -q --rpms \
+        --qf '%{ARCH}/%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}.rpm\n' "$spec_file") \
+        || die "Cannot query RPM outputs: $spec_file"
+    [[ -n "$outputs" ]] || die "No RPM outputs: $spec_file"
+    while IFS= read -r filename; do
+        printf '%s/RPMS/%s\n' "$output_top" "$filename"
+    done <<< "$outputs"
+}
+
+# TODO: Drop rpm_sysroot_deps once the natickOS RPM repo can satisfy target
+# BuildRequires.
+prepare_rpm_sysroot() {
+    local dep outputs rpmfile
+    local -a packages=()
+
+    if [[ -n "${NATICK_SYSROOT:-}" ]]; then
+        SYSROOT_DIR=$(realpath -e -- "$NATICK_SYSROOT")
+        echo "[....] RPM sysroot (NATICK_SYSROOT override): $SYSROOT_DIR"
+        return
+    fi
+    if (( ${#rpm_sysroot_deps[@]} == 0 )); then
+        echo "[....] RPM sysroot (baseline): $SYSROOT_DIR"
+        return
+    fi
+
+    for dep in "${rpm_sysroot_deps[@]}"; do
+        outputs=$(rpm_output_paths "$RECIPE_DIR/$dep/$dep.spec" "$BUILDROOT/rpm/$TARGET/$dep")
+        while IFS= read -r rpmfile; do
+            [[ -f "$rpmfile" ]] || die "Missing RPM: $rpmfile
+Build it first: ./build.sh build --target $target_arch --package $dep --format rpm"
+            packages+=("$rpmfile")
+        done <<< "$outputs"
+    done
+
+    mkdir -p -- "$top"
+    rpm_sysroot=$(mktemp -d "$top/sysroot.XXXXXX")
+    trap 'rm -rf -- "$rpm_sysroot"' EXIT
+    cp -a --reflink=auto -- "$SYSROOT_DIR/." "$rpm_sysroot/"
+
+    for rpmfile in "${packages[@]}"; do
+        rpm2cpio "$rpmfile" | (
+            cd -- "$rpm_sysroot"
+            cpio -idmu --quiet --no-absolute-filenames
+        ) || die "Cannot extract RPM dependency: $rpmfile"
+    done
+    SYSROOT_DIR="$rpm_sysroot"
+    echo "[....] RPM sysroot (assembled from RPMs): $SYSROOT_DIR"
+}
+
+check_rpm_cross_requires() {
+    local requirements requirement tool
+    local pattern='^pkgconfig\(([^)]+)\)(.*)$'
+
+    requirements=$(rpmspec "${args[@]}" -q --buildrequires "$spec") \
+        || die "Cannot query BuildRequires: $spec"
+    while IFS= read -r requirement; do
+        if [[ "$requirement" == natick-host-* ]]; then
+            tool=${requirement#natick-host-}
+            [[ -n "$tool" && "$tool" != *[[:space:]]* ]] \
+                || die "Expected an unversioned host command: $requirement"
+            check_host_deps "$tool"
+        elif [[ "$requirement" =~ $pattern ]]; then
+            pkg-config --print-errors --exists "${BASH_REMATCH[1]}${BASH_REMATCH[2]}" \
+                || die "Missing target BuildRequires: $requirement (sysroot: $SYSROOT_DIR)"
+        fi
+    done <<< "$requirements"
+}
+
+check_rpm_outputs() {
+    local outputs rpmfile arch_dir host_arch
+
+    host_arch=$(uname -m)
+    outputs=$(rpm_output_paths "$spec" "$top")
+    while IFS= read -r rpmfile; do
+        arch_dir=${rpmfile%/*}
+        if [[ "${arch_dir##*/}" != noarch && "$target_arch" != "$host_arch" && "$rpm_cross" != 1 ]]; then
+            die "RPM build needs rpm_cross=1 in $recipe_dir/rpm.build"
+        fi
+        if [[ -e "$rpmfile" || -L "$rpmfile" ]]; then
+            (( overwrite == 1 )) || die "RPM already exists: $rpmfile; use --overwrite"
+        fi
+    done <<< "$outputs"
+}
+
+prepare_rpm_environment() {
+    build_env
+    export NATICK_TARGET="$TARGET" NATICK_TOOLCHAIN="$TOOLCHAIN_DIR" NATICK_SYSROOT="$SYSROOT_DIR"
+    # The target libraries come from the sysroot, not the host RPM database (yet).
+    args+=(--define 'set_build_flags unset CFLAGS CPPFLAGS CXXFLAGS LT_SYS_LIBRARY_PATH; export LDFLAGS=-Wl,--build-id=sha1 PKG_CONFIG_PATH=;' \
+        --define '__brp_ldconfig %{nil}' \
+        --define "__strip $STRIP" --define "__objdump $OBJDUMP")
+
+    check_rpm_cross_requires
+    build_args+=(--nodeps)
+}
+
+stage_rpm_sources() {
+    local metadata tag source source_name sha
+
+    metadata=$(rpmspec "${args[@]}" -P "$spec" | awk '$1 ~ /^(Source|Patch)[0-9]*:$/ { print $1, $2 }') \
+        || die "Cannot parse sources and patches: $spec"
+    mkdir -p -- "$top/SOURCES"
+    while read -r tag source; do
+        [[ -n "$tag" ]] || continue
+        source_name=${source##*/}
+        [[ -n "$source_name" && "$source_name" != . && "$source_name" != .. ]] \
+            || die "Invalid $tag filename: $source"
+        if [[ "$source" == https://* || "$source" == http://* ]]; then
+            sha=$(awk -v name="$source_name" '$2 == name { print $1 }' "$recipe_dir/sources")
+            [[ "$sha" =~ ^[a-fA-F0-9]{64}$ ]] || die "Expected one SHA-256 for $source_name in $recipe_dir/sources"
+            fetch_source "$source" "$SOURCES_DIR/$source_name" "$sha"
+            cp -- "$SOURCES_DIR/$source_name" "$top/SOURCES/$source_name"
+        elif [[ "$source" != "$source_name" ]]; then
+            die "Local $tag must name a file alongside the spec: $source"
+        else
+            cp -- "$recipe_dir/$source_name" "$top/SOURCES/$source_name"
+        fi
+    done <<< "$metadata"
+}
+
+build_rpm_pkg() (
+    local name=$1 overwrite=$2 target_arch=${TARGET%%-*}
+    local rpm_cross=0 rpm_sysroot=''
+    local -a args=() build_args=() rpm_sysroot_deps=()
+
+    local recipe_dir="$RECIPE_DIR/$name"
+    local spec="$recipe_dir/$name.spec"
+    local top="$BUILDROOT/rpm/$TARGET/$name"
+    [[ -f "$spec" ]] || die "Spec missing: $spec"
+    if [[ -f "$recipe_dir/rpm.build" ]]; then
+        source "$recipe_dir/rpm.build"
+    fi
+
+    args=(--target "$target_arch" --define '_libdir /usr/lib' --define 'dist .natick')
+    check_rpm_outputs
+    if [[ "$rpm_cross" == 1 ]]; then
+        prepare_rpm_sysroot
+    fi
+    args+=(--define "_topdir $top")
+    if [[ "$rpm_cross" == 1 ]]; then
+        prepare_rpm_environment
+    fi
+
+    local log_file="$top/build.log"
+    mkdir -p -- "$top"
+    echo "[....] RPM build log: $log_file"
+    {
+        stage_rpm_sources
+        rpmbuild -ba "${args[@]}" "${build_args[@]}" "$spec" || die "RPM build failed: $name"
+    } 2>&1 | tee "$log_file"
+)
+
+clean_rpm_pkg() {
+    local top="$BUILDROOT/rpm/$TARGET/$1"
+
+    echo "[....] Removing RPM build and staging files for $1"
+    rm -rf -- "$top/BUILD" "$top/BUILDROOT" "$top/SOURCES" "$top"/sysroot.* \
+        || die "Cannot clean RPM build: $1"
+}
+
 # ----- Execution ----- #
 (($#)) || { usage >&2; exit 1; }
 
@@ -478,6 +645,7 @@ esac
 
 target=''
 package=''
+format=btr
 overwrite=0
 while (($#)); do
     case $1 in
@@ -503,6 +671,17 @@ while (($#)); do
             package=${1#*=}
             shift
             ;;
+        --format)
+            if (($# < 2)) || [[ $2 == -* ]]; then
+                die "--format requires a value"
+            fi
+            format=$2
+            shift 2
+            ;;
+        --format=*)
+            format=${1#*=}
+            shift
+            ;;
         --overwrite)
             overwrite=1
             shift
@@ -526,6 +705,14 @@ fi
 if [[ ${package} == '' ]]; then
     die "No package specified."
 fi
+case "$format" in
+    btr) ;;
+    rpm)
+        [[ "$package" =~ ^[a-zA-Z0-9_][a-zA-Z0-9_.+-]*$ ]] \
+            || die "Invalid RPM package name: $package"
+        ;;
+    *) die "Unsupported build format: $format (expected btr or rpm)" ;;
+esac
 
 case "$target" in
     x86_64)
@@ -552,8 +739,14 @@ export WORK_DIR="${OUTPUT_DIR}/${TARGET}/work"
 export STAGING_DIR="${OUTPUT_DIR}/${TARGET}/staging"
 export PKG_DIR="${OUTPUT_DIR}/${TARGET}/packages"
 
-case $subcommand in
-    build)
+case "$subcommand:$format" in
+    build:rpm)
+        build_rpm_pkg "$package" "$overwrite"
+        ;;
+    clean:rpm)
+        clean_rpm_pkg "$package"
+        ;;
+    build:btr)
         resolve_build_order "$package"
         
         for planned_package in "${build_order[@]}"; do
@@ -570,7 +763,7 @@ case $subcommand in
             fi
         done
         ;;
-    clean)
+    clean:btr)
         clean_pkg "$package"
         ;;
 esac

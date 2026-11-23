@@ -19,6 +19,7 @@ clean_target() {
 
     rm -rf -- \
         "$SCRIPT_DIR/build/$target" \
+        "$SCRIPT_DIR/build/rpm/$target" \
         "$SCRIPT_DIR/out/$target" \
         || die "Cannot clean target: $target"
 }
