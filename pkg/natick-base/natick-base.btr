@@ -11,7 +11,7 @@
 name="natick-base"
 arch="all"
 version="0.0.1"
-release="1"
+release="2"
 source_type="local"
 bld_deps=()
 
@@ -28,15 +28,10 @@ build_f() {
 }
 
 install_f() {
-    cp -a -- "$files_dir/." "$staging_dir/" \
-        || die "Cannot install natick-base files"
-
-    chmod 755 "$staging_dir/etc"
-    chmod 644 \
-        "$staging_dir/etc/passwd" \
-        "$staging_dir/etc/group" \
-        "$staging_dir/etc/fstab" \
-        "$staging_dir/usr/lib/os-release"
+    install -d -m 755 "$staging_dir/etc" "$staging_dir/usr/lib"
+    install -m 644 -- "$recipe_dir"/{passwd,group} "$staging_dir/etc/"
+    install -m 644 -- "$recipe_dir/os-release" "$staging_dir/usr/lib/os-release"
+    ln -s ../usr/lib/os-release "$staging_dir/etc/os-release"
 }
 
 postrun_f() {

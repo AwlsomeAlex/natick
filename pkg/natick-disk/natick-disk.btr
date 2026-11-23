@@ -29,11 +29,11 @@ build_f() {
 
 install_f() {
     install -D -m 644 \
-        "$files_dir/etc/fstab" \
+        "$recipe_dir/fstab" \
         "$staging_dir/etc/fstab"
 
     install -D -m 644 \
-        "$files_dir/etc/finit.d/serial.conf" \
+        "$recipe_dir/serial.conf" \
         "$staging_dir/etc/finit.d/serial.conf"
 }
 

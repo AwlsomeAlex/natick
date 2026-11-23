@@ -337,7 +337,7 @@ prepare_dependency_sysroot() (
 build_pkg() (
     local name=$1
     local overwrite=$2
-    local source_type=archive
+    local source_type=archive patch_subdir=patches
     local -a patches=() bld_deps=() host_deps=()
     local filename='' archive=''
 
@@ -386,10 +386,7 @@ build_pkg() (
     
             fetch_source "$url" "$archive" "$shasum"
             ;;
-        local)
-            [[ -d "$files_dir" ]] \
-                || die "Local package files missing: $name"
-            ;;
+        local) ;;
         *)
             die "Unsupported source type: $source_type"
             ;;
@@ -416,7 +413,7 @@ build_pkg() (
     cd -- "$source_dir" \
         || die "Cannot enter source directory: $source_dir"
 
-    apply_patches "$recipe_dir/patches" "${patches[@]}"
+    apply_patches "$recipe_dir/$patch_subdir" "${patches[@]}"
 
     if [[ "$source_type" == archive ]]; then
         prepare_dependency_sysroot "$name" "$dependency_sysroot" \

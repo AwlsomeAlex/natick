@@ -15,6 +15,7 @@ release="1"
 url="https://github.com/troglobit/finit/releases/download/${version}/finit-${version}.tar.gz"
 shasum="ca8b489a0ed99c17c0288e9e65e325a8f14af3734dfecf58f516c0a6f884e903"
 bld_deps=("libite" "libuev")
+patch_subdir=.
 patches=(
     "0001-cgroup-include-sm-header.patch"
     "0002-conf-include-sm-header.patch"
@@ -68,11 +69,11 @@ install_f() {
 
 postrun_f() {
     install -D -m 644 \
-        "$files_dir/etc/finit.conf" \
+        "$recipe_dir/finit.conf" \
         "$staging_dir/etc/finit.conf"
 
     install -D -m 644 \
-        "$files_dir/etc/finit.d/logging.conf" \
+        "$recipe_dir/logging.conf" \
         "$staging_dir/etc/finit.d/logging.conf"
 
     install -d -m 755 \
