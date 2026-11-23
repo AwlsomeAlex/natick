@@ -1,1 +1,1 @@
-fs/etc/default/udevd
+UDEVD_ARGS=""

@@ -15,6 +15,7 @@ release="1"
 url="https://musl.libc.org/releases/musl-${version}.tar.gz"
 shasum="d585fd3b613c66151fc3249e8ed44f77020cb5e6c1e635a616d3f9f82460512a"
 bld_deps=()
+patch_subdir=.
 patches=(
     "0001-slowness-mapping-icov.patch"
 )

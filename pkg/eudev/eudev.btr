@@ -63,6 +63,6 @@ postrun_f() {
     rm -f -- "$staging_dir/usr/lib/libudev.la"
 
     install -D -m 644 \
-        "$files_dir/etc/default/udevd" \
+        "$recipe_dir/udevd" \
         "$staging_dir/etc/default/udevd"
 }
