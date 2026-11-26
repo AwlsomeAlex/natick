@@ -88,8 +88,9 @@ package_archive_path() (
     local top="$BUILDROOT/rpm/$TARGET/$requested"
 
     if [[ -f "$spec" && -d "$top/RPMS" ]]; then
+        source "$SCRIPT_DIR/rpm/defines.sh"
         outputs=$(rpmspec --target "${TARGET%%-*}" --define "_topdir $top" \
-            --define '_libdir /usr/lib' --define 'dist .natick' -q --rpms \
+            "${natick_rpm_defs[@]}" -q --rpms \
             --qf '%{NAME} %{ARCH} %{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}.rpm\n' "$spec") \
             || die "Cannot query RPM outputs: $spec"
         while read -r name arch filename; do

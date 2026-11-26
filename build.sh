@@ -604,7 +604,8 @@ build_rpm_pkg() (
         source "$recipe_dir/rpm.build"
     fi
 
-    args=(--target "$target_arch" --define '_libdir /usr/lib' --define 'dist .natick')
+    source "$SCRIPT_DIR/rpm/defines.sh"
+    args=(--target "$target_arch" "${natick_rpm_defs[@]}")
     check_rpm_outputs
     if [[ "$rpm_cross" == 1 ]]; then
         prepare_rpm_sysroot

@@ -42,13 +42,13 @@ Headers for building plugins for Finit.
     --build="$(CC_FOR_BUILD="$HOSTCC" sh ./aux/config.guess)" \
     --host="$NATICK_TARGET" \
     --prefix=/usr \
-    --bindir=/usr/bin \
-    --sbindir=/usr/sbin \
+    --bindir=%{_bindir} \
+    --sbindir=%{_sbindir} \
     --libdir=%{_libdir} \
     --libexecdir=%{_libdir} \
-    --sysconfdir=/etc \
-    --localstatedir=/var \
-    --runstatedir=/run \
+    --sysconfdir=%{_sysconfdir} \
+    --localstatedir=%{_localstatedir} \
+    --runstatedir=%{_runstatedir} \
     --enable-auto-reload \
     --disable-doc \
     --disable-contrib \
@@ -60,7 +60,7 @@ Headers for building plugins for Finit.
     --with-bash-completion-dir=no \
     --with-heading="natickOS" \
     --with-hostname=natickos \
-    --with-random-seed=/var/lib/finit/random-seed \
+    --with-random-seed=%{_sharedstatedir}/finit/random-seed \
     CC="ccache $CC --target=$NATICK_TARGET --sysroot=$NATICK_SYSROOT" \
     AR="$AR" \
     RANLIB="$RANLIB" \
@@ -71,34 +71,34 @@ make %{?_smp_mflags}
 %install
 make DESTDIR="%{buildroot}" install
 rm -f -- "%{buildroot}%{_docdir}/finit/LICENSE"
-install -D -m 0644 "%{SOURCE1}" "%{buildroot}/etc/finit.conf"
-install -D -m 0644 "%{SOURCE2}" "%{buildroot}/etc/finit.d/logging.conf"
-install -d -m 0755 "%{buildroot}/etc/finit.d/available" \
-                   "%{buildroot}/var/lib/finit"
+install -D -m 0644 "%{SOURCE1}" "%{buildroot}%{_sysconfdir}/finit.conf"
+install -D -m 0644 "%{SOURCE2}" "%{buildroot}%{_sysconfdir}/finit.d/logging.conf"
+install -d -m 0755 "%{buildroot}%{_sysconfdir}/finit.d/available" \
+                   "%{buildroot}%{_sharedstatedir}/finit"
 
 %files
 %license LICENSE
 %doc %{_docdir}/finit/README.md
 %doc %{_docdir}/finit/finit.conf
 
-%config(noreplace) /etc/finit.conf
-%dir /etc/finit.d
-%config(noreplace) /etc/finit.d/logging.conf
-%dir /etc/finit.d/available
-%dir /var/lib/finit
+%config(noreplace) %{_sysconfdir}/finit.conf
+%dir %{_sysconfdir}/finit.d
+%config(noreplace) %{_sysconfdir}/finit.d/logging.conf
+%dir %{_sysconfdir}/finit.d/available
+%dir %{_sharedstatedir}/finit
 
 %{_libdir}/finit/
 %{_libdir}/tmpfiles.d/*.conf
 
-/usr/sbin/finit
-/usr/sbin/initctl
-/usr/sbin/init
-/usr/sbin/telinit
-/usr/sbin/halt
-/usr/sbin/poweroff
-/usr/sbin/reboot
-/usr/sbin/shutdown
-/usr/sbin/suspend
+%{_sbindir}/finit
+%{_sbindir}/initctl
+%{_sbindir}/init
+%{_sbindir}/telinit
+%{_sbindir}/halt
+%{_sbindir}/poweroff
+%{_sbindir}/reboot
+%{_sbindir}/shutdown
+%{_sbindir}/suspend
 
 %{_mandir}/man5/finit.conf.5*
 %{_mandir}/man8/finit.8*
