@@ -79,45 +79,32 @@ prepare_rootfs() (
     ln -s ../proc/mounts "$ROOTFS_DIR/etc/mtab"
 )
 
-package_archive_path() (
+package_rpm_path() (
     local requested=$1
-    local name='' version='' release='' arch filename outputs archive
-    local -a patches=() bld_deps=()
+    local name arch filename outputs archive
     local spec="$RECIPE_DIR/$requested/$requested.spec"
-    local recipe="$RECIPE_DIR/$requested/$requested.btr"
     local top="$BUILDROOT/rpm/$TARGET/$requested"
 
-    if [[ -f "$spec" && -d "$top/RPMS" ]]; then
-        source "$SCRIPT_DIR/rpm/defines.sh"
-        outputs=$(rpmspec --target "${TARGET%%-*}" --define "_topdir $top" \
-            "${natick_rpm_defs[@]}" -q --rpms \
-            --qf '%{NAME} %{ARCH} %{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}.rpm\n' "$spec") \
-            || die "Cannot query RPM outputs: $spec"
-        while read -r name arch filename; do
-            [[ "$name" == "$requested" ]] || continue
-            [[ "$arch" == "${TARGET%%-*}" || "$arch" == noarch ]] || continue
-            archive="$top/RPMS/$arch/$filename"
-            if [[ -f "$archive" ]]; then
-                printf '%s\n' "$archive"
-                return
-            fi
-        done <<< "$outputs"
-    fi
-
-    [[ -f "$recipe" ]] \
-        || die "No built runtime RPM or BTR recipe for $requested"
-
-    source "$recipe" >&2 \
-        || die "Cannot read recipe: $requested"
-
-    printf '%s/%s-%s-%s.%s.tar.zst\n' \
-        "$PKG_DIR" "$name" "$version" "$release" "$TARGET"
+    [[ -f "$spec" ]] || die "Spec missing: $spec"
+    outputs=$(rpmspec --target "${TARGET%%-*}" --define "_topdir $top" \
+        "${natick_rpm_defs[@]}" -q --rpms \
+        --qf '%{NAME} %{ARCH} %{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}.rpm\n' "$spec") \
+        || die "Cannot query RPM outputs: $spec"
+    while read -r name arch filename; do
+        [[ "$name" == "$requested" ]] || continue
+        [[ "$arch" == "${TARGET%%-*}" || "$arch" == noarch ]] || continue
+        archive="$top/RPMS/$arch/$filename"
+        [[ -f "$archive" ]] || die "Runtime RPM missing: $archive
+Build it first: ./build.sh build --target ${TARGET%%-*} --package $requested"
+        printf '%s\n' "$archive"
+        return
+    done <<< "$outputs"
+    die "No runtime RPM for $requested ($TARGET)"
 )
 
 install_package() (
     local archive=$1
     local temporary
-    local directory
 
     temporary=$(mktemp -d "$IMAGE_DIR/package.XXXXXX") \
         || die "Cannot create package extraction directory"
@@ -125,28 +112,10 @@ install_package() (
     trap 'rm -rf -- "$temporary"' EXIT
 
     echo "[....] Installing ${archive##*/}"
-    if [[ "$archive" == *.rpm ]]; then
-        rpm2cpio "$archive" | (
-            cd -- "$temporary"
-            cpio -idm --quiet --no-absolute-filenames --no-preserve-owner
-        ) || die "Cannot extract RPM: $archive"
-    else
-        tar --zstd --extract --no-same-owner --file="$archive" --directory="$temporary" \
-            || die "Cannot extract package: $archive"
-    fi
-
-    for directory in bin sbin lib; do
-        [[ ! -L "$temporary/$directory" ]] \
-            || die "Unexpected package directory symlink: $directory"
-
-        if [[ -d "$temporary/$directory" ]]; then
-            cp -a -- "$temporary/$directory/." \
-                "$ROOTFS_DIR/usr/$directory/" \
-                || die "Cannot merge package directory: $directory"
-
-            rm -rf -- "$temporary/$directory"
-        fi
-    done
+    rpm2cpio "$archive" | (
+        cd -- "$temporary"
+        cpio -idm --quiet --no-absolute-filenames --no-preserve-owner
+    ) || die "Cannot extract RPM: $archive"
 
     cp -a -- "$temporary/." "$ROOTFS_DIR/" \
         || die "Cannot install package contents: $archive"
@@ -155,23 +124,17 @@ install_package() (
 # ----- Core Functions ----- #
 
 assemble_rootfs() (
-    local -a packages=("${image_packages[@]}")
     local -a archives=()
-    local package archive
-    local command
+    local package archive tool
 
-    # Check every required archive before replacing an existing rootfs.
-    for package in "${packages[@]}"; do
-        archive=$(package_archive_path "$package") \
-            || die "Cannot locate package: $package"
+    for tool in rpmspec rpm2cpio cpio; do
+        command -v "$tool" >/dev/null || die "Missing host command: $tool"
+    done
+    source "$SCRIPT_DIR/rpm/defines.sh"
 
-        [[ -f "$archive" ]] \
-            || die "Package archive missing: $archive"
-        if [[ "$archive" == *.rpm ]]; then
-            command -v rpm2cpio >/dev/null && command -v cpio >/dev/null \
-                || die "RPM extraction requires rpm2cpio and cpio"
-        fi
-
+    # Check every required RPM before replacing an existing rootfs.
+    for package in "${image_packages[@]}"; do
+        archive=$(package_rpm_path "$package") || exit 1
         archives+=("$archive")
     done
 
@@ -179,14 +142,6 @@ assemble_rootfs() (
 
     for archive in "${archives[@]}"; do
         install_package "$archive"
-    done
-
-    # Finit supplies PID 1 and the shutdown commands
-    ln -sfn finit "$ROOTFS_DIR/usr/sbin/init"
-    ln -sfn finit "$ROOTFS_DIR/usr/sbin/telinit"
-
-    for command in reboot shutdown halt poweroff suspend; do
-        ln -sfn initctl "$ROOTFS_DIR/usr/sbin/$command"
     done
 
     # Restore filesystem policy after package directory modes are copied.
@@ -488,11 +443,9 @@ fi
 case "$target" in
     x86_64)
         export TARGET="x86_64-linux-musl"
-        export LINUX_ARCH="x86"
         ;;
     aarch64)
         export TARGET="aarch64-linux-musl"
-        export LINUX_ARCH="arm64"
         ;;
     *)
         die "Unsupported target: $target"
@@ -512,10 +465,7 @@ case "$profile" in
         ;;
 esac
 
-export SYSROOT_DIR="${BUILDROOT}/${TARGET}/sysroot"
-
 export RECIPE_DIR="${SCRIPT_DIR}/pkg"
-export PKG_DIR="${OUTPUT_DIR}/${TARGET}/packages"
 
 export IMAGE_DIR="${OUTPUT_DIR}/${TARGET}/${profile}/images"
 export ROOTFS_DIR="${OUTPUT_DIR}/${TARGET}/${profile}/rootfs"
