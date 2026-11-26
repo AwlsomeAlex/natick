@@ -53,30 +53,7 @@ prepare_rootfs() (
     fi
 
     echo "[....] Preparing root filesystem"
-    mkdir -p -- \
-        "$ROOTFS_DIR/usr/bin" \
-        "$ROOTFS_DIR/usr/sbin" \
-        "$ROOTFS_DIR/usr/lib" \
-        "$ROOTFS_DIR/dev" \
-        "$ROOTFS_DIR/proc" \
-        "$ROOTFS_DIR/sys" \
-        "$ROOTFS_DIR/run" \
-        "$ROOTFS_DIR/tmp" \
-        "$ROOTFS_DIR/etc" \
-        "$ROOTFS_DIR/root" \
-        "$ROOTFS_DIR/var/lib/finit" \
-        "$ROOTFS_DIR/var/log" \
-        "$ROOTFS_DIR/var/tmp" \
-        "$IMAGE_DIR"
-
-    chmod 1777 "$ROOTFS_DIR/tmp" "$ROOTFS_DIR/var/tmp"
-    chmod 700 "$ROOTFS_DIR/root"
-
-    ln -s usr/bin "$ROOTFS_DIR/bin"
-    ln -s usr/sbin "$ROOTFS_DIR/sbin"
-    ln -s usr/lib "$ROOTFS_DIR/lib"
-    ln -s ../run "$ROOTFS_DIR/var/run"
-    ln -s ../proc/mounts "$ROOTFS_DIR/etc/mtab"
+    mkdir -p -- "$ROOTFS_DIR" "$IMAGE_DIR"
 )
 
 package_rpm_path() (
@@ -117,8 +94,13 @@ install_package() (
         cpio -idm --quiet --no-absolute-filenames --no-preserve-owner
     ) || die "Cannot extract RPM: $archive"
 
-    cp -a -- "$temporary/." "$ROOTFS_DIR/" \
-        || die "Cannot install package contents: $archive"
+    # Copy payload entries, not the private extraction directory's mode.
+    shopt -s dotglob nullglob
+    local -a entries=("$temporary"/*)
+    if (( ${#entries[@]} )); then
+        cp -a -- "${entries[@]}" "$ROOTFS_DIR/" \
+            || die "Cannot install package contents: $archive"
+    fi
 )
 
 # ----- Core Functions ----- #
@@ -143,10 +125,6 @@ assemble_rootfs() (
     for archive in "${archives[@]}"; do
         install_package "$archive"
     done
-
-    # Restore filesystem policy after package directory modes are copied.
-    chmod 1777 "$ROOTFS_DIR/tmp" "$ROOTFS_DIR/var/tmp"
-    chmod 700 "$ROOTFS_DIR/root"
 )
 
 build_initramfs() (
@@ -452,7 +430,7 @@ case "$target" in
         ;;
 esac
 
-image_packages=(natick-base busybox musl libite libuev finit)
+image_packages=(natick-filesystem natick-base busybox musl libite libuev finit)
 case "$profile" in
     initramfs)
         image_packages+=(natick-initramfs)

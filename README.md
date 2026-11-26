@@ -61,7 +61,7 @@ Both profiles use RPMs under `build/rpm/$arch-linux-musl/<package>/RPMS/`. Build
 ## Build and boot the initramfs profile
 
 ```bash
-for package in natick-base busybox musl libite libuev finit linux natick-initramfs; do
+for package in natick-filesystem natick-base busybox musl libite libuev finit linux natick-initramfs; do
     ./build.sh build --target "$arch" --package "$package"
 done
 ./image.sh build --target "$arch" --profile initramfs
@@ -106,7 +106,7 @@ qemu-system-aarch64 \
 ## Build and boot the persistent disk profile
 
 ```bash
-for package in natick-base busybox musl libite libuev finit linux kmod libblkid eudev natick-disk; do
+for package in natick-filesystem natick-base busybox musl libite libuev finit linux kmod libblkid eudev natick-disk; do
     ./build.sh build --target "$arch" --package "$package"
 done
 ./image.sh build --target "$arch" --profile disk
