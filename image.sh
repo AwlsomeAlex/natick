@@ -57,10 +57,11 @@ prepare_rootfs() (
 )
 
 package_rpm_path() (
-    local requested=$1
+    local entry=$1
+    local spec_name=${entry%%:*} requested=${entry#*:}
     local name arch filename outputs archive
-    local spec="$RECIPE_DIR/$requested/$requested.spec"
-    local top="$BUILDROOT/rpm/$TARGET/$requested"
+    local spec="$RECIPE_DIR/$spec_name/$spec_name.spec"
+    local top="$BUILDROOT/rpm/$TARGET/$spec_name"
 
     [[ -f "$spec" ]] || die "Spec missing: $spec"
     outputs=$(rpmspec --target "${TARGET%%-*}" --define "_topdir $top" \
@@ -72,7 +73,7 @@ package_rpm_path() (
         [[ "$arch" == "${TARGET%%-*}" || "$arch" == noarch ]] || continue
         archive="$top/RPMS/$arch/$filename"
         [[ -f "$archive" ]] || die "Runtime RPM missing: $archive
-Build it first: ./build.sh build --target ${TARGET%%-*} --package $requested"
+Build it first: ./build.sh build --target ${TARGET%%-*} --package $spec_name"
         printf '%s\n' "$archive"
         return
     done <<< "$outputs"
@@ -424,6 +425,7 @@ case "$target" in
 esac
 export TARGET="${target}-linux-musl"
 
+# Entries are spec names, or spec:binary-rpm for a named subpackage.
 image_packages=(natick-filesystem natick-base busybox musl libite libuev finit)
 case "$profile" in
     initramfs)
