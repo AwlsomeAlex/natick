@@ -1,1 +1,2 @@
 rpm_cross=1
+rpm_sysroot_deps=(zstd)

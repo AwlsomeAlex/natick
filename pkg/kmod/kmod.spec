@@ -2,7 +2,7 @@
 
 Name:           kmod
 Version:        34
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Linux kernel module utilities and library
 License:        GPL-2.0-or-later AND LGPL-2.1-or-later
 URL:            https://github.com/kmod-project/kmod
@@ -12,6 +12,10 @@ BuildRequires:  natick-host-meson
 BuildRequires:  natick-host-ninja
 BuildRequires:  natick-host-pkg-config
 BuildRequires:  natick-host-ccache
+BuildRequires:  pkgconfig(liblzma) >= 4.99
+BuildRequires:  pkgconfig(libzstd) >= 1.4.4
+BuildRequires:  pkgconfig(zlib)
+BuildRequires:  pkgconfig(libcrypto) >= 1.1.0
 
 %description
 Utilities for managing Linux kernel modules, and the libkmod shared library.
@@ -51,7 +55,7 @@ EOF
 meson setup build --cross-file=cross.ini --buildtype=release \
     --prefix=/usr --bindir=bin --sbindir=sbin --libdir=%{_libdir} \
     --sysconfdir=/etc --localstatedir=/var --default-library=shared \
-    -Dzlib=disabled -Dxz=disabled -Dzstd=disabled -Dopenssl=disabled \
+    -Dzlib=enabled -Dxz=enabled -Dzstd=enabled -Dopenssl=enabled \
     -Dmanpages=false -Ddocs=false \
     -Dbashcompletiondir=no -Dfishcompletiondir=no -Dzshcompletiondir=no \
     -Dtools=true
@@ -82,5 +86,8 @@ DESTDIR="%{buildroot}" meson install -C build --no-rebuild
 /usr/share/pkgconfig/kmod.pc
 
 %changelog
+* Thu Nov 26 2026 Alexander Barris <alex@awlsome.com> - 34-2
+- Enable OpenSSL, XZ, zstd, and zlib module support
+
 * Sun Nov 22 2026 Alexander Barris <alex@awlsome.com> - 34-1
 - Initial port from BTR to spec file
