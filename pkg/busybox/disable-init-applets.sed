@@ -1,0 +1,1 @@
+s/^CONFIG_\(INIT\|LINUXRC\|HALT\|POWEROFF\|REBOOT\)=y$/# CONFIG_\1 is not set/

@@ -1,0 +1,1 @@
+s/^CONFIG_\(XZ\|UNXZ\|XZCAT\|LZMA\|UNLZMA\|LZCAT\)=y$/# CONFIG_\1 is not set/
