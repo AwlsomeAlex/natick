@@ -3,7 +3,7 @@
 
 Name:           musl
 Version:        1.2.6
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        C standard library
 License:        MIT
 URL:            https://musl.libc.org
@@ -52,8 +52,13 @@ make DESTDIR="%{buildroot}" install
 # musl's install rule tolerates symlink creation failures
 ln -sfn libc.so "%{buildroot}%{_libdir}/ld-musl-%{_target_cpu}.so.1"
 
+# musl enters dependency-listing mode when invoked as ldd.
+install -d "%{buildroot}%{_bindir}"
+ln -s "%{_libdir}/ld-musl-%{_target_cpu}.so.1" "%{buildroot}%{_bindir}/ldd"
+
 %files
 %license COPYRIGHT
+%{_bindir}/ldd
 %{_libdir}/libc.so
 %{_libdir}/ld-musl-%{_target_cpu}.so.1
 
@@ -63,5 +68,8 @@ ln -sfn libc.so "%{buildroot}%{_libdir}/ld-musl-%{_target_cpu}.so.1"
 %{_libdir}/*crt*.o
 
 %changelog
+* Fri Nov 27 2026 Alexander Barris <alex@awlsome.com> - 1.2.6-2
+- Add ldd as a symlink to the musl dynamic loader
+
 * Sun Nov 22 2026 Alexander Barris <alex@awlsome.com> - 1.2.6-1
 - Initial port of musl from BTR to spec file
