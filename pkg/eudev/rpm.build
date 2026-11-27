@@ -1,2 +1,2 @@
 rpm_cross=1
-rpm_sysroot_deps=(kmod libblkid)
+rpm_sysroot_deps=(kmod libblkid zstd)
