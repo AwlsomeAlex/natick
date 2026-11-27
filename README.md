@@ -121,13 +121,13 @@ qemu-system-aarch64 \
 ## Build and boot the persistent disk profile
 
 ```bash
-for package in natick-filesystem natick-base busybox musl libite libuev finit linux kmod libblkid eudev natick-disk; do
+for package in natick-filesystem natick-base busybox musl libite libuev finit linux zstd xz kmod libblkid eudev natick-disk; do
     ./build.sh build --target "$arch" --package "$package"
 done
 ./image.sh build --target "$arch" --profile disk
 ```
 
-Build `libite` and `libuev` before Finit, and `kmod` and `libblkid` before eudev. The bootable image is `out/$arch-linux-musl/disk/images/natick.img`.
+The bootable image is `out/$arch-linux-musl/disk/images/natick.img`.
 
 ### x86_64 on Rocky Linux (OVMF/KVM)
 

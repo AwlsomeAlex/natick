@@ -432,7 +432,7 @@ case "$profile" in
         image_packages+=(natick-initramfs)
         ;;
     disk)
-        image_packages+=(linux kmod libblkid eudev natick-disk)
+        image_packages+=(linux zstd zstd:libzstd xz xz:xz-lzma xz:liblzma openssl:openssl-libs zlib kmod libblkid eudev natick-disk)
         ;;
     *)
         die "Unsupported image profile: $profile"
