@@ -22,7 +22,7 @@ sudo dnf config-manager --set-enabled crb
 sudo dnf groupinstall "Development Tools"
 sudo dnf install llvm-toolset llvm-devel bc bison flex cmake ninja-build ccache \
     git curl xz bzip2 gzip zstd patch python3 pkgconf-pkg-config cpio jq \
-    openssl-devel elfutils-libelf-devel kmod rpm rpm-build
+    openssl-devel elfutils-libelf-devel kmod rpm rpm-build perl-core
 ```
 
 For the `disk` profile, also install:
@@ -57,6 +57,21 @@ arch=aarch64
 For an existing toolchain, use `./toolchain.sh build --target "$arch" --overwrite`. Sources are cached per version under `build/src/` and shared by both targets.
 
 Both profiles use RPMs under `build/rpm/$arch-linux-musl/<package>/RPMS/`. Build dependencies in the order shown below; `build.sh` does not build missing dependency RPMs automatically. After changing a toolchain, spec, or package configuration, rebuild affected packages with `--overwrite` before recreating the image. Image assembly extracts RPM payloads; it does not create an RPM database.
+
+### Experimental: resolve build dependencies with DNF
+
+By setting `NATICK_USE_DNF=1`, `build.sh` indexes the target's existing binary RPMs
+under `build/rpm/$arch-linux-musl/repo/` without copying them (requires `createrepo_c`).
+It refreshes metadata before resolving dependencies and after a successful build.
+`clean "$arch"` removes the generated repo, along with other things.
+
+To use a local pre-indexed repo instead, set `NATICK_BUILD_REPO` to its path.
+This is also opt-in, but the build and cleanup scripts don't manage it. Leave both
+`NATICK_USE_DNF` and `NATICK_BUILD_REPO` unset to use the existing `rpm_sysroot_deps`
+system, which utilizes the `rpm_sysroot_deps` array in `rpm.build` to resolve dependencies.
+
+DNF4 needs `sudo` to download the selected RPMs, `build.sh` overlays them on a copy of
+the bootstrap sysroot w/o running scriptlets.
 
 ## Build and boot the initramfs profile
 

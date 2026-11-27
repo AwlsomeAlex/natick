@@ -10,6 +10,7 @@ set -eou pipefail
 
 export EXEC="${0##*/}"
 
+# Report an error and kill the build script
 die() {
     echo "[FAIL] $*" >&2
     exit 1
@@ -22,6 +23,7 @@ export BUILDROOT="${SCRIPT_DIR}/build"
 
 # ----- Helper Functions ----- #
 
+# Show the build script usage.
 usage() {
     echo "natickOS build script - vGIT"
     echo ""
@@ -40,6 +42,7 @@ usage() {
     echo "natickOS: <https://github.com/awlsomealex/natick>"
 }
 
+# Export the cross-toolchain and target pkg-config settings.
 build_env() {
     [[ -x "$TOOLCHAIN_DIR/bin/clang" ]] \
         || die "Toolchain missing: $TOOLCHAIN_DIR"
@@ -72,6 +75,7 @@ build_env() {
     #export CCACHE_LOGFILE="$CCACHE_DIR/ccache-debug.log"
 }
 
+# Fetch a source archive into cache and verify its checksum.
 fetch_source() {
     local url=$1
     local archive=$2
@@ -103,6 +107,7 @@ fetch_source() {
         || die "Cannot finalize download: $archive"
 }
 
+# Fail early if a required host command is unavailable.
 check_host_deps() {
     local tool
 
@@ -115,6 +120,8 @@ check_host_deps() {
 # ----- RPM Backend ----- #
 
 # These helpers share the package-local context set by build_rpm_pkg.
+
+# List the expected binary RPM paths for a spec.
 rpm_output_paths() {
     local spec_file=$1 output_top=$2 outputs filename
 
@@ -127,8 +134,49 @@ rpm_output_paths() {
     done <<< "$outputs"
 }
 
-# TODO: Drop rpm_sysroot_deps once the natickOS RPM repo can satisfy target
-# BuildRequires.
+# Read spec's BuildRequires, checking for host tools and saving target requirements.
+read_rpm_build_requires() {
+    local requirements requirement tool
+
+    requirements=$(rpmspec "${args[@]}" --define "_topdir $top" -q --buildrequires "$spec") \
+        || die "Cannot query BuildRequires: $spec"
+    while IFS= read -r requirement; do
+        [[ -n "$requirement" ]] || continue
+        if [[ "$requirement" == natick-host-* ]]; then
+            tool=${requirement#natick-host-}
+            [[ -n "$tool" && "$tool" != *[[:space:]]* ]] \
+                || die "Expected an unversioned host command: $requirement"
+            check_host_deps "$tool"
+        else
+            target_requires+=("$requirement")
+        fi
+    done <<< "$requirements"
+}
+
+# Resolve and download target dependencies with DNF w/o installing them.
+download_rpm_build_deps() (
+    local destination=$1 solver_root
+
+    (( ${#target_requires[@]} )) || return 0
+
+    check_host_deps dnf sudo
+    if [[ "$managed_repo" == 1 ]]; then
+        refresh_build_repo
+    fi
+    [[ -f "$build_repo/repodata/repomd.xml" ]] \
+        || die "No repository metadata in $build_repo; build or add the prerequisite RPMs first"
+    solver_root=$(mktemp -d "$top/solver.XXXXXX")
+    trap 'sudo rm -rf -- "$solver_root"' EXIT
+
+    # Solve against an empty RPM database without installing or running scripts.
+    sudo dnf --installroot="$solver_root" --forcearch="$target_arch" --releasever=0.0.1 \
+        --repofrompath="natick-build,file://$build_repo" --repo=natick-build \
+        --noplugins --nogpgcheck --setopt=install_weak_deps=False \
+        --assumeyes --downloadonly --downloaddir="$destination" \
+        install "${target_requires[@]}" || die "Cannot resolve target BuildRequires: $spec"
+)
+
+# Select a sysroot, overlaying dependency RPMs on a temporary copy if needed.
 prepare_rpm_sysroot() {
     local dep outputs rpmfile
     local -a packages=()
@@ -138,23 +186,31 @@ prepare_rpm_sysroot() {
         echo "[....] RPM sysroot (NATICK_SYSROOT override): $SYSROOT_DIR"
         return
     fi
-    if (( ${#rpm_sysroot_deps[@]} == 0 )); then
+    if [[ -z "$build_repo" ]] && (( ${#rpm_sysroot_deps[@]} == 0 )); then
         echo "[....] RPM sysroot (baseline): $SYSROOT_DIR"
         return
     fi
 
-    for dep in "${rpm_sysroot_deps[@]}"; do
-        outputs=$(rpm_output_paths "$RECIPE_DIR/$dep/$dep.spec" "$BUILDROOT/rpm/$TARGET/$dep")
-        while IFS= read -r rpmfile; do
-            [[ -f "$rpmfile" ]] || die "Missing RPM: $rpmfile
-Build it first: ./build.sh build --target $target_arch --package $dep"
-            packages+=("$rpmfile")
-        done <<< "$outputs"
-    done
-
     mkdir -p -- "$top"
     rpm_sysroot=$(mktemp -d "$top/sysroot.XXXXXX")
     trap 'rm -rf -- "$rpm_sysroot"' EXIT
+
+    if [[ -n "$build_repo" ]]; then
+        mkdir -- "$rpm_sysroot/.rpms"
+        download_rpm_build_deps "$rpm_sysroot/.rpms"
+        shopt -s nullglob
+        packages=("$rpm_sysroot/.rpms/"*.rpm)
+        shopt -u nullglob
+    else
+        for dep in "${rpm_sysroot_deps[@]}"; do
+            outputs=$(rpm_output_paths "$RECIPE_DIR/$dep/$dep.spec" "$BUILDROOT/rpm/$TARGET/$dep")
+            while IFS= read -r rpmfile; do
+                [[ -f "$rpmfile" ]] || die "Missing RPM: $rpmfile. Build it first: ./build.sh build --target $target_arch --package $dep"
+                packages+=("$rpmfile")
+            done <<< "$outputs"
+        done
+    fi
+
     cp -a --reflink=auto -- "$SYSROOT_DIR/." "$rpm_sysroot/"
 
     for rpmfile in "${packages[@]}"; do
@@ -163,29 +219,26 @@ Build it first: ./build.sh build --target $target_arch --package $dep"
             cpio -idmu --quiet --no-absolute-filenames
         ) || die "Cannot extract RPM dependency: $rpmfile"
     done
+    if [[ -n "$build_repo" ]]; then
+        rm -rf -- "$rpm_sysroot/.rpms"
+    fi
     SYSROOT_DIR="$rpm_sysroot"
     echo "[....] RPM sysroot (assembled from RPMs): $SYSROOT_DIR"
 }
 
-check_rpm_cross_requires() {
-    local requirements requirement tool
-    local pattern='^pkgconfig\(([^)]+)\)(.*)$'
+# Verify pkg-config requirements against the prepared target sysroot.
+check_rpm_target_requires() {
+    local requirement pattern='^pkgconfig\(([^)]+)\)(.*)$'
 
-    requirements=$(rpmspec "${args[@]}" -q --buildrequires "$spec") \
-        || die "Cannot query BuildRequires: $spec"
-    while IFS= read -r requirement; do
-        if [[ "$requirement" == natick-host-* ]]; then
-            tool=${requirement#natick-host-}
-            [[ -n "$tool" && "$tool" != *[[:space:]]* ]] \
-                || die "Expected an unversioned host command: $requirement"
-            check_host_deps "$tool"
-        elif [[ "$requirement" =~ $pattern ]]; then
+    for requirement in "${target_requires[@]}"; do
+        if [[ "$requirement" =~ $pattern ]]; then
             pkg-config --print-errors --exists "${BASH_REMATCH[1]}${BASH_REMATCH[2]}" \
                 || die "Missing target BuildRequires: $requirement (sysroot: $SYSROOT_DIR)"
         fi
-    done <<< "$requirements"
+    done
 }
 
+# Check cross-build eligibility and guard against accidental RPM overwrites.
 check_rpm_outputs() {
     local outputs rpmfile arch_dir host_arch
 
@@ -202,18 +255,22 @@ check_rpm_outputs() {
     done <<< "$outputs"
 }
 
+# Configure RPM cross-build phases without leaking target paths to dependency generators.
 prepare_rpm_environment() {
     build_env
     export NATICK_TARGET="$TARGET" NATICK_TOOLCHAIN="$TOOLCHAIN_DIR" NATICK_SYSROOT="$SYSROOT_DIR"
-    # The target libraries come from the sysroot, not the host RPM database (yet).
-    args+=(--define 'set_build_flags unset CFLAGS CPPFLAGS CXXFLAGS LT_SYS_LIBRARY_PATH; export LDFLAGS=-Wl,--build-id=sha1 PKG_CONFIG_PATH=;' \
+    # Set target pkg-config paths in RPM phase scripts
+    args+=(--define 'set_build_flags unset CFLAGS CPPFLAGS CXXFLAGS LT_SYS_LIBRARY_PATH; export LDFLAGS=-Wl,--build-id=sha1 PKG_CONFIG_PATH= PKG_CONFIG_SYSROOT_DIR="$NATICK_SYSROOT" PKG_CONFIG_LIBDIR="$NATICK_SYSROOT/usr/lib/pkgconfig:$NATICK_SYSROOT/usr/share/pkgconfig";' \
         --define '__brp_ldconfig %{nil}' \
         --define "__strip $STRIP" --define "__objdump $OBJDUMP")
 
-    check_rpm_cross_requires
+    # Check target BuildRequires before clearing the environment for rpmbuild.
+    check_rpm_target_requires
+    unset PKG_CONFIG_SYSROOT_DIR PKG_CONFIG_LIBDIR PKG_CONFIG_PATH
     build_args+=(--nodeps)
 }
 
+# Collect the spec's sources and patches in the RPM build tree.
 stage_rpm_sources() {
     local metadata tag source source_name sha
 
@@ -238,10 +295,28 @@ stage_rpm_sources() {
     done <<< "$metadata"
 }
 
+# Index the target's built binary RPMs w/o copying them.
+refresh_build_repo() (
+    local target_dir="$BUILDROOT/rpm/$TARGET" pkglist rpmfile
+
+    mkdir -p -- "$build_repo"
+    pkglist=$(mktemp "$build_repo/pkglist.XXXXXX")
+    trap 'rm -f -- "$pkglist"' EXIT
+    shopt -s nullglob
+    for rpmfile in "$target_dir"/*/RPMS/{"$target_arch",noarch}/*.rpm; do
+        printf '%s\n' "${rpmfile#"$target_dir/"}"
+    done > "$pkglist"
+
+    echo "[....] Refreshing local build repo: $build_repo"
+    createrepo_c --baseurl="file://$target_dir/" --outputdir="$build_repo" \
+        --pkglist="$pkglist" "$target_dir" || die "Cannot regenerate build repo metadata"
+)
+
+# Build binary and source RPMs, then refresh the managed repo (if enabled).
 build_rpm_pkg() (
     local name=$1 overwrite=$2 target_arch=${TARGET%%-*}
-    local rpm_cross=0 rpm_sysroot=''
-    local -a args=() build_args=() rpm_sysroot_deps=()
+    local rpm_cross=0 rpm_sysroot='' build_repo='' managed_repo=0
+    local -a args=() build_args=() rpm_sysroot_deps=() target_requires=()
 
     local recipe_dir="$RECIPE_DIR/$name"
     local spec="$recipe_dir/$name.spec"
@@ -254,7 +329,15 @@ build_rpm_pkg() (
     source "$SCRIPT_DIR/rpm/defines.sh"
     args=(--target "$target_arch" "${natick_rpm_defs[@]}")
     check_rpm_outputs
+    if [[ -n "${NATICK_BUILD_REPO:-}" ]]; then
+        build_repo=$(realpath -e -- "$NATICK_BUILD_REPO") || die "Cannot locate NATICK_BUILD_REPO"
+    elif [[ "${NATICK_USE_DNF:-0}" == 1 ]]; then
+        check_host_deps createrepo_c
+        build_repo="$BUILDROOT/rpm/$TARGET/repo"
+        managed_repo=1
+    fi
     if [[ "$rpm_cross" == 1 ]]; then
+        PATH="$TOOLCHAIN_DIR/bin:$PATH" read_rpm_build_requires
         prepare_rpm_sysroot
     fi
     args+=(--define "_topdir $top")
@@ -268,9 +351,13 @@ build_rpm_pkg() (
     {
         stage_rpm_sources
         rpmbuild -ba "${args[@]}" "${build_args[@]}" "$spec" || die "RPM build failed: $name"
+        if [[ "$managed_repo" == 1 ]]; then
+            refresh_build_repo
+        fi
     } 2>&1 | tee "$log_file"
 )
 
+# Remove temporary build files (not including SRPMs and RPMs).
 clean_rpm_pkg() {
     local top="$BUILDROOT/rpm/$TARGET/$1"
 
