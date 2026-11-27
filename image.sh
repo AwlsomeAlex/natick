@@ -419,16 +419,10 @@ if [[ ${target} == '' ]]; then
 fi
 
 case "$target" in
-    x86_64)
-        export TARGET="x86_64-linux-musl"
-        ;;
-    aarch64)
-        export TARGET="aarch64-linux-musl"
-        ;;
-    *)
-        die "Unsupported target: $target"
-        ;;
+    x86_64|aarch64) ;;
+    *) die "Unsupported target: $target" ;;
 esac
+export TARGET="${target}-linux-musl"
 
 image_packages=(natick-filesystem natick-base busybox musl libite libuev finit)
 case "$profile" in
@@ -450,13 +444,12 @@ export ROOTFS_DIR="${OUTPUT_DIR}/${TARGET}/${profile}/rootfs"
 
 case $subcommand in
     build)
+        assemble_rootfs
         case "$profile" in
             initramfs)
-                assemble_rootfs
                 build_initramfs
                 ;;
             disk)
-                assemble_rootfs
                 prepare_efi
                 build_esp
                 build_ext4

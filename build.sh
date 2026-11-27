@@ -345,18 +345,11 @@ fi
     || die "Invalid RPM package name: $package"
 
 case "$target" in
-    x86_64)
-        export TARGET="x86_64-linux-musl"
-        export LINUX_ARCH="x86"
-        ;;
-    aarch64)
-        export TARGET="aarch64-linux-musl"
-        export LINUX_ARCH="arm64"
-        ;;
-    *)
-        die "Unsupported target: $target"
-        ;;
+    x86_64) export LINUX_ARCH="x86" ;;
+    aarch64) export LINUX_ARCH="arm64" ;;
+    *) die "Unsupported target: $target" ;;
 esac
+export TARGET="${target}-linux-musl"
 
 export TOOLCHAIN_DIR="${BUILDROOT}/${TARGET}/toolchain"
 export SYSROOT_DIR="${BUILDROOT}/${TARGET}/sysroot"
