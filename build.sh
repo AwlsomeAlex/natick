@@ -55,6 +55,7 @@ build_env() {
     export CC="$TOOLCHAIN_DIR/bin/clang"
     export CXX="$TOOLCHAIN_DIR/bin/clang++"
     export AR="$TOOLCHAIN_DIR/bin/llvm-ar"
+    export LD="$TOOLCHAIN_DIR/bin/ld.lld"
     export RANLIB="$TOOLCHAIN_DIR/bin/llvm-ranlib"
     export NM="$TOOLCHAIN_DIR/bin/llvm-nm"
     export STRIP="$TOOLCHAIN_DIR/bin/llvm-strip"
