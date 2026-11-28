@@ -438,7 +438,7 @@ case "$target" in
 esac
 export TARGET="${target}-linux-musl"
 
-export TOOLCHAIN_DIR="${BUILDROOT}/${TARGET}/toolchain"
+export TOOLCHAIN_DIR="${BUILDROOT}/toolchain"
 export SYSROOT_DIR="${BUILDROOT}/${TARGET}/sysroot"
 
 export RECIPE_DIR="${SCRIPT_DIR}/pkg"

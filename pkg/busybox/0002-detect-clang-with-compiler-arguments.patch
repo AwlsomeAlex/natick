@@ -1,0 +1,33 @@
+Detect Clang even when CC ends in an explicit target argument.
+
+--- a/Makefile.flags
++++ b/Makefile.flags
+@@ -48,7 +48,9 @@
+ # gcc 3.x emits bogus "old style proto" warning on find.c:alloc_action()
+ CFLAGS += $(call cc-ifversion, -ge, 0400, -Wold-style-definition)
+ 
+-ifneq ($(lastword $(subst -, ,$(CC))),clang)
++# CC can include a launcher and trailing compiler arguments.
++clang_cc := $(filter clang %/clang,$(CC))
++ifeq ($(clang_cc),)
+ # "clang-9: warning: optimization flag '-finline-limit=0' is not supported
+ CFLAGS += $(call cc-option,-finline-limit=0,)
+ endif
+@@ -66,7 +68,7 @@
+ endif
+ 
+ CFLAGS += $(call cc-option,-falign-functions=1,)
+-ifneq ($(lastword $(subst -, ,$(CC))),clang)
++ifeq ($(clang_cc),)
+ # "clang-9: warning: optimization flag '-falign-jumps=1' is not supported" (and same for other two)
+ CFLAGS += $(call cc-option,-falign-jumps=1 -falign-labels=1 -falign-loops=1,)
+ endif
+@@ -79,7 +81,7 @@
+ CFLAGS += $(call cc-option,-fno-builtin-printf,)
+ 
+ # clang-9 does not like "str" + N and "if (CONFIG_ITEM && cond)" constructs
+-ifeq ($(lastword $(subst -, ,$(CC))),clang)
++ifneq ($(clang_cc),)
+ CFLAGS += $(call cc-option,-Wno-string-plus-int -Wno-constant-logical-operand)
+ endif
+ 

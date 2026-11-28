@@ -42,12 +42,12 @@ usage() {
     echo "  ${EXEC} (COMMAND) [option]"
     echo "COMMAND:"
     echo "  build ==> Build toolchain"
-    echo "  clean ==> Clean toolchain"
+    echo "  clean ==> Clean the target sysroot and work directory"
     echo "  help  ==> Shows this message"
     echo ""
-    echo "build option:"
-    echo "  --target ARCH ==> (x86_64/aarch64)"
-    echo "  --overwrite   ==> Overwrite existing toolchain"
+    echo "Options:"
+    echo "  --target ARCH ==> (x86_64/aarch64/all)"
+    echo "  --overwrite   ==> Rebuild the target sysroot; reuse the shared host tools"
     echo ""
     echo "natickOS: <https://github.com/awlsomealex/natick>"
 }
@@ -110,16 +110,17 @@ fetch_source() {
 # ---- Core Functions ---- #
 
 prep() {
-    if [[ -d "$BUILD" ||  -d "$TOOLCHAIN" ||  -d "$SYSROOT" ]]; then
-        ((overwrite == 0)) && die "Existing toolchain found. Exiting...."
-        echo "[....] Cleaning existing toolchain...."
-        rm -rf "$BUILD" "$TOOLCHAIN" "$SYSROOT"
+    if [[ -d "$BUILD" || -d "$SYSROOT" ]]; then
+        (( overwrite == 1 )) || die "Target work directory or sysroot already exists; use --overwrite"
+        echo "[....] Cleaning existing target sysroot and work directory...."
+        rm -rf -- "$BUILD" "$SYSROOT"
     fi
-    mkdir -p "$SOURCES" "$BUILD" "$TOOLCHAIN" "$SYSROOT"
+    mkdir -p -- "$BUILD" "$SYSROOT"
     echo "[DONE] Directories ready."
 }
 
 download() {
+    mkdir -p -- "$SOURCES"
     cd "$SOURCES"
 
     fetch_source \
@@ -142,9 +143,15 @@ download() {
 }
 
 llvm_build() {
-    local build_dir="$BUILD/llvm-project-${LLVM_VER}"
+    local build_dir="$ROOT/llvm-work/llvm-project-${LLVM_VER}"
+    local stamp="$TOOLCHAIN/.llvm-${LLVM_VER}-installed"
 
-    echo "[....] Configuring bootstrap Clang/LLVM...."
+    if [[ -f "$stamp" && -x "$TOOLCHAIN/bin/clang" && -x "$TOOLCHAIN/bin/ld.lld" ]]; then
+        echo "[....] Reusing shared Clang/LLVM: $TOOLCHAIN"
+        return
+    fi
+
+    echo "[....] Configuring shared Clang/LLVM...."
     cmake -S "$SOURCES/llvm-project-${LLVM_VER}.src/llvm" \
           -B "$build_dir" \
           -G Ninja \
@@ -155,10 +162,8 @@ llvm_build() {
           -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
           -DCMAKE_INSTALL_PREFIX="$TOOLCHAIN" \
           -DCMAKE_INSTALL_LIBDIR=lib \
-          -DDEFAULT_SYSROOT="$SYSROOT" \
           -DLLVM_ENABLE_PROJECTS="clang;lld" \
-          -DLLVM_DEFAULT_TARGET_TRIPLE="$TARGET" \
-          -DLLVM_TARGETS_TO_BUILD="Native;$llvm_target" \
+          -DLLVM_TARGETS_TO_BUILD="X86;AArch64" \
           -DLLVM_USE_LINKER=lld \
           -DLLVM_ENABLE_ASSERTIONS=OFF \
           -DLLVM_INCLUDE_TESTS=OFF \
@@ -181,6 +186,7 @@ llvm_build() {
 
     cmake --install "$build_dir" \
         || die "Clang/LLVM installation failed"
+    touch -- "$stamp"
 }
 
 sysroot_headers() (
@@ -496,7 +502,8 @@ validate_toolchain() (
     local mode
     local program
     local target
-    local -a flags 
+    local -a target_flags=("--target=$TARGET" "--sysroot=$SYSROOT")
+    local -a flags
 
     mkdir -p "$check_dir"
 
@@ -509,18 +516,18 @@ validate_toolchain() (
             || die "Tool execution failed: $tool"
     done
 
-    target=$("$TOOLCHAIN/bin/clang" -dumpmachine) \
-        || die "Cannot determine compiler default target"
+    target=$("$TOOLCHAIN/bin/clang" "${target_flags[@]}" -dumpmachine) \
+        || die "Cannot determine compiler target"
 
     case "$target" in
         "$TARGET"|"$triple_target"-*-linux-musl) ;;
-        *) die "Unexpected compiler default target: $target" ;;
+        *) die "Unexpected compiler target: $target" ;;
     esac
 
     for mode in static dynamic; do
-        flags=()
+        flags=("${target_flags[@]}")
         if [[ "$mode" == static ]]; then
-            flags=(-static)
+            flags+=(-static)
         fi
         
         echo "[....] Building $mode target C/C++ tests...."
@@ -625,53 +632,62 @@ if [[ ${target} == '' ]]; then
 fi
 
 case $target in
-    x86_64)
-        triple_target="x86_64"
-        llvm_target="X86"
-        linux_target="x86"
-        interpreter=/lib/ld-musl-x86_64.so.1
-        machine="Advanced Micro Devices X86-64"
-        ;;
-    aarch64)
-        triple_target="aarch64"
-        llvm_target="AArch64"
-        linux_target="arm64"
-        interpreter=/lib/ld-musl-aarch64.so.1
-        machine="AArch64"
-        ;;
+    x86_64|aarch64) targets=("$target") ;;
+    all) targets=(x86_64 aarch64) ;;
     *) die "Unsupported target: $target" ;;
 esac
 
-export SAME_ARCH=0
-if [[ "$(uname -m)" == "$triple_target" ]]; then
-    SAME_ARCH=1
+export TOOLCHAIN="${ROOT}/toolchain"
+if [[ "$subcommand" == build ]]; then
+    depcheck
+    download
+    ccache --zero-stats
+    llvm_build
 fi
 
-export TARGET="${triple_target}-linux-musl"
-export BUILD="${ROOT}/${TARGET}/work"
-export SYSROOT="${ROOT}/${TARGET}/sysroot"
-export TOOLCHAIN="${ROOT}/${TARGET}/toolchain"
+host_arch=$(uname -m)
+for triple_target in "${targets[@]}"; do
+    case "$triple_target" in
+        x86_64)
+            linux_target=x86
+            interpreter=/lib/ld-musl-x86_64.so.1
+            machine="Advanced Micro Devices X86-64"
+            ;;
+        aarch64)
+            linux_target=arm64
+            interpreter=/lib/ld-musl-aarch64.so.1
+            machine="AArch64"
+            ;;
+    esac
 
-case $subcommand in
-    build)
-        [[ -n "${target}" ]] || die "build requires --target"
-        depcheck
-        prep
-        download
-        ccache --zero-stats
-        llvm_build
-        sysroot_headers
-        compiler_rt_builtins
-        validate_builtins
-        musl_libc
-        validate_libc
-        llvm_runtimes
-        validate_runtimes
-        validate_toolchain
-        ccache --show-stats
-        ;;
-    clean)
-        printf 'Cleaning natickOS toolchain\n'
-        rm -rf "$BUILD" "$TOOLCHAIN" "$SYSROOT"
-        ;;
-esac
+    export TARGET="${triple_target}-linux-musl"
+    export BUILD="${ROOT}/${TARGET}/work"
+    export SYSROOT="${ROOT}/${TARGET}/sysroot"
+    export SAME_ARCH=0
+    if [[ "$host_arch" == "$triple_target" ]]; then
+        SAME_ARCH=1
+    fi
+
+    case "$subcommand" in
+        build)
+            echo "[....] Building target sysroot: $TARGET"
+            prep
+            sysroot_headers
+            compiler_rt_builtins
+            validate_builtins
+            musl_libc
+            validate_libc
+            llvm_runtimes
+            validate_runtimes
+            validate_toolchain
+            ;;
+        clean)
+            printf 'Cleaning natickOS sysroot and work directory for %s\n' "$TARGET"
+            rm -rf -- "$BUILD" "$SYSROOT"
+            ;;
+    esac
+done
+
+if [[ "$subcommand" == build ]]; then
+    ccache --show-stats
+fi

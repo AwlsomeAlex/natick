@@ -6,12 +6,18 @@
 %bcond kmod_applets 0
 %bcond xz_applets 0
 
-%global busybox_make %{shrink:make ARCH=%{_target_cpu} CROSS_COMPILE= \
-    CC="ccache clang" HOSTCC="$HOSTCC" \
-    AR="$AR" NM="$NM" STRIP="$STRIP" \
-    OBJCOPY="$OBJCOPY" OBJDUMP="$OBJDUMP" \
-    CONFIG_SYSROOT="$NATICK_SYSROOT"}
-
+%global busybox_make %{shrink:
+    make ARCH=%{_target_cpu}
+    CROSS_COMPILE=
+    CC="ccache $CC --target=$NATICK_TARGET"
+    HOSTCC="$HOSTCC"
+    AR="$AR"
+    NM="$NM"
+    STRIP="$STRIP"
+    OBJCOPY="$OBJCOPY"
+    OBJDUMP="$OBJDUMP"
+    CONFIG_SYSROOT="$NATICK_SYSROOT"
+}
 
 Name:           busybox
 Version:        1.38.0
@@ -24,6 +30,7 @@ Source1:        disable-init-applets.sed
 Source2:        disable-kmod-applets.sed
 Source3:        disable-xz-applets.sed
 Patch0:         0001-tc-guard-obsolete-cbq.patch
+Patch1:         0002-detect-clang-with-compiler-arguments.patch
 
 BuildRequires:  natick-host-make
 BuildRequires:  natick-host-ccache
