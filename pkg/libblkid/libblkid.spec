@@ -1,6 +1,3 @@
-# Skip automatic debuginfo subpackages for cross-build
-%global debug_package %{nil}
-
 Name:           libblkid
 Version:        2.42.4
 Release:        1%{?dist}
@@ -27,13 +24,7 @@ Headers, the linker symlink, and pkg-config metadata for libblkid.
 %autosetup -n util-linux-%{version}
 
 %build
-./configure \
-    --build="$(CC_FOR_BUILD="$HOSTCC" sh ./config/config.guess)" \
-    --host="$NATICK_TARGET" \
-    --prefix=/usr \
-    --libdir=%{_libdir} \
-    --sysconfdir=/etc \
-    --localstatedir=/var \
+%natick_configure \
     --enable-shared \
     --disable-static \
     --disable-all-programs \
@@ -45,16 +36,39 @@ Headers, the linker symlink, and pkg-config metadata for libblkid.
     --without-python \
     --without-systemd \
     --without-udev \
-    --without-econf \
-    CC="ccache $CC --target=$NATICK_TARGET --sysroot=$NATICK_SYSROOT" \
-    AR="$AR" \
-    RANLIB="$RANLIB" \
-    STRIP="$STRIP"
+    --without-econf
 
-make %{?_smp_mflags}
+%make_build
+
+#./configure \
+#    --build="%{natick_build}" \
+#    --host="$NATICK_TARGET" \
+#    --prefix=/usr \
+#    --libdir=%{_libdir} \
+#    --sysconfdir=/etc \
+#    --localstatedir=/var \
+#    --enable-shared \
+#    --disable-static \
+#    --disable-all-programs \
+#    --enable-libblkid \
+#    --disable-asciidoc \
+#    --disable-gtk-doc \
+#    --disable-nls \
+#    --disable-bash-completion \
+#    --without-python \
+#    --without-systemd \
+#    --without-udev \
+#    --without-econf \
+#    CC="ccache $CC --target=$NATICK_TARGET --sysroot=$NATICK_SYSROOT" \
+#    AR="$AR" \
+#    RANLIB="$RANLIB" \
+#    STRIP="$STRIP"
+
+#make %{?_smp_mflags}
 
 %install
-make DESTDIR="%{buildroot}" install
+%make_install
+#make DESTDIR="%{buildroot}" install
 rm -f -- "%{buildroot}%{_libdir}/libblkid.la"
 rm -f -- "%{buildroot}%{_mandir}/man5/terminal-colors.d.5"*
 

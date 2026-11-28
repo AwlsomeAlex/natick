@@ -1,6 +1,3 @@
-# Skip automatic debuginfo subpackages for cross-build
-%global debug_package %{nil}
-
 # Standalone packages own these commands by default
 %bcond init_applets 0
 %bcond kmod_applets 0

@@ -1,9 +1,14 @@
-# Skip automatic debuginfo subpackages for cross-build
-%global debug_package %{nil}
+%ifarch x86_64
+%global kbuild_arch x86
+%endif
+%ifarch aarch64
+%global kbuild_arch arm64
+%endif
 
-%global linux_make %{shrink:env -u PKG_CONFIG_SYSROOT_DIR -u PKG_CONFIG_LIBDIR -u PKG_CONFIG_PATH \
-    make ARCH="$LINUX_ARCH" LLVM="$NATICK_TOOLCHAIN/bin/" \
-    CC="ccache $CC" HOSTCC="$HOSTCC" HOSTCXX="$HOSTCXX" LOCALVERSION=}
+%define linux_make %{shrink:env -u PKG_CONFIG_SYSROOT_DIR -u PKG_CONFIG_LIBDIR -u PKG_CONFIG_PATH \
+    %{__make} ARCH=%{kbuild_arch} LOCALVERSION= \
+    %{?natick_cross:LLVM="$NATICK_TOOLCHAIN/bin/" CC="ccache $CC" HOSTCC="$HOSTCC" HOSTCXX="$HOSTCXX"} \
+    %{!?natick_cross:LLVM=1}}
 
 Name:           linux
 Version:        7.3.4
@@ -28,7 +33,7 @@ The Linux kernel
 %autosetup
 
 %build
-case "$LINUX_ARCH" in
+case "%{kbuild_arch}" in
     x86)   defconfig=x86_64_defconfig; image_target=bzImage ;;
     arm64) defconfig=defconfig;        image_target=Image ;;
 esac
@@ -47,7 +52,7 @@ scripts/config \
     --enable DEVTMPFS \
     --enable DEVTMPFS_MOUNT
 
-case "$LINUX_ARCH" in
+case "%{kbuild_arch}" in
     x86)   scripts/config --enable PCI --enable VIRTIO_PCI ;;
     arm64) scripts/config --disable COMPAT --enable VIRTIO_MMIO ;;
 esac
@@ -57,7 +62,7 @@ grep -qx 'CONFIG_MODULES=y' .config
 %{linux_make} %{_smp_mflags} "$image_target" modules
 
 %install
-case "$LINUX_ARCH" in
+case "%{kbuild_arch}" in
     x86)   image_path=arch/x86/boot/bzImage ;;
     arm64) image_path=arch/arm64/boot/Image ;;
 esac

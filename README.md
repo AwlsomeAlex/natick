@@ -22,13 +22,13 @@ sudo dnf config-manager --set-enabled crb
 sudo dnf groupinstall "Development Tools"
 sudo dnf install llvm-toolset llvm-devel bc bison flex cmake ninja-build ccache \
     git curl xz bzip2 gzip zstd patch python3 pkgconf-pkg-config cpio jq \
-    openssl-devel elfutils-libelf-devel kmod rpm rpm-build perl-core
+    openssl-devel elfutils-libelf-devel kmod rpm rpm-build perl-core meson createrepo_c
 ```
 
 For the `disk` profile, also install:
 
 ```bash
-sudo dnf install meson gperf grub2-tools-extra dosfstools mtools e2fsprogs fakeroot util-linux
+sudo dnf install gperf grub2-tools-extra dosfstools mtools e2fsprogs fakeroot util-linux
 ```
 
 Install the GRUB modules for each **target** you intend to build: `grub2-efi-x64-modules` for `x86_64` and `grub2-efi-aa64-modules` for `aarch64`.
@@ -37,13 +37,15 @@ To boot the x86_64 guest on Rocky, install `qemu-kvm`; for UEFI disk boot, also 
 
 ### Ubuntu 26.04
 
-For toolchain and initramfs builds (the RPM build environment is verified on Rocky):
+For toolchain builds (**the DNF-backed RPM build workflow is verified on Rocky, not Ubuntu**):
 
 ```bash
 sudo apt install build-essential bc clang lld llvm cmake ninja-build ccache \
     git curl xz-utils bzip2 zstd patch python3 pkg-config gzip cpio flex bison \
     libssl-dev libelf-dev jq kmod rpm rpm2cpio qemu-system-x86
 ```
+
+If I can't get Ubuntu working, I might remove support for it. Sorry, I do include a Dev Container though if you use Docker/Podman.
 
 ## Build the toolchain
 
@@ -58,25 +60,24 @@ For an existing toolchain, use `./toolchain.sh build --target "$arch" --overwrit
 
 Both profiles use RPMs under `build/rpm/$arch-linux-musl/<package>/RPMS/`. Build dependencies in the order shown below; `build.sh` does not build missing dependency RPMs automatically. After changing a toolchain, spec, or package configuration, rebuild affected packages with `--overwrite` before recreating the image. Image assembly extracts RPM payloads; it does not create an RPM database.
 
-### Experimental: resolve build dependencies with DNF
+### Build dependency resolution
 
-By setting `NATICK_USE_DNF=1`, `build.sh` indexes the target's existing binary RPMs
-under `build/rpm/$arch-linux-musl/repo/` without copying them (requires `createrepo_c`).
-It refreshes metadata before resolving dependencies and after a successful build.
-`clean "$arch"` removes the generated repo, along with other things.
+`build.sh` uses the host's DNF package manager to resolve the target spec's `BuildRequires` from the target's already-built RPMs.
 
-To use a local pre-indexed repo instead, set `NATICK_BUILD_REPO` to its path.
-This is also opt-in, but the build and cleanup scripts don't manage it. Leave both
-`NATICK_USE_DNF` and `NATICK_BUILD_REPO` unset to use the existing `rpm_sysroot_deps`
-system, which utilizes the `rpm_sysroot_deps` array in `rpm.build` to resolve dependencies.
+The build script maintains repository metadata under `build/rpm/$arch-linux-musl/repo/` with `createrepo_c` without copying the RPMs. It is strictly used for metadata and the solver than actually being the source of the RPMs themselves. Once package dependencies are resolved, the build script installs them manually with `rpm`.
 
-DNF4 needs `sudo` to download the selected RPMs, `build.sh` overlays them on a copy of
-the bootstrap sysroot w/o running scriptlets.
+A couple things to note:
+* `build.sh` will call `sudo` for DNF's download-only step. It then extracts the RPMs into a temporary copy of the bootstrap sysroot w/o running scripts.
+* Build `musl` first, as DNF will resolve `musl-devel` (and `musl` naturally) for all other packages so that they utilize the system-packaged C library.
+* You can use a pre-indezed local repo by setting `NATICK_BUILD_REPO` to its path. It is not managed by `build.sh`, meaning you control repo metadata/packages.
+* Supplying `NATICK_SYSROOT` means you did the work to resolve a package's dependencies, and the dependency extraction code is skipped. Here be dragons.
+
+`./clean.sh "$arch"` removes the repository along with other target outputs.
 
 ## Build and boot the initramfs profile
 
 ```bash
-for package in natick-filesystem natick-base busybox musl libite libuev finit linux natick-initramfs; do
+for package in natick-filesystem natick-base musl busybox pkgconf libite libuev finit linux natick-initramfs; do
     ./build.sh build --target "$arch" --package "$package"
 done
 ./image.sh build --target "$arch" --profile initramfs
@@ -121,7 +122,8 @@ qemu-system-aarch64 \
 ## Build and boot the persistent disk profile
 
 ```bash
-for package in natick-filesystem natick-base busybox musl libite libuev finit linux zstd xz kmod libblkid eudev natick-disk; do
+for package in natick-filesystem natick-base musl busybox pkgconf libite libuev finit \
+               linux zstd xz zlib openssl kmod libblkid eudev natick-disk; do
     ./build.sh build --target "$arch" --package "$package"
 done
 ./image.sh build --target "$arch" --profile disk

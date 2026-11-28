@@ -1,6 +1,3 @@
-# Skip automatic debuginfo subpackages for cross-build
-%global debug_package %{nil}
-
 Name:           pkgconf
 Version:        3.0.11
 Release:        1%{?dist}
@@ -12,6 +9,7 @@ Source0:        https://github.com/pkgconf/pkgconf/releases/download/pkgconf-%{v
 BuildRequires:  natick-host-meson
 BuildRequires:  natick-host-ninja
 BuildRequires:  natick-host-ccache
+BuildRequires:  natick-host-pkg-config
 
 %description
 Package compiler and linker metadata toolkit
@@ -33,32 +31,37 @@ Headers, the linker symlink, and pkg-config metadata for libpkgconf.
 %autosetup
 
 %build
-cat > cross.ini <<EOF
-[binaries]
-c = ['ccache', '$CC', '--target=$NATICK_TARGET', '--sysroot=$NATICK_SYSROOT']
-ar = '$AR'
-strip = '$STRIP'
-pkg-config = 'pkg-config'
+%natick_meson --default-library=shared
 
-[host_machine]
-system = 'linux'
-cpu_family = '%{_target_cpu}'
-cpu = '%{_target_cpu}'
-endian = 'little'
+%natick_meson_build
 
-[properties]
-needs_exe_wrapper = true
-sys_root = '$NATICK_SYSROOT'
-pkg_config_libdir = ['$NATICK_SYSROOT/usr/lib/pkgconfig', '$NATICK_SYSROOT/usr/share/pkgconfig']
-EOF
-
-meson setup build --cross-file=cross.ini --buildtype=release \
-    --prefix=%{_prefix} --bindir=%{_bindir} --sbindir=%{_sbindir} --libdir=%{_libdir} \
-    --default-library=shared
-meson compile -C build %{?_smp_mflags}
+#cat > cross.ini <<EOF
+#[binaries]
+#c = ['ccache', '$CC', '--target=$NATICK_TARGET', '--sysroot=$NATICK_SYSROOT']
+#ar = '$AR'
+#strip = '$STRIP'
+#pkg-config = 'pkg-config'
+#
+#[host_machine]
+#system = 'linux'
+#cpu_family = '%{_target_cpu}'
+#cpu = '%{_target_cpu}'
+#endian = 'little'
+#
+#[properties]
+#needs_exe_wrapper = true
+#sys_root = '$NATICK_SYSROOT'
+#pkg_config_libdir = ['$NATICK_SYSROOT/usr/lib/pkgconfig', '$NATICK_SYSROOT/usr/share/pkgconfig']
+#EOF
+#
+#meson setup build --cross-file=cross.ini --buildtype=release \
+#    --prefix=%{_prefix} --bindir=%{_bindir} --sbindir=%{_sbindir} --libdir=%{_libdir} \
+#    --default-library=shared
+#meson compile -C build %{?_smp_mflags}
 
 %install
-DESTDIR="%{buildroot}" meson install -C build --no-rebuild
+%natick_meson_install
+#DESTDIR="%{buildroot}" meson install -C build --no-rebuild
 ln -s pkgconf "%{buildroot}%{_bindir}/pkg-config"
 
 # Remove undesired binaries + manpages

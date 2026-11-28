@@ -61,7 +61,6 @@ build_env() {
     export STRIP="$TOOLCHAIN_DIR/bin/llvm-strip"
     export OBJCOPY="$TOOLCHAIN_DIR/bin/llvm-objcopy"
     export OBJDUMP="$TOOLCHAIN_DIR/bin/llvm-objdump"
-    export READELF="$TOOLCHAIN_DIR/bin/llvm-readelf"
 
     export HOSTCC=/usr/bin/clang
     export HOSTCXX=/usr/bin/clang++
@@ -73,7 +72,6 @@ build_env() {
     export CCACHE_DIR="$BUILDROOT/ccache"
     export CCACHE_MAXSIZE=20G
     export CCACHE_COMPILERCHECK=content
-    #export CCACHE_LOGFILE="$CCACHE_DIR/ccache-debug.log"
 }
 
 # Fetch a source archive into cache and verify its checksum.
@@ -81,31 +79,25 @@ fetch_source() {
     local url=$1
     local archive=$2
     local expected_sha256=$3
-
-    mkdir -p -- "$(dirname -- "$archive")" \
-        || die "Cannot create source download directory"
-
-    if [[ -f "$archive" ]]; then
-        echo "[....] Verifying cached source: ${archive##*/}"
-        printf '%s  %s\n' "$expected_sha256" "$archive" |
-            sha256sum --check --status \
-            || die "Checksum mismatched: $archive; remove it to download again"
-        return 0
-    fi
+    local source_file=$archive
 
     if [[ ! -f "$archive" ]]; then
+        mkdir -p -- "$(dirname -- "$archive")" \
+            || die "Cannot create source download directory"
+        source_file="${archive}.part"
         echo "[....] Downloading ${archive##*/}"
-        curl -fL --retry 3 --progress-bar \
-            -o "${archive}.part" "$url" \
+        curl -fL --retry 3 --progress-bar -o "$source_file" "$url" \
             || die "Download failed: $archive"
     fi
 
-    echo "[....] Verifying ${archive##*/}...."
-    printf '%s  %s\n' "$expected_sha256" "${archive}.part" |
+    echo "[....] Verifying ${source_file##*/}"
+    printf '%s  %s\n' "$expected_sha256" "$source_file" |
         sha256sum --check --status \
-        || die "Checksum mismatched: ${archive}.part; remove it to download again"
-     mv -- "${archive}.part" "$archive" \
-        || die "Cannot finalize download: $archive"
+        || die "Checksum mismatched: $source_file; remove it to download again"
+
+    if [[ "$source_file" != "$archive" ]]; then
+        mv -- "$source_file" "$archive" || die "Cannot finalize download: $archive"
+    fi
 }
 
 # Fail early if a required host command is unavailable.
@@ -124,14 +116,14 @@ check_host_deps() {
 
 # List the expected binary RPM paths for a spec.
 rpm_output_paths() {
-    local spec_file=$1 output_top=$2 outputs filename
+    local outputs filename
 
-    outputs=$(rpmspec "${args[@]}" --define "_topdir $output_top" -q --rpms \
-        --qf '%{ARCH}/%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}.rpm\n' "$spec_file") \
-        || die "Cannot query RPM outputs: $spec_file"
-    [[ -n "$outputs" ]] || die "No RPM outputs: $spec_file"
+    outputs=$(rpmspec "${args[@]}" -q --rpms \
+        --qf '%{ARCH}/%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}.rpm\n' "$spec") \
+        || die "Cannot query RPM outputs: $spec"
+    [[ -n "$outputs" ]] || die "No RPM outputs: $spec"
     while IFS= read -r filename; do
-        printf '%s/RPMS/%s\n' "$output_top" "$filename"
+        printf '%s/RPMS/%s\n' "$top" "$filename"
     done <<< "$outputs"
 }
 
@@ -139,12 +131,13 @@ rpm_output_paths() {
 read_rpm_build_requires() {
     local requirements requirement tool
 
-    requirements=$(rpmspec "${args[@]}" --define "_topdir $top" -q --buildrequires "$spec") \
+    requirements=$(rpmspec "${args[@]}" -q --buildrequires "$spec") \
         || die "Cannot query BuildRequires: $spec"
     while IFS= read -r requirement; do
         [[ -n "$requirement" ]] || continue
         if [[ "$requirement" == natick-host-* ]]; then
             tool=${requirement#natick-host-}
+            # TODO: Support versioned host commands
             [[ -n "$tool" && "$tool" != *[[:space:]]* ]] \
                 || die "Expected an unversioned host command: $requirement"
             check_host_deps "$tool"
@@ -155,10 +148,11 @@ read_rpm_build_requires() {
 }
 
 # Resolve and download target dependencies with DNF w/o installing them.
+# NOTE: This function needs 'sudo' because DNF4 (Dev Container base) needs
+#       'sudo' in order to run 'dnf install'.
+# TODO: Check if DNF5 has same requirement or if there's a way around this
 download_rpm_build_deps() (
     local destination=$1 solver_root
-
-    (( ${#target_requires[@]} )) || return 0
 
     check_host_deps dnf sudo
     if [[ "$managed_repo" == 1 ]]; then
@@ -177,54 +171,49 @@ download_rpm_build_deps() (
         install "${target_requires[@]}" || die "Cannot resolve target BuildRequires: $spec"
 )
 
-# Select a sysroot, overlaying dependency RPMs on a temporary copy if needed.
+# Prepare the sysroot by overlaying dependency RPMs to a temporary directory
 prepare_rpm_sysroot() {
-    local dep outputs rpmfile
+    local rpmfile
     local -a packages=()
 
     if [[ -n "${NATICK_SYSROOT:-}" ]]; then
         SYSROOT_DIR=$(realpath -e -- "$NATICK_SYSROOT")
-        echo "[....] RPM sysroot (NATICK_SYSROOT override): $SYSROOT_DIR"
+        echo "[NOTE] RPM sysroot (NATICK_SYSROOT override): $SYSROOT_DIR"
         return
     fi
-    if [[ -z "$build_repo" ]] && (( ${#rpm_sysroot_deps[@]} == 0 )); then
-        echo "[....] RPM sysroot (baseline): $SYSROOT_DIR"
+    # musl bootstraps itself and Linux's Kbuild does not link against libc
+    # musl-devel pulls the musl runtime libs in the same solve
+    case "$name" in
+        musl|linux) ;;
+        *) target_requires+=(musl-devel) ;;
+    esac
+    if (( ${#target_requires[@]} == 0 )); then
+        echo "[NOTE] RPM sysroot (bootstrap): $SYSROOT_DIR"
         return
     fi
 
     mkdir -p -- "$top"
     rpm_sysroot=$(mktemp -d "$top/sysroot.XXXXXX")
-    trap 'rm -rf -- "$rpm_sysroot"' EXIT
 
-    if [[ -n "$build_repo" ]]; then
-        mkdir -- "$rpm_sysroot/.rpms"
-        download_rpm_build_deps "$rpm_sysroot/.rpms"
-        shopt -s nullglob
-        packages=("$rpm_sysroot/.rpms/"*.rpm)
-        shopt -u nullglob
-    else
-        for dep in "${rpm_sysroot_deps[@]}"; do
-            outputs=$(rpm_output_paths "$RECIPE_DIR/$dep/$dep.spec" "$BUILDROOT/rpm/$TARGET/$dep")
-            while IFS= read -r rpmfile; do
-                [[ -f "$rpmfile" ]] || die "Missing RPM: $rpmfile. Build it first: ./build.sh build --target $target_arch --package $dep"
-                packages+=("$rpmfile")
-            done <<< "$outputs"
-        done
-    fi
+    mkdir -- "$rpm_sysroot/.rpms"
+    download_rpm_build_deps "$rpm_sysroot/.rpms"
+    shopt -s nullglob
+    packages=("$rpm_sysroot/.rpms/"*.rpm)
+    shopt -u nullglob
+    (( ${#packages[@]} )) || die "DNF did not download any target BuildRequires: $spec"
 
     cp -a --reflink=auto -- "$SYSROOT_DIR/." "$rpm_sysroot/"
 
+    # TODO: Have DNF4 install the RPMs? Or just continue to extract them?
     for rpmfile in "${packages[@]}"; do
         rpm2cpio "$rpmfile" | (
             cd -- "$rpm_sysroot"
             cpio -idmu --quiet --no-absolute-filenames
         ) || die "Cannot extract RPM dependency: $rpmfile"
     done
-    if [[ -n "$build_repo" ]]; then
-        rm -rf -- "$rpm_sysroot/.rpms"
-    fi
+    rm -rf -- "$rpm_sysroot/.rpms"
     SYSROOT_DIR="$rpm_sysroot"
-    echo "[....] RPM sysroot (assembled from RPMs): $SYSROOT_DIR"
+    echo "[NOTE] RPM sysroot (assembled from RPMs): $SYSROOT_DIR"
 }
 
 # Verify pkg-config requirements against the prepared target sysroot.
@@ -239,16 +228,15 @@ check_rpm_target_requires() {
     done
 }
 
-# Check cross-build eligibility and guard against accidental RPM overwrites.
+# Check for existing RPMs and whether any output needs target tools.
 check_rpm_outputs() {
-    local outputs rpmfile arch_dir host_arch
+    local outputs rpmfile arch_dir
 
-    host_arch=$(uname -m)
-    outputs=$(rpm_output_paths "$spec" "$top")
+    outputs=$(rpm_output_paths)
     while IFS= read -r rpmfile; do
         arch_dir=${rpmfile%/*}
-        if [[ "${arch_dir##*/}" != noarch && "$target_arch" != "$host_arch" && "$rpm_cross" != 1 ]]; then
-            die "RPM build needs rpm_cross=1 in $recipe_dir/rpm.build"
+        if [[ "${arch_dir##*/}" != noarch ]]; then
+            needs_target_tools=1
         fi
         if [[ -e "$rpmfile" || -L "$rpmfile" ]]; then
             (( overwrite == 1 )) || die "RPM already exists: $rpmfile; use --overwrite"
@@ -265,13 +253,17 @@ prepare_rpm_environment() {
         --define '__brp_ldconfig %{nil}' \
         --define "__strip $STRIP" --define "__objdump $OBJDUMP")
 
-    # Check target BuildRequires before clearing the environment for rpmbuild.
+    # Check target BuildRequires before clearing the environment for rpmbuild
     check_rpm_target_requires
+    mkdir -p -- "$top"
+    rpm_tools=$(mktemp -d "$top/cross-tools.XXXXXX")
+    export NATICK_CROSS_TOOLS="$rpm_tools" NATICK_CROSS_HELPER="$SCRIPT_DIR/rpm/cross.sh"
+    bash "$NATICK_CROSS_HELPER" tools
     unset PKG_CONFIG_SYSROOT_DIR PKG_CONFIG_LIBDIR PKG_CONFIG_PATH
     build_args+=(--nodeps)
 }
 
-# Collect the spec's sources and patches in the RPM build tree.
+# Collect the spec's sources and patches in the RPM build tree
 stage_rpm_sources() {
     local metadata tag source source_name sha
 
@@ -316,46 +308,47 @@ refresh_build_repo() (
 # Build binary and source RPMs, then refresh the managed repo (if enabled).
 build_rpm_pkg() (
     local name=$1 overwrite=$2 target_arch=${TARGET%%-*}
-    local rpm_cross=0 rpm_sysroot='' build_repo='' managed_repo=0
-    local -a args=() build_args=() rpm_sysroot_deps=() target_requires=()
+    local needs_target_tools=0 rpm_sysroot='' rpm_tools='' build_repo='' managed_repo=0
+    local -a args=() build_args=() target_requires=()
 
     local recipe_dir="$RECIPE_DIR/$name"
     local spec="$recipe_dir/$name.spec"
     local top="$BUILDROOT/rpm/$TARGET/$name"
     [[ -f "$spec" ]] || die "Spec missing: $spec"
-    if [[ -f "$recipe_dir/rpm.build" ]]; then
-        source "$recipe_dir/rpm.build"
-    fi
-
     source "$SCRIPT_DIR/rpm/defines.sh"
-    args=(--target "$target_arch" "${natick_rpm_defs[@]}")
+    args=("${natick_rpm_defs[@]}" --target "$target_arch" --define "_topdir $top")
+    # --target selects the Natick musl ABI, even on a host with the same CPU
+    args+=(--define 'natick_cross 1' --define 'debug_package %{natick_cross_debug_package}')
     check_rpm_outputs
     if [[ -n "${NATICK_BUILD_REPO:-}" ]]; then
         build_repo=$(realpath -e -- "$NATICK_BUILD_REPO") || die "Cannot locate NATICK_BUILD_REPO"
-    elif [[ "${NATICK_USE_DNF:-0}" == 1 ]]; then
+    else
         check_host_deps createrepo_c
         build_repo="$BUILDROOT/rpm/$TARGET/repo"
         managed_repo=1
     fi
-    if [[ "$rpm_cross" == 1 ]]; then
-        PATH="$TOOLCHAIN_DIR/bin:$PATH" read_rpm_build_requires
-        prepare_rpm_sysroot
-    fi
-    args+=(--define "_topdir $top")
-    if [[ "$rpm_cross" == 1 ]]; then
-        prepare_rpm_environment
-    fi
-
     local log_file="$top/build.log"
     mkdir -p -- "$top"
-    echo "[....] RPM build log: $log_file"
-    {
+    echo "[NOTE] RPM build log: $log_file"
+    (
+        if (( needs_target_tools )); then
+            trap 'rm -rf -- "$rpm_sysroot" "$rpm_tools"' EXIT
+            PATH="$TOOLCHAIN_DIR/bin:$PATH" read_rpm_build_requires
+            prepare_rpm_sysroot
+            prepare_rpm_environment
+        fi
         stage_rpm_sources
-        rpmbuild -ba "${args[@]}" "${build_args[@]}" "$spec" || die "RPM build failed: $name"
+        build_status=0
+        rpmbuild -ba "${args[@]}" "${build_args[@]}" "$spec" || build_status=$?
+        if (( needs_target_tools )) && command -v ccache >/dev/null 2>&1; then
+            echo "[NOTE] ccache statistics (shared cache)"
+            ccache --show-stats || echo "[WARN] Cannot read ccache statistics" >&2
+        fi
+        (( build_status == 0 )) || die "RPM build failed: $name"
         if [[ "$managed_repo" == 1 ]]; then
             refresh_build_repo
         fi
-    } 2>&1 | tee "$log_file"
+    ) 2>&1 | tee "$log_file"
 )
 
 # Remove temporary build files (not including SRPMs and RPMs).
@@ -363,7 +356,7 @@ clean_rpm_pkg() {
     local top="$BUILDROOT/rpm/$TARGET/$1"
 
     echo "[....] Removing RPM build and staging files for $1"
-    rm -rf -- "$top/BUILD" "$top/BUILDROOT" "$top/SOURCES" "$top"/sysroot.* \
+    rm -rf -- "$top/BUILD" "$top/BUILDROOT" "$top/SOURCES" "$top"/sysroot.* "$top"/cross-tools.* \
         || die "Cannot clean RPM build: $1"
 }
 
@@ -433,8 +426,7 @@ fi
     || die "Invalid RPM package name: $package"
 
 case "$target" in
-    x86_64) export LINUX_ARCH="x86" ;;
-    aarch64) export LINUX_ARCH="arm64" ;;
+    x86_64|aarch64) ;;
     *) die "Unsupported target: $target" ;;
 esac
 export TARGET="${target}-linux-musl"

@@ -64,8 +64,8 @@ package_rpm_path() (
     local top="$BUILDROOT/rpm/$TARGET/$spec_name"
 
     [[ -f "$spec" ]] || die "Spec missing: $spec"
-    outputs=$(rpmspec --target "${TARGET%%-*}" --define "_topdir $top" \
-        "${natick_rpm_defs[@]}" -q --rpms \
+    outputs=$(rpmspec "${natick_rpm_defs[@]}" --target "${TARGET%%-*}" \
+        --define "_topdir $top" -q --rpms \
         --qf '%{NAME} %{ARCH} %{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}.rpm\n' "$spec") \
         || die "Cannot query RPM outputs: $spec"
     while read -r name arch filename; do

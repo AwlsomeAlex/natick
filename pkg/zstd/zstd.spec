@@ -1,6 +1,3 @@
-# Skip automatic debuginfo subpackages for cross-build
-%global debug_package %{nil}
-
 Name:           zstd
 Version:        1.6.0
 Release:        1%{?dist}
@@ -36,20 +33,18 @@ Headers, the linker symlink, and pkg-config metadata for libzstd.
 %autosetup
 
 %build
-target_cc="ccache $CC --target=$NATICK_TARGET --sysroot=$NATICK_SYSROOT"
-make %{?_smp_mflags} -C lib CC="$target_cc" libzstd-release
-
-make %{?_smp_mflags} -C programs CC="$target_cc" \
+%natick_make_build -C lib libzstd-release
+%natick_make_build -C programs \
     HAVE_ZLIB=0 HAVE_LZMA=0 HAVE_LZ4=0 zstd-release
 
 %install
 # Shared library and development headers
-make -C lib DESTDIR="%{buildroot}" \
+%natick_make_destdir -C lib \
     PREFIX="%{_prefix}" LIBDIR="%{_libdir}" INCLUDEDIR="%{_includedir}" \
     install-shared install-includes install-pc
 
 # Binaries (including aliases) but not the grep/less helper script
-make -C programs DESTDIR="%{buildroot}" \
+%natick_make_destdir -C programs \
     BINDIR="%{_bindir}" MAN1DIR="%{_mandir}/man1" install
 rm -f -- "%{buildroot}%{_bindir}"/{zstdgrep,zstdless} \
     "%{buildroot}%{_mandir}/man1"/{zstdgrep,zstdless}.1

@@ -1,6 +1,3 @@
-# Skip automatic debuginfo subpackages for cross-build
-%global debug_package %{nil}
-
 Name:           zlib
 Version:        1.4
 Release:        1%{?dist}
@@ -9,8 +6,10 @@ License:        Zlib
 URL:            https://zlib.net/
 Source0:        https://zlib.net/zlib-%{version}.tar.xz
 
-BuildRequires:  natick-host-make
+BuildRequires:  natick-host-cmake
+BuildRequires:  natick-host-ninja
 BuildRequires:  natick-host-ccache
+BuildRequires:  natick-host-pkg-config
 
 %description
 A Massively Spiffy Yet Delicately Unobtrusive Compression Library
@@ -26,17 +25,13 @@ Headers, the linker symlink, and pkg-config metadata for zlib.
 %autosetup
 
 %build
-CC="ccache $CC --target=$NATICK_TARGET --sysroot=$NATICK_SYSROOT" \
-    AR="$AR" RANLIB="$RANLIB" NM="$NM" \
-    ./configure --shared --prefix=%{_prefix} \
-    --libdir=%{_libdir} \
-    --includedir=%{_includedir} --mandir=%{_mandir}
-
-make %{?_smp_mflags}
+%natick_cmake -DZLIB_BUILD_SHARED=ON -DZLIB_BUILD_STATIC=OFF -DZLIB_BUILD_TESTING=OFF
+%natick_cmake_build
 
 %install
-make DESTDIR="%{buildroot}" install
-rm -f -- "%{buildroot}%{_libdir}/libz.a"
+%natick_cmake_install
+# Keep the existing payload; CMake exports can introduce a cmake-filesystem requirement.
+rm -rf -- "%{buildroot}%{_libdir}/cmake/zlib" "%{buildroot}%{_docdir}/zlib"
 
 %files
 %license LICENSE

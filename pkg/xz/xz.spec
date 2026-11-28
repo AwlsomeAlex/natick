@@ -1,6 +1,3 @@
-# Skip automatic debuginfo subpackages for cross-build
-%global debug_package %{nil}
-
 Name:           xz
 Version:        5.8.4
 Release:        1%{?dist}
@@ -39,27 +36,37 @@ Headers, the linker symlink, and pkg-config metadata for liblzma.
 %autosetup
 
 %build
-./configure \
-    --build="$(CC_FOR_BUILD="$HOSTCC" sh ./build-aux/config.guess)" \
-    --host="$NATICK_TARGET" \
-    --prefix=%{_prefix} \
-    --libdir=%{_libdir} \
-    --sysconfdir=%{_sysconfdir} \
-    --localstatedir=%{_localstatedir} \
+%natick_configure \
+    --enable-shared \
+    --disable-static \
     --disable-scripts \
     --disable-doc \
-    --disable-static \
-    --disable-nls \
-    --enable-shared \
-    CC="ccache $CC --target=$NATICK_TARGET --sysroot=$NATICK_SYSROOT" \
-    AR="$AR" \
-    RANLIB="$RANLIB" \
-    STRIP="$STRIP"
+    --disable-nls
 
-make %{?_smp_mflags}
+%make_build
+
+#./configure \
+#    --build="%{natick_build}" \
+#    --host="$NATICK_TARGET" \
+#    --prefix=%{_prefix} \
+#    --libdir=%{_libdir} \
+#    --sysconfdir=%{_sysconfdir} \
+#    --localstatedir=%{_localstatedir} \
+#    --disable-scripts \
+#    --disable-doc \
+#    --disable-static \
+#    --disable-nls \
+#    --enable-shared \
+#    CC="ccache $CC --target=$NATICK_TARGET --sysroot=$NATICK_SYSROOT" \
+#    AR="$AR" \
+#    RANLIB="$RANLIB" \
+#    STRIP="$STRIP"
+
+#make %{?_smp_mflags}
 
 %install
-make DESTDIR="%{buildroot}" install-strip
+%make_install
+#make DESTDIR="%{buildroot}" install-strip
 rm -f -- "%{buildroot}%{_libdir}/liblzma.la"
 
 %files

@@ -1,6 +1,3 @@
-# Skip automatic debuginfo subpackages for cross-build
-%global debug_package %{nil}
-
 Name:           musl
 Version:        1.2.6
 Release:        2%{?dist}
@@ -33,21 +30,29 @@ builtins=$("$CC" --target="$NATICK_TARGET" --sysroot="$NATICK_SYSROOT" \
     --rtlib=compiler-rt --print-libgcc-file-name)
 test -s "$builtins" || { echo "Compiler-rt builtins missing: $builtins" >&2; exit 1; }
 
-./configure \
-    --target="$NATICK_TARGET" \
-    --prefix=/usr \
-    --libdir=%{_libdir} \
+%natick_configure \
     --syslibdir=%{_libdir} \
     --disable-gcc-wrapper \
-    CC="ccache $CC --target=$NATICK_TARGET --sysroot=$NATICK_SYSROOT --ld-path=$NATICK_TOOLCHAIN/bin/ld.lld" \
-    AR="$AR" \
-    RANLIB="$RANLIB" \
     LIBCC="$builtins"
 
-make %{?_smp_mflags}
+%make_build
+
+#./configure \
+#    --target="$NATICK_TARGET" \
+#    --prefix=/usr \
+#    --libdir=%{_libdir} \
+#    --syslibdir=%{_libdir} \
+#    --disable-gcc-wrapper \
+#    CC="ccache $CC --target=$NATICK_TARGET --sysroot=$NATICK_SYSROOT --ld-path=$NATICK_TOOLCHAIN/bin/ld.lld" \
+#    AR="$AR" \
+#    RANLIB="$RANLIB" \
+#    LIBCC="$builtins"
+
+#make %{?_smp_mflags}
 
 %install
-make DESTDIR="%{buildroot}" install
+%{__make} DESTDIR="%{buildroot}" install
+#make DESTDIR="%{buildroot}" install
 
 # musl's install rule tolerates symlink creation failures
 ln -sfn libc.so "%{buildroot}%{_libdir}/ld-musl-%{_target_cpu}.so.1"

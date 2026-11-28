@@ -1,6 +1,3 @@
-# Skip automatic debuginfo subpackages for cross-build
-%global debug_package %{nil}
-
 Name:           finit
 Version:        4.17
 Release:        1%{?dist}
@@ -38,17 +35,8 @@ Headers for building plugins for Finit.
 %autosetup -p1
 
 %build
-./configure \
-    --build="$(CC_FOR_BUILD="$HOSTCC" sh ./aux/config.guess)" \
-    --host="$NATICK_TARGET" \
-    --prefix=/usr \
-    --bindir=%{_bindir} \
-    --sbindir=%{_sbindir} \
-    --libdir=%{_libdir} \
+%natick_configure \
     --libexecdir=%{_libdir} \
-    --sysconfdir=%{_sysconfdir} \
-    --localstatedir=%{_localstatedir} \
-    --runstatedir=%{_runstatedir} \
     --enable-auto-reload \
     --disable-doc \
     --disable-contrib \
@@ -60,16 +48,12 @@ Headers for building plugins for Finit.
     --with-bash-completion-dir=no \
     --with-heading="natickOS" \
     --with-hostname=natickos \
-    --with-random-seed=%{_sharedstatedir}/finit/random-seed \
-    CC="ccache $CC --target=$NATICK_TARGET --sysroot=$NATICK_SYSROOT" \
-    AR="$AR" \
-    RANLIB="$RANLIB" \
-    STRIP="$STRIP"
+    --with-random-seed=%{_sharedstatedir}/finit/random-seed
 
-make %{?_smp_mflags}
+%make_build
 
 %install
-make DESTDIR="%{buildroot}" install
+%make_install
 rm -f -- "%{buildroot}%{_docdir}/finit/LICENSE"
 install -D -m 0644 "%{SOURCE1}" "%{buildroot}%{_sysconfdir}/finit.conf"
 install -D -m 0644 "%{SOURCE2}" "%{buildroot}%{_sysconfdir}/finit.d/logging.conf"

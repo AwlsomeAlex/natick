@@ -1,5 +1,3 @@
-%global debug_package %{nil}
-
 Name:           eudev
 Version:        3.3.0
 Release:        1%{?dist}
@@ -31,22 +29,38 @@ Header, linker symlink, and pkg-config metadata for eudev and libudev.
 %autosetup
 
 %build
-./configure \
-    --build="$(CC="$HOSTCC" sh ./build-aux/config.guess)" \
-    --host="$NATICK_TARGET" \
-    --prefix=/usr --bindir=/usr/bin --sbindir=/usr/sbin \
-    --libdir=%{_libdir} --libexecdir=%{_libdir} \
-    --sysconfdir=/etc --localstatedir=/var --runstatedir=/run \
-    --enable-shared --disable-static \
-    --enable-blkid --enable-kmod --disable-selinux --disable-manpages \
-    --with-system-uid-max=999 --with-system-gid-max=999 \
-    --with-bashcompletiondir=no --with-zshcompletiondir=no \
-    CC="ccache $CC --target=$NATICK_TARGET --sysroot=$NATICK_SYSROOT"
+%natick_configure \
+    --libexecdir=%{_libdir} \
+    --enable-shared \
+    --disable-static \
+    --enable-blkid \
+    --enable-kmod \
+    --disable-selinux \
+    --disable-manpages \
+    --with-system-uid-max=999 \
+    --with-system-gid-max=999 \
+    --with-bashcompletiondir=no \
+    --with-zshcompletiondir=no
 
-make %{?_smp_mflags}
+%make_build
+
+#./configure \
+#    --build="%{natick_build}" \
+#    --host="$NATICK_TARGET" \
+#    --prefix=/usr --bindir=/usr/bin --sbindir=/usr/sbin \
+#    --libdir=%{_libdir} --libexecdir=%{_libdir} \
+#    --sysconfdir=/etc --localstatedir=/var --runstatedir=/run \
+#    --enable-shared --disable-static \
+#    --enable-blkid --enable-kmod --disable-selinux --disable-manpages \
+#    --with-system-uid-max=999 --with-system-gid-max=999 \
+#    --with-bashcompletiondir=no --with-zshcompletiondir=no \
+#    CC="ccache $CC --target=$NATICK_TARGET --sysroot=$NATICK_SYSROOT"
+
+#make %{?_smp_mflags}
 
 %install
-make DESTDIR="%{buildroot}" install
+%make_install
+#make DESTDIR="%{buildroot}" install
 rm -f -- "%{buildroot}%{_libdir}/libudev.la"
 install -D -m 0644 "%{SOURCE1}" "%{buildroot}/etc/default/udevd"
 

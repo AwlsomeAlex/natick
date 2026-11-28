@@ -1,6 +1,3 @@
-# Skip automatic debuginfo subpackages for cross-build
-%global debug_package %{nil}
-
 Name:           openssl
 Version:        4.1.0
 Release:        1%{?dist}
@@ -33,22 +30,33 @@ Headers, the linker symlink, and pkg-config metadata for openssl.
 %autosetup
 
 %build
-case "$NATICK_TARGET" in
-    x86_64-linux-musl) openssl_target=linux-x86_64 ;;
-    aarch64-linux-musl) openssl_target=linux-aarch64 ;;
-    *) echo "Unsupported OpenSSL target: $NATICK_TARGET" >&2; exit 1 ;;
+case "%{_target_cpu}" in
+    x86_64)  openssl_target=linux-x86_64 ;;
+    aarch64) openssl_target=linux-aarch64 ;;
+    *) echo "Unsupported OpenSSL architecture: %{_target_cpu}" >&2; exit 1 ;;
 esac
 
-CC="ccache $CC --target=$NATICK_TARGET --sysroot=$NATICK_SYSROOT" \
-    AR="$AR" RANLIB="$RANLIB" \
-    perl Configure "$openssl_target" shared no-tests no-docs \
+%if %{defined natick_cross}
+export CC="$NATICK_CROSS_TOOLS/cc"
+%endif
+
+perl Configure "$openssl_target" shared no-tests no-docs \
     no-fips no-legacy no-module \
     --prefix=%{_prefix} --libdir=%{_libdir} --openssldir=%{_sysconfdir}/ssl
 
-make %{?_smp_mflags}
+%make_build
+
+#CC="ccache $CC --target=$NATICK_TARGET --sysroot=$NATICK_SYSROOT" \
+#    AR="$AR" RANLIB="$RANLIB" \
+#    perl Configure "$openssl_target" shared no-tests no-docs \
+#    no-fips no-legacy no-module \
+#    --prefix=%{_prefix} --libdir=%{_libdir} --openssldir=%{_sysconfdir}/ssl
+#
+#make %{?_smp_mflags}
 
 %install
-make DESTDIR="%{buildroot}" install_sw
+%{__make} DESTDIR="%{buildroot}" install_sw
+#make DESTDIR="%{buildroot}" install_sw
 install -D -m 0644 apps/openssl.cnf \
     "%{buildroot}%{_sysconfdir}/ssl/openssl.cnf"
 install -d -m 0755 "%{buildroot}%{_sysconfdir}/ssl/certs"

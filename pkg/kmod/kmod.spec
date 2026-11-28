@@ -1,5 +1,3 @@
-%global debug_package %{nil}
-
 Name:           kmod
 Version:        34
 Release:        2%{?dist}
@@ -32,37 +30,15 @@ Header, linker symlink, and pkg-config metadata for libkmod.
 %autosetup
 
 %build
-cat > cross.ini <<EOF
-[binaries]
-c = ['ccache', '$CC', '--target=$NATICK_TARGET', '--sysroot=$NATICK_SYSROOT']
-ar = '$AR'
-strip = '$STRIP'
-pkg-config = 'pkg-config'
-
-[host_machine]
-system = 'linux'
-cpu_family = '%{_target_cpu}'
-cpu = '%{_target_cpu}'
-endian = 'little'
-
-[properties]
-needs_exe_wrapper = true
-sys_root = '$NATICK_SYSROOT'
-pkg_config_libdir = ['$NATICK_SYSROOT/usr/lib/pkgconfig', '$NATICK_SYSROOT/usr/share/pkgconfig']
-EOF
-
-# TODO: Enable compression libraries and OpenSSL once packaged for natickOS.
-meson setup build --cross-file=cross.ini --buildtype=release \
-    --prefix=/usr --bindir=bin --sbindir=sbin --libdir=%{_libdir} \
-    --sysconfdir=/etc --localstatedir=/var --default-library=shared \
+%natick_meson --default-library=shared \
     -Dzlib=enabled -Dxz=enabled -Dzstd=enabled -Dopenssl=enabled \
     -Dmanpages=false -Ddocs=false \
     -Dbashcompletiondir=no -Dfishcompletiondir=no -Dzshcompletiondir=no \
     -Dtools=true
-meson compile -C build %{?_smp_mflags}
+%natick_meson_build
 
 %install
-DESTDIR="%{buildroot}" meson install -C build --no-rebuild
+%natick_meson_install
 
 %files
 %license COPYING

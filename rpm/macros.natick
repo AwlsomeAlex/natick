@@ -1,0 +1,46 @@
+# natickOS cross-build policy
+%natick_cross_debug_package %{nil}
+
+# Autoconf build-machine triple
+%natick_build %{_build}
+
+%natick_configure \
+    %{?natick_cross:CC="ccache $CC --target=$NATICK_TARGET --sysroot=$NATICK_SYSROOT"} ./configure \\\
+        %{?natick_cross:--build="%{natick_build}" --host="$NATICK_TARGET"} \\\
+        --prefix=%{_prefix} \\\
+        --bindir=%{_bindir} \\\
+        --sbindir=%{_sbindir} \\\
+        --libdir=%{_libdir} \\\
+        --sysconfdir=%{_sysconfdir} \\\
+        --localstatedir=%{_localstatedir} \\\
+        --runstatedir=%{_runstatedir}
+
+# build.sh in cross mode supplies machine files and compiler wrappers
+%natick_meson \
+    %{?natick_cross:bash "$NATICK_CROSS_HELPER" meson &&} meson setup build \\\
+        --buildtype=release \\\
+        --prefix=%{_prefix} \\\
+        --bindir=%{_bindir} \\\
+        --sbindir=%{_sbindir} \\\
+        --libdir=%{_libdir} \\\
+        --sysconfdir=%{_sysconfdir} \\\
+        --localstatedir=%{_localstatedir}%{?natick_cross: --cross-file="$NATICK_CROSS_TOOLS/cross.ini"}
+
+%natick_meson_build meson compile -C build %{?_smp_mflags}
+%natick_meson_install DESTDIR="%{buildroot}" meson install -C build --no-rebuild
+
+%natick_cmake \
+    %{?natick_cross:bash "$NATICK_CROSS_HELPER" cmake &&} cmake -S . -B build -G Ninja \\\
+        -DCMAKE_BUILD_TYPE=Release \\\
+        -DCMAKE_INSTALL_PREFIX=%{_prefix} \\\
+        -DCMAKE_INSTALL_LIBDIR=%{_libdir} \\\
+        -DCMAKE_INSTALL_INCLUDEDIR=%{_includedir} \\\
+        -DCMAKE_INSTALL_MANDIR=%{_mandir} \\\
+        -DCMAKE_INSTALL_DOCDIR=%{_docdir} \\\
+        -DCMAKE_INSTALL_SYSCONFDIR=%{_sysconfdir}%{?natick_cross: -DCMAKE_TOOLCHAIN_FILE="$NATICK_CROSS_TOOLS/toolchain.cmake"}
+
+%natick_cmake_build cmake --build build
+%natick_cmake_install DESTDIR="%{buildroot}" cmake --install build
+
+%natick_make_build %{make_build}%{?natick_cross: CC="$NATICK_CROSS_TOOLS/cc"}
+%natick_make_destdir %{__make} DESTDIR="%{buildroot}"%{?natick_cross: CC="$NATICK_CROSS_TOOLS/cc"}
