@@ -53,7 +53,7 @@ scripts/config \
     --enable DEVTMPFS_MOUNT
 
 case "%{kbuild_arch}" in
-    x86)   scripts/config --enable PCI --enable VIRTIO_PCI ;;
+    x86)   scripts/config --enable PCI --enable VIRTIO_PCI --disable NETFILTER_XT_TARGET_TCPMSS ;;
     arm64) scripts/config --disable COMPAT --enable VIRTIO_MMIO ;;
 esac
 
